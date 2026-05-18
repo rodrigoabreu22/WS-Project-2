@@ -78,6 +78,15 @@
       <span style="font-size:1.2rem;">&#10003;</span>
       <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.88rem;color:var(--white);">Run Checks</span>
     </a>
+    <form method="post" action="{% url 'championship:admin_run_inference' %}" style="background:var(--panel);padding:0;">
+      {% csrf_token %}
+      <button type="submit"
+              style="width:100%;background:var(--panel);padding:1rem 1.25rem;border:none;cursor:pointer;display:flex;flex-direction:column;gap:0.25rem;transition:background .15s;text-align:left;"
+              onmouseover="this.style.background='var(--panel-l)'" onmouseout="this.style.background='var(--panel)'">
+        <span style="font-size:1.2rem;">&#9889;</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.88rem;color:var(--white);">Run Inference</span>
+      </button>
+    </form>
   </div>
 </div>
 

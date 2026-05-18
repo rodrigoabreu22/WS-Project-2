@@ -18,6 +18,7 @@ from .forms import (
 )
 from .models import AdminBatchOperation
 from .services.graphdb import GraphDBClient
+from .spin_rules import apply_all_rules
 from .services.imports import (
     RESULT_FIELD_NAMES,
     build_results_import_sample_csv,
@@ -126,6 +127,22 @@ def admin_dashboard(request):
     ]
     latest_batch = AdminBatchOperation.objects.filter(rolled_back_at__isnull=True).first()
     return render(request, "admin/dashboard.html", {"stats": stats, "latest_batch": latest_batch})
+
+
+@login_required(login_url="championship:admin_login")
+def admin_run_inference(request):
+    """POST: Apply all SPIN rules; redirect back to dashboard with results."""
+    if request.method != "POST":
+        return redirect("championship:admin_dashboard")
+    db = GraphDBClient()
+    results = apply_all_rules(db)
+    ok  = sum(1 for r in results if r["ok"])
+    err = len(results) - ok
+    if err:
+        messages.error(request, f"Inference: {ok} rules OK, {err} failed.")
+    else:
+        messages.success(request, f"Inference complete — {ok} rules applied successfully.")
+    return redirect("championship:admin_dashboard")
 
 
 @login_required(login_url="championship:admin_login")

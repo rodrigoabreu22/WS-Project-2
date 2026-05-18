@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from datetime import date
 
+from django.http import JsonResponse
 from django.shortcuts import render
 
 from .forms import LLMAssistantForm
 from .services.graphdb import GraphDBClient
 from .services.llm_assistant import LLMAssistantError, answer_question
+from .services.external_data import get_driver_wikidata, get_circuit_dbpedia, get_constructor_wikidata, get_wikipedia_image
 
 _COMING_SOON = "championship/coming_soon.html"
 RESOURCE_BASE = "http://example.org/resource/"
@@ -129,12 +131,13 @@ def drivers(request):
 
     # Anchor on f1:driverId (property lookup) — avoids rdf:type inference which is very slow.
     rows = db.query("""
-        SELECT ?uri ?label ?nationality ?code ?dob ?driverId WHERE {
+        SELECT ?uri ?label ?nationality ?code ?dob ?driverId ?wikiUrl WHERE {
           ?uri f1:driverId ?driverId ;
                rdfs:label  ?label .
           OPTIONAL { ?uri f1:nationality ?nationality }
-          OPTIONAL { ?uri f1:code ?code }
-          OPTIONAL { ?uri f1:dob  ?dob  }
+          OPTIONAL { ?uri f1:code        ?code        }
+          OPTIONAL { ?uri f1:dob         ?dob         }
+          OPTIONAL { ?uri rdfs:seeAlso   ?wikiUrl     }
         }
     """)
 
@@ -193,6 +196,7 @@ def drivers(request):
             "thirds":      thirds,
             "podiums":     wins + seconds + thirds,
             "img":         _entity_image(label, _DRIVER_IMAGES),
+            "wiki_url":    r.get("wikiUrl", ""),
         })
 
     # Podium sidebar — always from full unfiltered set
@@ -344,17 +348,47 @@ def driver_detail(request, driver_id: str):
     """)
     wiki_url = wiki_rows[0]["url"] if wiki_rows else ""
 
+    # Inferred classification badges (populated by SPIN rules)
+    type_rows = db.query(f"""
+        SELECT ?type WHERE {{
+          {uri} rdf:type ?type .
+          FILTER(?type IN (f1:WorldChampion, f1:MultichampionDriver, f1:Veteran))
+        }}
+    """)
+    inferred_types = {r["type"].split("/")[-1] for r in type_rows}
+    is_champion      = "WorldChampion"      in inferred_types
+    is_multichampion = "MultichampionDriver" in inferred_types
+    is_veteran       = "Veteran"             in inferred_types
+
+    # Teammates panel (populated by SPIN rule infer_wasTeammate)
+    teammate_rows = db.query(f"""
+        SELECT DISTINCT ?teammateLabel ?teammateId WHERE {{
+          {uri} f1:wasTeammate ?teammate .
+          ?teammate rdfs:label ?teammateLabel ;
+                    f1:driverId ?teammateId .
+        }}
+        ORDER BY ?teammateLabel
+        LIMIT 30
+    """)
+
+    external = get_driver_wikidata(info.get("label", ""))
+
     return render(request, "championship/driver_detail.html", {
-        "info":         info,
-        "driver_id":    driver_id,
-        "wins":         wins,
-        "seconds":      seconds,
-        "thirds":       thirds,
-        "total_races":  total_races,
-        "total_points": int(total_points),
-        "constructors": constructor_rows,
-        "circuits":     circuit_rows,
-        "wiki_url":     wiki_url,
+        "info":             info,
+        "driver_id":        driver_id,
+        "wins":             wins,
+        "seconds":          seconds,
+        "thirds":           thirds,
+        "total_races":      total_races,
+        "total_points":     int(total_points),
+        "constructors":     constructor_rows,
+        "circuits":         circuit_rows,
+        "wiki_url":         wiki_url,
+        "is_champion":      is_champion,
+        "is_multichampion": is_multichampion,
+        "is_veteran":       is_veteran,
+        "teammates":        teammate_rows,
+        "external":         external,
     })
 
 
@@ -365,10 +399,11 @@ def constructors(request):
 
     # Basic info — anchor on f1:constructorId
     rows = db.query("""
-        SELECT ?uri ?label ?nationality ?constructorId WHERE {
+        SELECT ?uri ?label ?nationality ?constructorId ?wikiUrl WHERE {
           ?uri f1:constructorId ?constructorId ;
                rdfs:label ?label .
           OPTIONAL { ?uri f1:nationality ?nationality }
+          OPTIONAL { ?uri rdfs:seeAlso   ?wikiUrl     }
         }
     """)
 
@@ -430,6 +465,7 @@ def constructors(request):
             "thirds":      thirds,
             "podiums":     wins + seconds + thirds,
             "img":         _entity_image(label, _CONSTRUCTOR_IMAGES),
+            "wiki_url":    r.get("wikiUrl", ""),
         })
 
     # Sidebar podium — top 3 by wins
@@ -591,6 +627,8 @@ def constructor_detail(request, constructor_id: str):
             "last_year":  r.get("lastYear", ""),
         })
 
+    external = get_constructor_wikidata(info.get("label", ""))
+
     return render(request, "championship/constructor_detail.html", {
         "info":            info,
         "constructor_id":  constructor_id,
@@ -603,6 +641,7 @@ def constructor_detail(request, constructor_id: str):
         "last_year":       last_year,
         "circuits":        circuit_rows,
         "pilots":          pilots,
+        "external":        external,
     })
 
 
@@ -709,6 +748,8 @@ def circuit_detail(request, circuit_id: str):
         LIMIT 5
     """)
 
+    external = get_circuit_dbpedia(info.get("label", ""))
+
     return render(request, "championship/circuit_detail.html", {
         "info":                  info,
         "circuit_id":            circuit_id,
@@ -722,6 +763,7 @@ def circuit_detail(request, circuit_id: str):
         "top_winners":           top_winners,
         "unique_winners_count":  unique_winners_count,
         "fastest":               fastest_rows,
+        "external":              external,
     })
 
 
@@ -1120,7 +1162,7 @@ def race_detail(request, race_id: str):
           OPTIONAL {{
             ?res f1:statusId ?statusId .
             ?statusEnt f1:statusId ?statusId ;
-                       f1:status   ?statusText .
+                       f1:statusLabel ?statusText .
             FILTER(!CONTAINS(STR(?statusEnt), "/result/"))
           }}
           ?driver rdfs:label ?driverLabel ;
@@ -1259,12 +1301,13 @@ def circuits(request):
     # Basic circuit info — anchor on f1:circuitRef (unique to circuits.csv; circuitId
     # is also a literal on race entities so using it would return races too).
     rows = db.query("""
-        SELECT ?uri ?label ?location ?country ?circuitId ?circuitRef WHERE {
+        SELECT ?uri ?label ?location ?country ?circuitId ?circuitRef ?wikiUrl WHERE {
           ?uri f1:circuitRef ?circuitRef ;
                rdfs:label ?label .
-          OPTIONAL { ?uri f1:circuitId ?circuitId }
-          OPTIONAL { ?uri f1:location  ?location  }
-          OPTIONAL { ?uri f1:country   ?country   }
+          OPTIONAL { ?uri f1:circuitId  ?circuitId }
+          OPTIONAL { ?uri f1:location   ?location  }
+          OPTIONAL { ?uri f1:country    ?country   }
+          OPTIONAL { ?uri rdfs:seeAlso  ?wikiUrl   }
         }
     """)
 
@@ -1303,6 +1346,7 @@ def circuits(request):
             "first_year": s.get("first_year", ""),
             "last_year":  s.get("last_year", ""),
             "img":        _entity_image(label, _CIRCUIT_IMAGES),
+            "wiki_url":   r.get("wikiUrl", ""),
         })
 
     # Determine active: last_year == max year in dataset
@@ -1372,11 +1416,68 @@ def circuits(request):
     })
 
 
+def champions(request):
+    """World champions page — uses f1:WorldChampion inferred by SPIN rules."""
+    db = GraphDBClient()
+    rows = db.query("""
+        SELECT ?driver ?driverLabel ?driverId
+               (COUNT(DISTINCT ?season) AS ?titles)
+               (IF(EXISTS { ?driver rdf:type f1:MultichampionDriver }, "true", "false") AS ?multi)
+        WHERE {
+          ?driver rdf:type f1:WorldChampion ;
+                  rdfs:label ?driverLabel ;
+                  f1:driverId ?driverId ;
+                  f1:wonChampionship ?season .
+        }
+        GROUP BY ?driver ?driverLabel ?driverId
+        ORDER BY DESC(?titles) ?driverLabel
+    """)
+    return render(request, "championship/champions.html", {"champions": rows})
+
+
 def sparql(request):
-    return render(request, _COMING_SOON, {"page": "SPARQL"})
+    """Interactive SPARQL explorer — accepts arbitrary SELECT queries."""
+    db      = GraphDBClient()
+    query   = request.GET.get("q", "").strip()
+    results = []
+    columns = []
+    error   = ""
+    default_query = (
+        "SELECT ?driver ?label (COUNT(DISTINCT ?season) AS ?titles) WHERE {\n"
+        "  ?driver rdf:type f1:WorldChampion ;\n"
+        "          rdfs:label ?label ;\n"
+        "          f1:wonChampionship ?season .\n"
+        "}\n"
+        "GROUP BY ?driver ?label\n"
+        "ORDER BY DESC(?titles)\n"
+        "LIMIT 20"
+    )
+    if query:
+        try:
+            raw = db.query_bindings(query)
+            if raw:
+                columns = list(raw[0].keys())
+                # Rows as ordered lists so templates can iterate without dict-by-variable tricks.
+                results = [[row.get(col, {}).get("value", "") for col in columns] for row in raw]
+        except Exception as exc:
+            error = str(exc)
+    return render(request, "championship/sparql.html", {
+        "query":         query or default_query,
+        "results":       results,
+        "columns":       columns,
+        "error":         error,
+        "result_count":  len(results),
+    })
 
 
 # ── Error handlers ────────────────────────────────────────────────────────────
+
+def api_wiki_image(request):
+    """Return Wikipedia thumbnail URL as JSON — called client-side after page load."""
+    wiki_url = request.GET.get("url", "")
+    image = get_wikipedia_image(wiki_url) if wiki_url else ""
+    return JsonResponse({"image": image})
+
 
 def error_404(request, _exception):
     return render(request, "404.html", status=404)

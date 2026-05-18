@@ -132,6 +132,9 @@ TABLE_CONFIG: dict[str, dict[str, Any]] = {
         "class_name": "Status",
         "id_columns": ["statusId"],
         "links": {},
+        # Rename the "status" text column so it emits as f1:statusLabel,
+        # keeping f1:status free to be a pure ObjectProperty (result → status entity).
+        "column_renames": {"status": "statusLabel"},
     },
 }
 
@@ -303,10 +306,11 @@ def read_csvs(input_dir: Path, skip: set[str]) -> dict[str, pd.DataFrame]:
 def emit_row(out: IO[str], table_name: str, config: dict[str, Any], columns: list[str], row: Any) -> None:
     uri = build_row_uri(table_name, row)
     subject = _nt_uri(uri)
+    renames = config.get("column_renames", {})
     out.write(f"{subject} <{RDF.type}> <{class_uri(config['class_name'])}> .\n")
     emit_label(out, table_name, uri, row)
     for column in columns:
-        emit_literal(out, uri, column, getattr(row, column))
+        emit_literal(out, uri, renames.get(column, column), getattr(row, column))
     for column, (target_kind, relation_name) in config["links"].items():
         value = getattr(row, column)
         if has_value(value):

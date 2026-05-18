@@ -320,6 +320,30 @@
     .entity-card-accent { height: 3px; background: var(--line); }
     .entity-card-link:hover .entity-card-accent { background: var(--red); }
 
+    /* Image header on cards */
+    .entity-card-img {
+      height: 140px;
+      background: var(--dark);
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid var(--line);
+      transition: border-color .18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .entity-card-link:hover .entity-card-img { border-color: var(--red); }
+    .entity-card-img.landscape { height: 110px; }
+
+    .entity-card-img-fallback {
+      font-size: 3.5rem;
+      opacity: 0.18;
+      pointer-events: none;
+      user-select: none;
+    }
+    /* hide fallback once an image loads */
+    .entity-card-img img ~ .entity-card-img-fallback { display: none; }
+
     .entity-card-body { padding: 1rem 1rem 0.5rem; }
 
     .entity-card-icon {
@@ -599,6 +623,67 @@
       color: var(--grey);
     }
   </style>
+
+  <!-- Wiki image lazy-load styles -->
+  <style>
+    .wiki-img-slot {
+      background: var(--dark);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Shimmer while fetching */
+    .wiki-img-slot.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg,
+        var(--panel) 0%, var(--panel-l) 40%, var(--panel) 80%);
+      background-size: 200% 100%;
+      animation: wiki-shimmer 1.4s ease-in-out infinite;
+      z-index: 2;
+    }
+    @keyframes wiki-shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Blurred backdrop — fills the container behind the foreground image */
+    .wiki-img-slot .img-bg {
+      position: absolute;
+      inset: -12%;
+      background-size: cover;
+      background-position: center;
+      filter: blur(18px) brightness(0.35) saturate(1.4);
+    }
+
+    /* Foreground image — contained so it always fits regardless of ratio */
+    .wiki-img-slot .img-fg {
+      position: relative;
+      z-index: 1;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      display: block;
+    }
+    .wiki-img-slot .img-fg.loaded { opacity: 1; }
+
+    /* Circle avatars (driver detail hero) use cover + face-biased position */
+    .wiki-img-slot.cover-mode .img-bg { display: none; }
+    .wiki-img-slot.cover-mode .img-fg {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+    }
+  </style>
+
   {% block extra_head %}{% endblock %}
   <script>
     // Apply saved theme before paint to avoid flash
@@ -635,6 +720,12 @@
     <a href="{% url 'championship:circuits' %}" {% if request.resolver_match.url_name == 'circuits' or request.resolver_match.url_name == 'circuit_detail' %}class="active"{% endif %}>
       <span class="drawer-icon">TRK</span>Circuits
     </a>
+    <a href="{% url 'championship:champions' %}" {% if request.resolver_match.url_name == 'champions' %}class="active"{% endif %}>
+      <span class="drawer-icon">&#127942;</span>Champions
+    </a>
+    <a href="{% url 'championship:sparql' %}" {% if request.resolver_match.url_name == 'sparql' %}class="active"{% endif %}>
+      <span class="drawer-icon">SQL</span>SPARQL
+    </a>
     <a href="{% url 'championship:llm_assistant' %}" {% if request.resolver_match.url_name == 'llm_assistant' %}class="active"{% endif %}>
       <span class="drawer-icon">AI</span>F1 Assistant
     </a>
@@ -651,6 +742,8 @@
     <a href="{% url 'championship:seasons' %}"      {% if request.resolver_match.url_name == 'seasons'      or request.resolver_match.url_name == 'season_detail'      %}class="active"{% endif %}>Seasons</a>
     <a href="{% url 'championship:races' %}"        {% if request.resolver_match.url_name == 'races'        or request.resolver_match.url_name == 'race_detail'        %}class="active"{% endif %}>Races</a>
     <a href="{% url 'championship:circuits' %}"     {% if request.resolver_match.url_name == 'circuits'     or request.resolver_match.url_name == 'circuit_detail'     %}class="active"{% endif %}>Circuits</a>
+    <a href="{% url 'championship:champions' %}"    {% if request.resolver_match.url_name == 'champions'                                                                %}class="active"{% endif %}>&#127942; Champions</a>
+    <a href="{% url 'championship:sparql' %}"       {% if request.resolver_match.url_name == 'sparql'                                                                  %}class="active"{% endif %}>SPARQL</a>
     <a href="{% url 'championship:llm_assistant' %}" {% if request.resolver_match.url_name == 'llm_assistant' %}class="active"{% endif %}>F1 Assistant</a>
   </div>
   {% if user.is_authenticated %}
@@ -732,6 +825,59 @@
   <div class="footer-brand">F<span>1</span></div>
   <div class="footer-copy">Formula 1 Data Explorer &mdash; WS Practical Assignment</div>
 </footer>
+
+<script>
+(function () {
+  var API = '/api/wiki-image/';
+
+  function loadSlot(el) {
+    var url = el.dataset.wikiUrl;
+    if (!url) { el.classList.remove('loading'); return; }
+
+    fetch(API + '?url=' + encodeURIComponent(url))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        el.classList.remove('loading');
+        if (!d.image) return;
+
+        var isCover = el.classList.contains('cover-mode');
+        var fg = document.createElement('img');
+        fg.className = 'img-fg';
+        fg.alt = el.dataset.label || '';
+        fg.onload = function() { fg.classList.add('loaded'); };
+
+        /* clear placeholder text/emoji */
+        el.innerHTML = '';
+
+        if (!isCover) {
+          /* blurred backdrop for cards — works with any aspect ratio */
+          var bg = document.createElement('div');
+          bg.className = 'img-bg';
+          bg.style.backgroundImage = 'url(' + d.image + ')';
+          el.appendChild(bg);
+        }
+
+        fg.src = d.image;
+        el.appendChild(fg);
+      })
+      .catch(function() { el.classList.remove('loading'); });
+  }
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        observer.unobserve(entry.target);
+        loadSlot(entry.target);
+      }
+    });
+  }, { rootMargin: '150px' });
+
+  document.querySelectorAll('.wiki-img-slot[data-wiki-url]').forEach(function(el) {
+    el.classList.add('loading');
+    observer.observe(el);
+  });
+})();
+</script>
 
 </body>
 </html>

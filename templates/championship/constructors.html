@@ -500,20 +500,16 @@
     {% for c in constructors %}
     <a class="entity-card-link" href="{% url 'championship:constructor_detail' c.id %}">
       <div class="entity-card">
-        <div class="entity-card-accent"></div>
+        <div class="entity-card-img landscape wiki-img-slot{% if not c.wiki_url %} no-img{% endif %}"
+             {% if c.wiki_url %}data-wiki-url="{{ c.wiki_url }}" data-label="{{ c.label }}"{% endif %}>
+          <div class="entity-card-img-fallback">&#127950;</div>
+        </div>
         <div class="entity-card-body">
-          <!-- Top row: nationality + est. year -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.55rem;">
-            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);">
-              {{ c.nationality }}
-            </span>
-            {% if c.first_year %}
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;color:var(--grey);">
-              Est. {{ c.first_year }}
-            </span>
-            {% endif %}
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.4rem;">
+            <div class="entity-card-name" style="margin-bottom:0;font-size:1.05rem;">{{ c.label }}</div>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);flex-shrink:0;margin-left:0.4rem;margin-top:0.2rem;">{{ c.nationality }}</span>
           </div>
-          <div class="entity-card-name" style="font-size:1.1rem;">{{ c.label }}</div>
+          {% if c.first_year %}<div style="font-size:0.72rem;color:var(--grey);margin-bottom:0.2rem;">Est. {{ c.first_year }}</div>{% endif %}
           <div class="entity-card-stats">
             <div class="entity-card-stat">
               <span class="entity-card-stat-val">{{ c.races }}</span>

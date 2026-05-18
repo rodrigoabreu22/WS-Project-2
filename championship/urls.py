@@ -17,7 +17,9 @@ urlpatterns = [
     path("races/<str:race_id>/", views.race_detail, name="race_detail"),
     path("circuits/", views.circuits, name="circuits"),
     path("circuits/<str:circuit_id>/", views.circuit_detail, name="circuit_detail"),
+    path("champions/", views.champions, name="champions"),
     path("sparql/", views.sparql, name="sparql"),
+    path("api/wiki-image/", views.api_wiki_image, name="api_wiki_image"),
 
     # ── Admin ──────────────────────────────────────────────────────────────
     path("admin-panel/login/",   admin_views.admin_login,   name="admin_login"),
@@ -28,6 +30,7 @@ urlpatterns = [
     path("admin-panel/imports/race-results/<str:token>/confirm/", admin_views.admin_race_results_import_confirm, name="admin_race_results_import_confirm"),
     path("admin-panel/operations/<int:batch_id>/rollback/", admin_views.admin_batch_rollback, name="admin_batch_rollback"),
     path("admin-panel/data-quality/", admin_views.admin_data_quality, name="admin_data_quality"),
+    path("admin-panel/run-inference/", admin_views.admin_run_inference, name="admin_run_inference"),
 
     path("admin-panel/drivers/",                       admin_views.admin_drivers,        name="admin_drivers"),
     path("admin-panel/drivers/add/",                   admin_views.admin_driver_add,     name="admin_driver_add"),

@@ -212,22 +212,27 @@
   &larr; All Seasons
 </a>
 
-<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
-<div class="hero">
+<!-- ── Hero — RDFa 1.1 Lite (Schema.org/Event) + Microformats 2 h-event ── -->
+<article class="hero h-event"
+         vocab="https://schema.org/" typeof="Event"
+         resource="{{ request.build_absolute_uri }}">
+  <meta property="name" content="{{ year }} Formula 1 Season" />
+  <meta property="startDate" content="{{ year }}-01-01" />
   <div class="hero-eyebrow">Formula 1 Season</div>
-  <div class="hero-year">{{ year }}</div>
+  <div class="hero-year p-name">{{ year }}</div>
   <div class="hero-meta">
     <span class="meta-chip">{{ total_races }} Races</span>
     <span class="meta-chip">{{ unique_drivers }} Drivers</span>
     <span class="meta-chip">{{ unique_constructors }} Constructors</span>
     {% if wiki_url %}
+    <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
     <a href="{{ wiki_url }}" target="_blank" rel="noopener"
        class="btn btn-secondary" style="font-size:0.8rem;padding:0.25rem 0.9rem;">
       Wikipedia &rarr;
     </a>
     {% endif %}
   </div>
-</div>
+</article>
 
 <!-- ── Stat tiles ─────────────────────────────────────────────────────────── -->
 <div class="stat-tiles">

@@ -394,14 +394,22 @@
   &larr; All Circuits
 </a>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-avatar">&#127937;</div>
+<!-- Hero — RDFa 1.1 Lite (Schema.org/SportsActivityLocation) + Microformats 2 h-card / h-adr -->
+<article class="hero h-card h-adr"
+         vocab="https://schema.org/" typeof="SportsActivityLocation"
+         resource="{{ request.build_absolute_uri }}">
+  {% if info.lat %}<meta property="latitude"  content="{{ info.lat }}" />{% endif %}
+  {% if info.lng %}<meta property="longitude" content="{{ info.lng }}" />{% endif %}
+  <div class="hero-avatar wiki-img-slot"
+       {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
+       style="border-radius:8px;">
+    <span style="font-size:3rem;opacity:0.4;">&#127937;</span>
+  </div>
   <div class="hero-info">
-    <div class="hero-name">{{ info.label }}</div>
+    <div class="hero-name p-name" property="name">{{ info.label }}</div>
     <div class="hero-meta">
-      {% if info.location %}<span class="meta-chip">{{ info.location }}</span>{% endif %}
-      {% if info.country  %}<span class="meta-chip">{{ info.country }}</span>{% endif %}
+      {% if info.location %}<span class="meta-chip p-locality" property="addressLocality">{{ info.location }}</span>{% endif %}
+      {% if info.country  %}<span class="meta-chip p-country-name" property="addressCountry">{{ info.country }}</span>{% endif %}
       {% if first_year    %}<span class="meta-chip">{{ first_year }}{% if last_year and last_year != first_year %} – {{ last_year }}{% endif %}</span>{% endif %}
       {% if active %}
         <span class="meta-chip chip-active">&#9679; Active</span>
@@ -411,11 +419,12 @@
     </div>
     <div class="hero-actions">
       {% if wiki_url %}
+        <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
         <a href="{{ wiki_url }}" target="_blank" rel="noopener" class="btn btn-secondary">Wikipedia &rarr;</a>
       {% endif %}
     </div>
   </div>
-</div>
+</article>
 
 <!-- Stat tiles -->
 <div class="stat-tiles">
@@ -566,5 +575,16 @@
     </tbody>
   </table>
 </div>
+
+{% if external %}{% if external.abstract or external.length %}
+<div class="section-card" style="margin-top:1.5rem;">
+  <div class="section-head">&#127758; DBpedia enrichment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">(live via SPARQLWrapper)</span></div>
+  <div style="padding:1rem 1.25rem;">
+    {% if external.abstract %}<p style="color:var(--grey);font-size:0.88rem;margin:0 0 0.5rem;line-height:1.5;">{{ external.abstract|truncatechars:400 }}</p>{% endif %}
+    {% if external.length %}<p style="font-size:0.85rem;margin:0;">&#128207; Length: <strong style="color:var(--white);">{{ external.length }}</strong></p>{% endif %}
+    {% if external.dbpedia_uri %}<p style="margin:0.4rem 0 0;"><a href="{{ external.dbpedia_uri }}" target="_blank" rel="noopener" style="color:var(--red);font-size:0.8rem;">DBpedia &rarr;</a></p>{% endif %}
+  </div>
+</div>
+{% endif %}{% endif %}
 
 {% endblock %}

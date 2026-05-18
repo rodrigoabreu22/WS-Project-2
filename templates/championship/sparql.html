@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}SPARQL Explorer{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .page-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 1.25rem;
+  }
+
+  .sparql-form {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .sparql-form-head {
+    background: var(--dark);
+    border-bottom: 2px solid var(--red);
+    padding: 0.7rem 1.25rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sparql-textarea {
+    width: 100%;
+    min-height: 200px;
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    padding: 1rem 1.25rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .sparql-form-footer {
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-top: 1px solid var(--line);
+    background: var(--dark);
+  }
+
+  .prefix-hint {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    color: var(--grey);
+    letter-spacing: 0.04em;
+  }
+
+  .results-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .results-head {
+    background: var(--dark);
+    border-bottom: 2px solid var(--red);
+    padding: 0.7rem 1.25rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    overflow-x: auto;
+    display: block;
+  }
+
+  .results-table thead tr { border-bottom: 1px solid var(--red); }
+  .results-table th {
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.73rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey);
+    white-space: nowrap;
+    background: var(--dark);
+  }
+  .results-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--white);
+    max-width: 400px;
+    word-break: break-all;
+    vertical-align: top;
+  }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table tbody tr:hover td { background: var(--panel-l); }
+
+  .error-box {
+    background: #2a0a0a;
+    border: 1px solid #8b1a1a;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    color: #f87171;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    white-space: pre-wrap;
+  }
+
+  .example-queries {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .example-head {
+    background: var(--dark);
+    border-bottom: 1px solid var(--line);
+    padding: 0.6rem 1.25rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .example-list { list-style: none; }
+  .example-list li {
+    border-bottom: 1px solid var(--line);
+  }
+  .example-list li:last-child { border-bottom: none; }
+  .example-list a {
+    display: block;
+    padding: 0.65rem 1.25rem;
+    color: var(--white);
+    text-decoration: none;
+    font-size: 0.88rem;
+    transition: background 0.12s;
+  }
+  .example-list a:hover { background: var(--panel-l); color: var(--red); }
+  .example-list a small { display: block; color: var(--grey); font-size: 0.75rem; margin-top: 0.1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-title">&#128269; SPARQL Explorer</div>
+<div class="page-sub">Run SELECT queries against the F1 knowledge graph &mdash; prefixes auto-prepended: f1:, res:, rdf:, rdfs:, xsd:</div>
+
+<!-- Example queries -->
+<div class="example-queries">
+  <div class="example-head">Example queries</div>
+  <ul class="example-list">
+    <li>
+      <a href="?q=SELECT+%3Fdriver+%3Flabel+%28COUNT%28DISTINCT+%3Fseason%29+AS+%3Ftitles%29+WHERE+%7B%0A++%3Fdriver+rdf%3Atype+f1%3AWorldChampion+%3B%0A++++++++++rdfs%3Alabel+%3Flabel+%3B%0A++++++++++f1%3AwonChampionship+%3Fseason+.%0A%7D%0AGROUP+BY+%3Fdriver+%3Flabel%0AORDER+BY+DESC%28%3Ftitles%29%0ALIMIT+20">
+        World Champions (inferred)
+        <small>Uses f1:WorldChampion type materialised by SPIN rules</small>
+      </a>
+    </li>
+    <li>
+      <a href="?q=SELECT+%3FdriverLabel+%28COUNT%28DISTINCT+%3Fresult%29+AS+%3Fraces%29+WHERE+%7B%0A++%3Fdriver+rdf%3Atype+f1%3AVeteran+%3B%0A++++++++++rdfs%3Alabel+%3FdriverLabel+.%0A++%3Fresult+f1%3AresultId+%3Fid+%3B+f1%3Adriver+%3Fdriver+.%0A%7D%0AGROUP+BY+%3FdriverLabel%0AORDER+BY+DESC%28%3Fraces%29%0ALIMIT+20">
+        Veterans (100+ race entries, inferred)
+        <small>Uses f1:Veteran type materialised by SPIN rules</small>
+      </a>
+    </li>
+    <li>
+      <a href="?q=SELECT+%3FcircuitLabel+%3Ftype+WHERE+%7B%0A++%3Fcircuit+rdfs%3Alabel+%3FcircuitLabel+.%0A++%7B+%3Fcircuit+rdf%3Atype+f1%3AActiveCircuit+.+BIND%28%22Active%22+AS+%3Ftype%29+%7D%0A++UNION%0A++%7B+%3Fcircuit+rdf%3Atype+f1%3AHistoricCircuit+.+BIND%28%22Historic%22+AS+%3Ftype%29+%7D%0A%7D%0AORDER+BY+%3Ftype+%3FcircuitLabel">
+        Active vs Historic circuits (inferred)
+        <small>Uses f1:ActiveCircuit / f1:HistoricCircuit types</small>
+      </a>
+    </li>
+    <li>
+      <a href="?q=SELECT+%3FdriverLabel+%28COUNT%28DISTINCT+%3Frace%29+AS+%3Fwins%29+WHERE+%7B%0A++%3Fdriver+f1%3AwonRace+%3Frace+%3B%0A++++++++++rdfs%3Alabel+%3FdriverLabel+.%0A%7D%0AGROUP+BY+%3FdriverLabel%0AORDER+BY+DESC%28%3Fwins%29%0ALIMIT+20">
+        Race winners leaderboard (inferred f1:wonRace)
+        <small>Uses f1:wonRace materialised by SPIN rules</small>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<!-- Query form -->
+<form method="get" class="sparql-form">
+  <div class="sparql-form-head">
+    &#9654; SPARQL SELECT Query
+  </div>
+  <textarea name="q" class="sparql-textarea" spellcheck="false" autocorrect="off" autocapitalize="off">{{ query }}</textarea>
+  <div class="sparql-form-footer">
+    <button type="submit" class="btn btn-primary">Run Query</button>
+    <span class="prefix-hint">
+      Auto-prepended: PREFIX f1: &lt;http://example.org/f1/&gt; &nbsp;|&nbsp;
+      PREFIX res: &lt;http://example.org/resource/&gt; &nbsp;|&nbsp;
+      PREFIX rdf: ... &nbsp;|&nbsp; PREFIX rdfs: ... &nbsp;|&nbsp; PREFIX xsd: ...
+    </span>
+  </div>
+</form>
+
+{% if error %}
+<div class="error-box">&#10060; {{ error }}</div>
+{% endif %}
+
+{% if results %}
+<div class="results-card">
+  <div class="results-head">
+    Results &mdash; {{ result_count }} row{{ result_count|pluralize }}
+  </div>
+  <table class="results-table">
+    <thead>
+      <tr>
+        {% for col in columns %}<th>{{ col }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in results %}
+      <tr>
+        {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% elif query and not error %}
+<div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:2rem;text-align:center;color:var(--grey);">
+  No results returned.
+</div>
+{% endif %}
+
+{% endblock %}

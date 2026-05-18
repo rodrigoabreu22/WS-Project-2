@@ -513,15 +513,15 @@
     {% for d in drivers %}
     <a class="entity-card-link" href="{% url 'championship:driver_detail' d.id %}">
       <div class="entity-card">
-        <div class="entity-card-accent"></div>
+        <div class="entity-card-img wiki-img-slot{% if not d.wiki_url %} no-img{% endif %}"
+             {% if d.wiki_url %}data-wiki-url="{{ d.wiki_url }}" data-label="{{ d.label }}"{% endif %}>
+          <div class="entity-card-img-fallback">&#128100;</div>
+        </div>
         <div class="entity-card-body">
-          <!-- Top row: nationality -->
-          <div style="display:flex;justify-content:flex-end;align-items:flex-start;margin-bottom:0.55rem;">
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey);">
-              {{ d.nationality }}
-            </span>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.4rem;">
+            <div class="entity-card-name" style="margin-bottom:0;">{{ d.label }}</div>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);flex-shrink:0;margin-left:0.4rem;margin-top:0.2rem;">{{ d.nationality }}</span>
           </div>
-          <div class="entity-card-name">{{ d.label }}</div>
           <div style="font-size:0.74rem;color:var(--grey);margin-top:0.1rem;margin-bottom:0.2rem;">
             {% if d.born %}b. {{ d.born }}{% endif %}
             {% if d.first_year %}&nbsp;&middot;&nbsp;{{ d.first_year }}{% if d.last_year and d.last_year != d.first_year %}–{{ d.last_year }}{% endif %}{% endif %}

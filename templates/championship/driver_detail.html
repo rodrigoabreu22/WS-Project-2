@@ -265,25 +265,48 @@
   &larr; All Drivers
 </a>
 
-<!-- Hero -->
-<div class="driver-hero">
-  <div class="driver-avatar">&#128100;</div>
+<!-- Hero — RDFa 1.1 Lite (Schema.org/Person) + Microformats 2 h-card -->
+<article class="driver-hero h-card"
+         vocab="https://schema.org/" typeof="Person"
+         resource="{{ request.build_absolute_uri }}">
+  <div class="driver-avatar wiki-img-slot cover-mode"
+       {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
+       style="border-radius:50%;">
+    <span style="font-size:3rem;opacity:0.4;">&#128100;</span>
+  </div>
   <div class="driver-hero-info">
-    <div class="driver-hero-name">{{ info.label }}</div>
+    <div class="driver-hero-name p-name" property="name">{{ info.label }}</div>
     <div class="driver-hero-meta">
       {% if info.code %}<span class="meta-chip">{{ info.code }}</span>{% endif %}
-      {% if info.nationality %}<span class="meta-chip">{{ info.nationality }}</span>{% endif %}
-      {% if info.dob %}<span class="meta-chip">b. {{ info.dob }}</span>{% endif %}
+      {% if info.nationality %}<span class="meta-chip p-nationality" property="nationality">{{ info.nationality }}</span>{% endif %}
+      {% if info.dob %}<span class="meta-chip"><time class="dt-bday" property="birthDate" datetime="{{ info.dob }}">b. {{ info.dob }}</time></span>{% endif %}
       {% if info.age %}<span class="meta-chip">{{ info.age }} yrs</span>{% endif %}
       {% if info.number %}<span class="meta-chip"># {{ info.number }}</span>{% endif %}
+      {% if is_champion %}
+        <a href="{% url 'championship:champions' %}"
+           style="background:#3a2a00;color:#FFD700;border:1px solid #8a6800;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;">
+          &#127942; World Champion
+        </a>
+      {% endif %}
+      {% if is_multichampion %}
+        <span style="background:#3a0a00;color:#ff9900;border:1px solid #993300;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">
+          Multi-Champion
+        </span>
+      {% endif %}
+      {% if is_veteran %}
+        <span style="background:#0a2a1a;color:#4caf50;border:1px solid #1a6a3a;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">
+          Veteran
+        </span>
+      {% endif %}
     </div>
     <div class="driver-hero-actions">
       {% if wiki_url %}
+      <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
       <a href="{{ wiki_url }}" target="_blank" rel="noopener" class="btn btn-secondary">Wikipedia &rarr;</a>
       {% endif %}
     </div>
   </div>
-</div>
+</article>
 
 <!-- Medals -->
 <div class="medals-row">
@@ -364,4 +387,39 @@
   </div>
 
 </div>
+
+<!-- Teammates panel (inferred from f1:wasTeammate SPIN rule) -->
+{% if teammates %}
+<div class="section-card" style="margin-top:1.5rem;">
+  <div class="section-card-head">
+    &#128101; Teammates
+    <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">
+      (inferred via f1:wasTeammate SPIN rule)
+    </span>
+  </div>
+  <style>.teammate-chip{background:var(--dark);border:1px solid var(--line);border-radius:5px;padding:0.35rem 0.75rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;color:var(--white);text-decoration:none;transition:border-color 0.15s}.teammate-chip:hover,.teammate-chip:focus{border-color:var(--red)}</style>
+  <div style="padding:1rem 1.25rem;display:flex;flex-wrap:wrap;gap:0.5rem;">
+    {% for t in teammates %}
+    <a class="teammate-chip" href="{% url 'championship:driver_detail' t.teammateId %}">
+      {{ t.teammateLabel }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if external %}{% if external.description or external.birthPlace or external.image %}
+<div class="section-card" style="margin-top:1.5rem;">
+  <div class="section-card-head">&#127758; Wikidata enrichment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">(live via SPARQLWrapper)</span></div>
+  <div style="padding:1rem 1.25rem;display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap;">
+    {% if external.image %}<img src="{{ external.image }}" alt="{{ info.label }}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:2px solid var(--line);flex-shrink:0;">{% endif %}
+    <div>
+      {% if external.description %}<p style="color:var(--grey);font-size:0.9rem;margin:0 0 0.5rem;">{{ external.description }}</p>{% endif %}
+      {% if external.birthPlace %}<p style="font-size:0.85rem;margin:0;">&#128205; Born in <strong style="color:var(--white);">{{ external.birthPlace }}</strong></p>{% endif %}
+      {% if external.wikidata_uri %}<p style="margin:0.4rem 0 0;"><a href="{{ external.wikidata_uri }}" target="_blank" rel="noopener" style="color:var(--red);font-size:0.8rem;">Wikidata &rarr;</a></p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}{% endif %}
+
 {% endblock %}

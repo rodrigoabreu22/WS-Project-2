@@ -258,23 +258,30 @@
   &larr; All Constructors
 </a>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-avatar">&#127950;</div>
+<!-- Hero — RDFa 1.1 Lite (Schema.org/SportsOrganization) + Microformats 2 h-card -->
+<article class="hero h-card"
+         vocab="https://schema.org/" typeof="SportsOrganization"
+         resource="{{ request.build_absolute_uri }}">
+  <div class="hero-avatar wiki-img-slot"
+       {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
+       style="border-radius:8px;">
+    <span style="font-size:3rem;opacity:0.4;">&#127950;</span>
+  </div>
   <div class="hero-info">
-    <div class="hero-name">{{ info.label }}</div>
+    <div class="hero-name p-name" property="name">{{ info.label }}</div>
     <div class="hero-meta">
-      {% if info.nationality %}<span class="meta-chip">{{ info.nationality }}</span>{% endif %}
+      {% if info.nationality %}<span class="meta-chip p-country-name" property="nationality">{{ info.nationality }}</span>{% endif %}
       {% if first_year %}<span class="meta-chip">{{ first_year }}{% if last_year and last_year != first_year %} – {{ last_year }}{% endif %}</span>{% endif %}
       <span class="meta-chip">{{ pilots|length }} pilot{{ pilots|length|pluralize }}</span>
     </div>
     <div class="hero-actions">
       {% if wiki_url %}
+      <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
       <a href="{{ wiki_url }}" target="_blank" rel="noopener" class="btn btn-secondary">Wikipedia &rarr;</a>
       {% endif %}
     </div>
   </div>
-</div>
+</article>
 
 <!-- Medals -->
 <div class="medals-row">
@@ -370,5 +377,16 @@
     </tbody>
   </table>
 </div>
+
+{% if external %}{% if external.foundingDate or external.hq %}
+<div class="section-card" style="margin-top:1.5rem;">
+  <div class="section-head">&#127758; Wikidata enrichment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">(live via SPARQLWrapper)</span></div>
+  <div style="padding:1rem 1.25rem;">
+    {% if external.foundingDate %}<p style="font-size:0.85rem;margin:0 0 0.4rem;">&#128197; Founded: <strong style="color:var(--white);">{{ external.foundingDate }}</strong></p>{% endif %}
+    {% if external.hq %}<p style="font-size:0.85rem;margin:0 0 0.4rem;">&#127970; Headquarters: <strong style="color:var(--white);">{{ external.hq }}</strong></p>{% endif %}
+    {% if external.wikidata_uri %}<p style="margin:0.4rem 0 0;"><a href="{{ external.wikidata_uri }}" target="_blank" rel="noopener" style="color:var(--red);font-size:0.8rem;">Wikidata &rarr;</a></p>{% endif %}
+  </div>
+</div>
+{% endif %}{% endif %}
 
 {% endblock %}

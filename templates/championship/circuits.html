@@ -503,18 +503,18 @@
     {% for c in circuits %}
     <a class="entity-card-link" href="{% url 'championship:circuit_detail' c.circuit_id %}">
       <div class="entity-card">
-        <div class="entity-card-accent"></div>
+        <div class="entity-card-img landscape wiki-img-slot{% if not c.wiki_url %} no-img{% endif %}"
+             {% if c.wiki_url %}data-wiki-url="{{ c.wiki_url }}" data-label="{{ c.label }}"{% endif %}>
+          <div class="entity-card-img-fallback">&#127937;</div>
+        </div>
         <div class="entity-card-body">
-          <!-- Top row: status badge + country -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.55rem;">
-            <span style="display:inline-block;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;{% if c.active %}background:#1a3a1a;color:#4caf50;border:1px solid #4caf50;{% else %}background:var(--dark);color:var(--grey);border:1px solid var(--line);{% endif %}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+            <div class="entity-card-name" style="margin-bottom:0;">{{ c.label }}</div>
+            <span style="display:inline-block;padding:0.12rem 0.45rem;border-radius:3px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0;margin-left:0.4rem;{% if c.active %}background:#1a3a1a;color:#4caf50;border:1px solid #4caf50;{% else %}background:var(--dark);color:var(--grey);border:1px solid var(--line);{% endif %}">
               {% if c.active %}Active{% else %}Retired{% endif %}
             </span>
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:0.08em;color:var(--grey);text-transform:uppercase;">
-              {{ c.country }}
-            </span>
           </div>
-          <div class="entity-card-name">{{ c.label }}</div>
+          {% if c.location %}<div style="font-size:0.72rem;color:var(--grey);margin-bottom:0.2rem;">&#128205; {{ c.location }}, {{ c.country }}</div>{% endif %}
           {% if c.location %}
           <div style="font-size:0.74rem;color:var(--grey);margin-top:0.1rem;margin-bottom:0.2rem;">{{ c.location }}</div>
           {% endif %}

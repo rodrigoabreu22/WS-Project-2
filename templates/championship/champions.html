@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}World Champions{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+  .page-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .page-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .champion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .champion-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, transform 0.1s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .champion-card:hover {
+    border-color: var(--red);
+    transform: translateY(-2px);
+  }
+
+  .champion-card-head {
+    background: var(--dark);
+    border-bottom: 2px solid var(--red);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .champion-icon { font-size: 1.3rem; }
+
+  .champion-titles {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    color: #FFD700;
+    line-height: 1;
+    margin-left: auto;
+  }
+
+  .champion-title-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 0.1rem;
+    text-align: right;
+  }
+
+  .champion-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--white);
+    padding: 0.85rem 1rem 0.4rem;
+  }
+
+  .champion-badges {
+    padding: 0 1rem 0.85rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+  }
+
+  .badge-champion    { background: #3a2a00; color: #FFD700; border: 1px solid #8a6800; }
+  .badge-multichamp  { background: #3a0a00; color: #ff9900; border: 1px solid #993300; }
+
+  {% if not champions %}
+  .no-data-box {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--grey);
+  }
+  .no-data-box p { margin: 0.5rem 0; }
+  .no-data-box code {
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.85rem;
+    color: var(--white);
+  }
+  {% endif %}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- RDFa on page container -->
+<div vocab="https://schema.org/" typeof="ItemList">
+  <meta property="name" content="Formula 1 World Champions" />
+
+  <div class="page-header">
+    <div class="page-title">&#127942; World Champions</div>
+    <div class="page-sub">Inferred by SPIN rules from driver standings data &mdash; {{ champions|length }} champion{{ champions|length|pluralize }}</div>
+  </div>
+
+  {% if champions %}
+  <div class="champion-grid">
+    {% for c in champions %}
+    <a class="champion-card" href="{% url 'championship:driver_detail' c.driverId %}"
+       property="itemListElement" typeof="Person">
+      <div class="champion-card-head">
+        <span class="champion-icon">&#127942;</span>
+        <div style="margin-left:auto;text-align:right;">
+          <div class="champion-titles">{{ c.titles }}</div>
+          <div class="champion-title-label">title{{ c.titles|pluralize }}</div>
+        </div>
+      </div>
+      <div class="champion-name" property="name">{{ c.driverLabel }}</div>
+      <div class="champion-badges">
+        <span class="badge badge-champion">World Champion</span>
+        {% if c.multi == "true" %}
+        <span class="badge badge-multichamp">Multi-Champion</span>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="no-data-box">
+    <p style="font-size:1.5rem;">&#9888;</p>
+    <p>No world champions found in the knowledge graph.</p>
+    <p>Run the SPIN inference rules first:</p>
+    <p><code>python manage.py run_spin_rules</code></p>
+    <p>or use the <a href="{% url 'championship:admin_dashboard' %}" style="color:var(--red);">admin dashboard</a> &rarr; Run Inference.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
