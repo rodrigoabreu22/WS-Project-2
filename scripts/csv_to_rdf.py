@@ -28,6 +28,8 @@ TABLE_CONFIG: dict[str, dict[str, Any]] = {
         "class_name": "Circuit",
         "id_columns": ["circuitId"],
         "links": {},
+        # rdf:type NOT emitted — inferred by the ontology via rdfs:domain of f1:circuitRef
+        "infer_type": True,
     },
     "constructors": {
         "filename": "constructors.csv",
@@ -35,6 +37,8 @@ TABLE_CONFIG: dict[str, dict[str, Any]] = {
         "class_name": "Constructor",
         "id_columns": ["constructorId"],
         "links": {},
+        # rdf:type NOT emitted — inferred by the ontology via rdfs:domain of f1:constructorRef
+        "infer_type": True,
     },
     "drivers": {
         "filename": "drivers.csv",
@@ -42,6 +46,8 @@ TABLE_CONFIG: dict[str, dict[str, Any]] = {
         "class_name": "Driver",
         "id_columns": ["driverId"],
         "links": {},
+        # rdf:type NOT emitted — inferred by the ontology via rdfs:domain of f1:driverRef
+        "infer_type": True,
     },
     "races": {
         "filename": "races.csv",
@@ -307,7 +313,8 @@ def emit_row(out: IO[str], table_name: str, config: dict[str, Any], columns: lis
     uri = build_row_uri(table_name, row)
     subject = _nt_uri(uri)
     renames = config.get("column_renames", {})
-    out.write(f"{subject} <{RDF.type}> <{class_uri(config['class_name'])}> .\n")
+    if not config.get("infer_type", False):
+        out.write(f"{subject} <{RDF.type}> <{class_uri(config['class_name'])}> .\n")
     emit_label(out, table_name, uri, row)
     for column in columns:
         emit_literal(out, uri, renames.get(column, column), getattr(row, column))

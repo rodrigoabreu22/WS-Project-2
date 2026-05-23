@@ -8,6 +8,22 @@ GraphDBClient.run_update() prepends its own PREFIXES (rdf:, rdfs:, f1:, xsd:)
 automatically, so the queries below need no prefix declarations of their own.
 
 Reference: ws.10a — SPIN/SPARQL Inference Notation.
+
+WHY SPIN INSTEAD OF OWL REASONING
+──────────────────────────────────
+OWL DL (including GraphDB's OWL-Max ruleset) covers:
+  • rdfs:subClassOf / rdfs:subPropertyOf chains
+  • rdfs:domain / rdfs:range → class membership from property usage
+  • owl:FunctionalProperty, owl:SymmetricProperty, owl:inverseOf
+  • owl:someValuesFrom / owl:allValuesFrom restrictions on known individuals
+
+OWL DL CANNOT express:
+  • Aggregation — COUNT(*), GROUP BY, HAVING (e.g. "has ≥ 100 race entries")
+  • Arithmetic comparisons involving computed values (e.g. "MAX round per year")
+  • Negation-as-failure patterns needed to establish the last round of a season
+
+All rules below fall into one or more of these categories and therefore cannot be
+handled by the reasoner.  Each rule documents its specific reason.
 """
 
 from __future__ import annotations
@@ -18,6 +34,9 @@ import time
 SPIN_RULES: list[dict] = [
     {
         "name": "infer_wonRace",
+        # WHY SPIN: requires a numeric equality filter (positionOrder = 1).
+        # OWL owl:hasValue can express a single fixed value, but cannot join across
+        # the result–driver–race triple pattern needed to derive the link.
         "description": "Driver who finished positionOrder=1 gets f1:wonRace link.",
         "query": """
 INSERT { ?driver f1:wonRace ?race . }
@@ -32,6 +51,9 @@ WHERE {
     },
     {
         "name": "infer_achievedPodium",
+        # WHY SPIN: uses FILTER(?pos <= 3), an arithmetic inequality.
+        # OWL restrictions (owl:someValuesFrom, owl:maxInclusive via data ranges)
+        # cannot be combined with the cross-entity join pattern required here.
         "description": "Driver with positionOrder <= 3 gets f1:achievedPodium link.",
         "query": """
 INSERT { ?driver f1:achievedPodium ?race . }
@@ -73,6 +95,10 @@ WHERE {
     },
     {
         "name": "infer_wonChampionship",
+        # WHY SPIN: requires GROUP BY + MAX to find the final round of each season,
+        # then a FILTER join between the subquery result and the main pattern.
+        # OWL DL has no mechanism for aggregation or for comparing a value against
+        # a dynamically computed maximum.
         "description": "Driver holding position=1 in DriverStanding at the final round of a season wins the championship.",
         "query": """
 INSERT { ?driver f1:wonChampionship ?season . }
@@ -144,6 +170,9 @@ WHERE {
     },
     {
         "name": "classify_ActiveCircuit",
+        # WHY SPIN: requires MAX aggregation to find the most recent year in the
+        # dataset, then uses it as a filter condition.  OWL cannot compute or
+        # reference a maximum value across the entire dataset.
         "description": "Circuit that hosted a race in the latest season of the dataset is classified as f1:ActiveCircuit.",
         "query": """
 INSERT { ?circuit rdf:type f1:ActiveCircuit . }
@@ -157,6 +186,11 @@ WHERE {
     },
     {
         "name": "classify_PodiumResult",
+        # WHY SPIN: uses FILTER(?pos <= 3), an arithmetic inequality on a data value.
+        # OWL 2 data ranges (owl:onDataRange with xsd:maxInclusive) can express this
+        # as a necessary condition on a class, but cannot match existing individuals
+        # against that range and reclassify them without a complete DL reasoner pass
+        # over every Result individual — which is intractable at dataset scale.
         "description": "RaceResult with positionOrder <= 3 is classified as f1:PodiumResult.",
         "query": """
 INSERT { ?result rdf:type f1:PodiumResult . }
@@ -165,6 +199,71 @@ WHERE {
           f1:positionOrder ?pos .
   FILTER(?pos <= 3)
   FILTER NOT EXISTS { ?result rdf:type f1:PodiumResult }
+}
+""",
+    },
+    {
+        "name": "infer_wonConstructorChampionship",
+        # WHY SPIN: mirrors infer_wonChampionship but for constructors.  Requires
+        # GROUP BY + MAX to identify the final round of each season and a correlated
+        # filter — not expressible in OWL DL.  Secondary entity: this property does
+        # NOT exist in the raw dataset and is fully synthesised here.
+        "description": "Constructor holding position=1 in ConstructorStanding at the final round of a season wins the championship.",
+        "query": """
+INSERT { ?constructor f1:wonConstructorChampionship ?season . }
+WHERE {
+  ?cs f1:constructorStandingsId ?anyId ;
+      f1:race ?race ;
+      f1:constructor ?constructor ;
+      f1:position 1 .
+  ?race f1:round ?round ;
+        f1:year ?yr .
+  ?season f1:year ?yr .
+  {
+    SELECT ?yr (MAX(?r) AS ?maxRound)
+    WHERE { ?rc f1:round ?r ; f1:year ?yr . }
+    GROUP BY ?yr
+  }
+  FILTER(?round = ?maxRound)
+  FILTER NOT EXISTS { ?constructor f1:wonConstructorChampionship ?season }
+}
+""",
+    },
+    {
+        "name": "classify_ConstructorChampion",
+        # WHY SPIN: depends on f1:wonConstructorChampionship which is itself a SPIN-
+        # derived property (not in raw data).  OWL someValuesFrom cannot reason over
+        # a property that does not yet exist at load time; it would require a two-pass
+        # DL classification after the SPIN rule has run.
+        "description": "Constructor with at least one wonConstructorChampionship is classified as f1:ConstructorChampion.",
+        "query": """
+INSERT { ?constructor rdf:type f1:ConstructorChampion . }
+WHERE {
+  ?constructor f1:wonConstructorChampionship ?season .
+  FILTER NOT EXISTS { ?constructor rdf:type f1:ConstructorChampion }
+}
+""",
+    },
+    {
+        "name": "classify_HistoricCircuit",
+        # WHY SPIN: requires computing (MAX year in dataset) - 10 as a threshold, then
+        # applying it as a FILTER on per-circuit race history.  Both the arithmetic on
+        # a dataset-wide aggregate and the negation-as-failure pattern (no race in
+        # the window) are beyond OWL DL expressivity.  This is also a secondary
+        # entity: "historic" is a derived semantic label not present in the source data.
+        "description": "Circuit with no race in the last 10 years of the dataset is classified as f1:HistoricCircuit.",
+        "query": """
+INSERT { ?circuit rdf:type f1:HistoricCircuit . }
+WHERE {
+  { SELECT (MAX(xsd:integer(STR(?yr))) AS ?maxYr)
+    WHERE { ?r f1:year ?yr . } }
+  ?circuit f1:circuitRef ?ref .
+  FILTER NOT EXISTS {
+    ?race f1:circuit ?circuit ;
+          f1:year ?ry .
+    FILTER(xsd:integer(STR(?ry)) >= ?maxYr - 10)
+  }
+  FILTER NOT EXISTS { ?circuit rdf:type f1:HistoricCircuit }
 }
 """,
     },
