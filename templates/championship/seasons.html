@@ -284,7 +284,9 @@
       </thead>
       <tbody id="seasonTableBody">
         {% for s in seasons %}
-        <tr onclick="location.href='{% url 'championship:season_detail' s.year %}'" style="cursor:pointer;"
+        <tr onclick="location.href='{% url 'championship:season_detail' s.year %}'"
+            onkeydown="if(event.key==='Enter')location.href='{% url 'championship:season_detail' s.year %}'"
+            tabindex="0" style="cursor:pointer;"
             data-year="{{ s.year }}" data-races="{{ s.races }}"
             data-winner="{{ s.top_winner_label|lower|default:'' }}">
           <td>

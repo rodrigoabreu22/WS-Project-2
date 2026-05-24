@@ -401,7 +401,7 @@
     </thead>
     <tbody>
       {% for r in races %}
-      <tr onclick="location.href='{% url 'championship:race_detail' r.id %}'">
+      <tr onclick="location.href='{% url 'championship:race_detail' r.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'championship:race_detail' r.id %}'" tabindex="0">
         <td style="color:var(--grey);font-size:0.8rem;">{{ offset|add:forloop.counter }}</td>
         <td>
           <a class="race-link" href="{% url 'championship:race_detail' r.id %}">{{ r.label }}</a>

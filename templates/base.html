@@ -300,21 +300,29 @@
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 1rem;
       margin-bottom: 0.5rem;
+      align-items: start;
     }
 
-    .entity-card-link { text-decoration: none; color: inherit; display: block; }
+    .entity-card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      z-index: 0;
+    }
+    .entity-card-link:hover { z-index: 10; }
 
     .entity-card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
       overflow: hidden;
-      height: 100%;
-      transition: border-color .18s, transform .18s;
+      transition: border-color .25s, transform .25s, box-shadow .25s;
     }
     .entity-card-link:hover .entity-card {
       border-color: var(--red);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 36px rgba(0,0,0,.55);
     }
 
     .entity-card-accent { height: 3px; background: var(--line); }
@@ -327,13 +335,17 @@
       position: relative;
       overflow: hidden;
       border-bottom: 2px solid var(--line);
-      transition: border-color .18s;
+      transition: height .35s ease, border-color .25s;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .entity-card-link:hover .entity-card-img { border-color: var(--red); }
+    .entity-card-link:hover .entity-card-img {
+      height: 210px;
+      border-color: var(--red);
+    }
     .entity-card-img.landscape { height: 110px; }
+    .entity-card-link:hover .entity-card-img.landscape { height: 180px; }
 
     .entity-card-img-fallback {
       font-size: 3.5rem;
@@ -721,7 +733,7 @@
       <span class="drawer-icon">TRK</span>Circuits
     </a>
     <a href="{% url 'championship:champions' %}" {% if request.resolver_match.url_name == 'champions' %}class="active"{% endif %}>
-      <span class="drawer-icon">&#127942;</span>Champions
+      <span class="drawer-icon">CHM</span>Champions
     </a>
     <a href="{% url 'championship:sparql' %}" {% if request.resolver_match.url_name == 'sparql' %}class="active"{% endif %}>
       <span class="drawer-icon">SQL</span>SPARQL
@@ -742,7 +754,7 @@
     <a href="{% url 'championship:seasons' %}"      {% if request.resolver_match.url_name == 'seasons'      or request.resolver_match.url_name == 'season_detail'      %}class="active"{% endif %}>Seasons</a>
     <a href="{% url 'championship:races' %}"        {% if request.resolver_match.url_name == 'races'        or request.resolver_match.url_name == 'race_detail'        %}class="active"{% endif %}>Races</a>
     <a href="{% url 'championship:circuits' %}"     {% if request.resolver_match.url_name == 'circuits'     or request.resolver_match.url_name == 'circuit_detail'     %}class="active"{% endif %}>Circuits</a>
-    <a href="{% url 'championship:champions' %}"    {% if request.resolver_match.url_name == 'champions'                                                                %}class="active"{% endif %}>&#127942; Champions</a>
+    <a href="{% url 'championship:champions' %}"    {% if request.resolver_match.url_name == 'champions'                                                                %}class="active"{% endif %}>Champions</a>
     <a href="{% url 'championship:sparql' %}"       {% if request.resolver_match.url_name == 'sparql'                                                                  %}class="active"{% endif %}>SPARQL</a>
     <a href="{% url 'championship:llm_assistant' %}" {% if request.resolver_match.url_name == 'llm_assistant' %}class="active"{% endif %}>F1 Assistant</a>
   </div>

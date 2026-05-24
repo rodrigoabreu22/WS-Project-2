@@ -54,7 +54,7 @@
   /* Image area — placeholder until real images are provided */
   .circuit-img-area {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 120px;
     background: var(--dark);
     display: flex;
     align-items: center;
@@ -62,7 +62,9 @@
     font-size: 3.5rem;
     overflow: hidden;
     position: relative;
+    transition: height .35s ease;
   }
+  .podium-slot:hover .circuit-img-area { height: 190px; }
 
   .circuit-img-area img {
     width: 100%;
@@ -341,9 +343,9 @@
     <!-- 2nd place -->
     <a class="podium-slot p2" href="{% url 'championship:circuit_detail' podium.1.circuit_id %}">
       <div class="podium-info-card">
-        <div class="circuit-img-area">
-          {% if podium.1.img %}<img src="{% static podium.1.img %}" alt="{{ podium.1.label }}">{% endif %}
-          <span class="img-fallback" {% if podium.1.img %}style="display:none"{% endif %}>&#127937;</span>
+        <div class="circuit-img-area wiki-img-slot cover-mode"
+             {% if podium.1.wiki_url %}data-wiki-url="{{ podium.1.wiki_url }}" data-label="{{ podium.1.label }}"{% endif %}>
+          <span class="img-fallback">&#127937;</span>
         </div>
         <div class="podium-card-body">
           <div class="podium-circuit-name">{{ podium.1.label }}</div>
@@ -358,9 +360,9 @@
     <!-- 1st place -->
     <a class="podium-slot p1" href="{% url 'championship:circuit_detail' podium.0.circuit_id %}">
       <div class="podium-info-card">
-        <div class="circuit-img-area">
-          {% if podium.0.img %}<img src="{% static podium.0.img %}" alt="{{ podium.0.label }}">{% endif %}
-          <span class="img-fallback" {% if podium.0.img %}style="display:none"{% endif %}>&#127937;</span>
+        <div class="circuit-img-area wiki-img-slot cover-mode"
+             {% if podium.0.wiki_url %}data-wiki-url="{{ podium.0.wiki_url }}" data-label="{{ podium.0.label }}"{% endif %}>
+          <span class="img-fallback">&#127937;</span>
         </div>
         <div class="podium-card-body">
           <div class="podium-circuit-name">{{ podium.0.label }}</div>
@@ -375,9 +377,9 @@
     <!-- 3rd place -->
     <a class="podium-slot p3" href="{% url 'championship:circuit_detail' podium.2.circuit_id %}">
       <div class="podium-info-card">
-        <div class="circuit-img-area">
-          {% if podium.2.img %}<img src="{% static podium.2.img %}" alt="{{ podium.2.label }}">{% endif %}
-          <span class="img-fallback" {% if podium.2.img %}style="display:none"{% endif %}>&#127937;</span>
+        <div class="circuit-img-area wiki-img-slot cover-mode"
+             {% if podium.2.wiki_url %}data-wiki-url="{{ podium.2.wiki_url }}" data-label="{{ podium.2.label }}"{% endif %}>
+          <span class="img-fallback">&#127937;</span>
         </div>
         <div class="podium-card-body">
           <div class="podium-circuit-name">{{ podium.2.label }}</div>
@@ -470,7 +472,7 @@
     </thead>
     <tbody>
       {% for c in circuits %}
-      <tr onclick="location.href='{% url 'championship:circuit_detail' c.circuit_id %}'">
+      <tr onclick="location.href='{% url 'championship:circuit_detail' c.circuit_id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'championship:circuit_detail' c.circuit_id %}'" tabindex="0">
         <td style="color:var(--grey);font-size:0.8rem;">{{ offset|add:forloop.counter }}</td>
         <td>
           <a class="circuit-name-cell" style="text-decoration:none;display:block;"

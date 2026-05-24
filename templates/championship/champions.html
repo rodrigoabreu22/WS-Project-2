@@ -3,9 +3,7 @@
 
 {% block extra_head %}
 <style>
-  .page-header {
-    margin-bottom: 1.5rem;
-  }
+  .page-header { margin-bottom: 1.5rem; }
   .page-title {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 900;
@@ -22,12 +20,15 @@
     color: var(--grey);
   }
 
+  /* ── Grid ───────────────────────────────────────────────── */
   .champion-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
+    align-items: start;
   }
 
+  /* ── Card ───────────────────────────────────────────────── */
   .champion-card {
     background: var(--panel);
     border: 1px solid var(--line);
@@ -35,75 +36,115 @@
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: border-color 0.15s, transform 0.1s;
+    transition: border-color .25s, transform .25s, box-shadow .25s;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 0;
   }
-
   .champion-card:hover {
     border-color: var(--red);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(0,0,0,.55);
+    z-index: 10;
   }
 
-  .champion-card-head {
+  /* ── Photo area ─────────────────────────────────────────── */
+  .champion-photo {
+    width: 100%;
+    height: 160px;
     background: var(--dark);
-    border-bottom: 2px solid var(--red);
-    padding: 0.6rem 1rem;
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+    transition: height .35s ease;
+  }
+  .champion-card:hover .champion-photo { height: 240px; }
+  .champion-photo .photo-fallback {
+    font-size: 4rem;
+    line-height: 1;
+    opacity: 0.25;
   }
 
-  .champion-icon { font-size: 1.3rem; }
-
-  .champion-titles {
+  /* Titles badge — top-right corner */
+  .titles-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0,0,0,0.75);
+    border: 1px solid #8a6800;
+    border-radius: 4px;
+    padding: 0.2rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+    backdrop-filter: blur(4px);
+  }
+  .titles-count {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 900;
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #FFD700;
     line-height: 1;
-    margin-left: auto;
   }
-
-  .champion-title-label {
+  .titles-word {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 600;
-    font-size: 0.65rem;
+    font-size: 0.58rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--grey);
-    margin-top: 0.1rem;
-    text-align: right;
+    color: #a08000;
   }
 
+  /* ── Card body ──────────────────────────────────────────── */
+  .champion-body {
+    padding: 0.75rem 1rem 0.9rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
   .champion-name {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 800;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: var(--white);
-    padding: 0.85rem 1rem 0.4rem;
+    line-height: 1.15;
   }
-
   .champion-badges {
-    padding: 0 1rem 0.85rem;
     display: flex;
-    gap: 0.4rem;
+    gap: 0.35rem;
     flex-wrap: wrap;
+    margin-top: auto;
   }
-
   .badge {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 0.2rem 0.55rem;
+    padding: 0.18rem 0.5rem;
     border-radius: 3px;
   }
+  .badge-champion   { background: #2a1f00; color: #FFD700; border: 1px solid #6a5000; }
+  .badge-multichamp { background: #3a0a00; color: #ff9900; border: 1px solid #993300; }
 
-  .badge-champion    { background: #3a2a00; color: #FFD700; border: 1px solid #8a6800; }
-  .badge-multichamp  { background: #3a0a00; color: #ff9900; border: 1px solid #993300; }
+  /* ── Red accent strip on card left edge ─────────────────── */
+  .champion-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--red);
+    border-radius: 8px 0 0 8px;
+  }
 
+  /* ── No-data box ────────────────────────────────────────── */
   {% if not champions %}
   .no-data-box {
     background: var(--panel);
@@ -128,13 +169,12 @@
 
 {% block content %}
 
-<!-- RDFa on page container -->
 <div vocab="https://schema.org/" typeof="ItemList">
   <meta property="name" content="Formula 1 World Champions" />
 
   <div class="page-header">
-    <div class="page-title">&#127942; World Champions</div>
-    <div class="page-sub">Inferred by SPIN rules from driver standings data &mdash; {{ champions|length }} champion{{ champions|length|pluralize }}</div>
+    <div class="page-title">World Champions</div>
+    <div class="page-sub">Inferred by SPIN rules from driver standings &mdash; {{ champions|length }} champion{{ champions|length|pluralize }}</div>
   </div>
 
   {% if champions %}
@@ -142,20 +182,26 @@
     {% for c in champions %}
     <a class="champion-card" href="{% url 'championship:driver_detail' c.driverId %}"
        property="itemListElement" typeof="Person">
-      <div class="champion-card-head">
-        <span class="champion-icon">&#127942;</span>
-        <div style="margin-left:auto;text-align:right;">
-          <div class="champion-titles">{{ c.titles }}</div>
-          <div class="champion-title-label">title{{ c.titles|pluralize }}</div>
+
+      <div class="champion-photo wiki-img-slot cover-mode"
+           {% if c.wikiUrl %}data-wiki-url="{{ c.wikiUrl }}" data-label="{{ c.driverLabel }}"{% endif %}>
+        <span class="photo-fallback">&#128100;</span>
+        <div class="titles-badge">
+          <span class="titles-count">{{ c.titles }}</span>
+          <span class="titles-word">title{{ c.titles|pluralize }}</span>
         </div>
       </div>
-      <div class="champion-name" property="name">{{ c.driverLabel }}</div>
-      <div class="champion-badges">
-        <span class="badge badge-champion">World Champion</span>
-        {% if c.multi == "true" %}
-        <span class="badge badge-multichamp">Multi-Champion</span>
-        {% endif %}
+
+      <div class="champion-body">
+        <div class="champion-name" property="name">{{ c.driverLabel }}</div>
+        <div class="champion-badges">
+          <span class="badge badge-champion">World Champion</span>
+          {% if c.multi == "true" %}
+          <span class="badge badge-multichamp">Multi-Champion</span>
+          {% endif %}
+        </div>
       </div>
+
     </a>
     {% endfor %}
   </div>

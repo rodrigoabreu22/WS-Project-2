@@ -120,7 +120,9 @@
     align-items: center;
     justify-content: center;
     border-bottom: 1px solid var(--line);
+    transition: height .35s ease;
   }
+  .podium-slot:hover .podium-photo { height: 200px; }
 
   .podium-photo img {
     width: 100%;
@@ -140,6 +142,7 @@
     font-size: 1.2rem;
     line-height: 1;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+    z-index: 3;
   }
 
   .podium-card-text { padding: 0.7rem 0.9rem 0.9rem; text-align: center; }
@@ -323,8 +326,9 @@
     <!-- 2nd place -->
     <a class="podium-slot p2" href="{% url 'championship:constructor_detail' podium.1.id %}">
       <div class="podium-info-card">
-        <div class="podium-photo">
-          {% if podium.1.img %}<img src="{% static podium.1.img %}" alt="{{ podium.1.label }}">{% else %}<span class="photo-fallback">&#129352;</span>{% endif %}
+        <div class="podium-photo wiki-img-slot cover-mode"
+             {% if podium.1.wiki_url %}data-wiki-url="{{ podium.1.wiki_url }}" data-label="{{ podium.1.label }}"{% endif %}>
+          <span class="photo-fallback">&#129352;</span>
           <span class="podium-medal-badge">&#129352;</span>
         </div>
         <div class="podium-card-text">
@@ -340,8 +344,9 @@
     <!-- 1st place -->
     <a class="podium-slot p1" href="{% url 'championship:constructor_detail' podium.0.id %}">
       <div class="podium-info-card">
-        <div class="podium-photo">
-          {% if podium.0.img %}<img src="{% static podium.0.img %}" alt="{{ podium.0.label }}">{% else %}<span class="photo-fallback">&#129351;</span>{% endif %}
+        <div class="podium-photo wiki-img-slot cover-mode"
+             {% if podium.0.wiki_url %}data-wiki-url="{{ podium.0.wiki_url }}" data-label="{{ podium.0.label }}"{% endif %}>
+          <span class="photo-fallback">&#129351;</span>
           <span class="podium-medal-badge">&#129351;</span>
         </div>
         <div class="podium-card-text">
@@ -357,8 +362,9 @@
     <!-- 3rd place -->
     <a class="podium-slot p3" href="{% url 'championship:constructor_detail' podium.2.id %}">
       <div class="podium-info-card">
-        <div class="podium-photo">
-          {% if podium.2.img %}<img src="{% static podium.2.img %}" alt="{{ podium.2.label }}">{% else %}<span class="photo-fallback">&#129353;</span>{% endif %}
+        <div class="podium-photo wiki-img-slot cover-mode"
+             {% if podium.2.wiki_url %}data-wiki-url="{{ podium.2.wiki_url }}" data-label="{{ podium.2.label }}"{% endif %}>
+          <span class="photo-fallback">&#129353;</span>
           <span class="podium-medal-badge">&#129353;</span>
         </div>
         <div class="podium-card-text">
@@ -461,7 +467,7 @@
     </thead>
     <tbody>
       {% for c in constructors %}
-      <tr onclick="location.href='{% url 'championship:constructor_detail' c.id %}'">
+      <tr onclick="location.href='{% url 'championship:constructor_detail' c.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'championship:constructor_detail' c.id %}'" tabindex="0">
         <td style="color:var(--grey);font-size:0.8rem;">{{ offset|add:forloop.counter }}</td>
         <td>
           <a class="constructor-name" href="{% url 'championship:constructor_detail' c.id %}">{{ c.label }}</a>

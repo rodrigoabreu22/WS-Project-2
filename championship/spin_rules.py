@@ -109,7 +109,8 @@ WHERE {
       f1:position 1 .
   ?race f1:round ?round ;
         f1:year ?yr .
-  ?season f1:year ?yr .
+  ?season rdf:type f1:Season ;
+          f1:year ?yr .
   {
     SELECT ?yr (MAX(?r) AS ?maxRound)
     WHERE { ?rc f1:round ?r ; f1:year ?yr . }
@@ -218,7 +219,8 @@ WHERE {
       f1:position 1 .
   ?race f1:round ?round ;
         f1:year ?yr .
-  ?season f1:year ?yr .
+  ?season rdf:type f1:Season ;
+          f1:year ?yr .
   {
     SELECT ?yr (MAX(?r) AS ?maxRound)
     WHERE { ?rc f1:round ?r ; f1:year ?yr . }

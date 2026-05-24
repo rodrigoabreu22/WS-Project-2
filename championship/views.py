@@ -1423,11 +1423,13 @@ def champions(request):
         SELECT ?driver ?driverLabel ?driverId
                (COUNT(DISTINCT ?season) AS ?titles)
                (IF(EXISTS { ?driver rdf:type f1:MultichampionDriver }, "true", "false") AS ?multi)
+               (SAMPLE(?wiki) AS ?wikiUrl)
         WHERE {
           ?driver rdf:type f1:WorldChampion ;
                   rdfs:label ?driverLabel ;
                   f1:driverId ?driverId ;
                   f1:wonChampionship ?season .
+          OPTIONAL { ?driver rdfs:seeAlso ?wiki }
         }
         GROUP BY ?driver ?driverLabel ?driverId
         ORDER BY DESC(?titles) ?driverLabel

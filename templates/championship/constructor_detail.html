@@ -356,7 +356,7 @@
     </thead>
     <tbody>
       {% for p in pilots %}
-      <tr onclick="location.href='{% url 'championship:driver_detail' p.id %}'">
+      <tr onclick="location.href='{% url 'championship:driver_detail' p.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'championship:driver_detail' p.id %}'" tabindex="0">
         <td style="color:var(--grey);font-size:0.8rem;">{{ forloop.counter }}</td>
         <td>
           <a class="pilot-name" href="{% url 'championship:driver_detail' p.id %}">{{ p.label }}</a>
