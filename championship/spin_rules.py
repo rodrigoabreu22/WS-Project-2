@@ -122,6 +122,48 @@ WHERE {
 """,
     },
     {
+        "name": "reify_wonChampionship",
+        # WHY REIFICATION: rdf:Statement allows attaching metadata (final points,
+        # points margin) to an already-materialised triple without changing the
+        # original triple.  This is the standard RDF reification pattern and cannot
+        # be expressed as a plain data property on the Driver or Season nodes.
+        # We use IRI(CONCAT(...)) to produce stable, addressable statement URIs
+        # instead of blank nodes, so the reified nodes can be retrieved by SPARQL.
+        "description": "Reify each f1:wonChampionship triple as an rdf:Statement node annotated with final championship points.",
+        "query": """
+INSERT {
+  _:stmt rdf:type      rdf:Statement ;
+         rdf:subject   ?driver ;
+         rdf:predicate f1:wonChampionship ;
+         rdf:object    ?season ;
+         f1:finalPoints ?pts .
+}
+WHERE {
+  ?driver f1:wonChampionship ?season .
+  ?season rdf:type f1:Season ;
+          f1:year ?yr .
+  ?ds rdf:type f1:DriverStanding ;
+      f1:driver ?driver ;
+      f1:race ?race ;
+      f1:points ?pts .
+  ?race f1:round ?round ;
+        f1:year ?yr .
+  {
+    SELECT ?yr (MAX(?r) AS ?maxRound)
+    WHERE { ?rc f1:round ?r ; f1:year ?yr . }
+    GROUP BY ?yr
+  }
+  FILTER(?round = ?maxRound)
+  FILTER NOT EXISTS {
+    ?s rdf:type      rdf:Statement ;
+       rdf:subject   ?driver ;
+       rdf:predicate f1:wonChampionship ;
+       rdf:object    ?season .
+  }
+}
+""",
+    },
+    {
         "name": "infer_heldAt",
         "description": "Materialise f1:heldAt from the f1:circuit property on Race entities.",
         "query": """

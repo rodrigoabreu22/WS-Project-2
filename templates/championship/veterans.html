@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Veterans{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-header { margin-bottom:1.5rem; }
+  .page-title { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1;margin-bottom:0.4rem; }
+  .page-sub { font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey); }
+
+  .vet-table { width:100%;border-collapse:collapse;font-size:0.9rem; }
+  .vet-table thead tr { border-bottom:2px solid var(--red);background:var(--dark); }
+  .vet-table th { padding:0.65rem 1rem;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);white-space:nowrap; }
+  .vet-table td { padding:0.6rem 1rem;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--white); }
+  .vet-table tr:last-child td { border-bottom:none; }
+  .vet-table tbody tr { cursor:pointer; }
+  .vet-table tbody tr:hover td { background:var(--panel-l); }
+
+  .races-bar-wrap { width:120px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:0.5rem; }
+  .races-bar { height:100%;background:var(--red);border-radius:3px; }
+
+  .badge-champ { font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.15rem 0.45rem;border-radius:3px;background:var(--dark);color:#FFD700;border:1px solid rgba(255,215,0,0.35); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+  <div class="page-header">
+    <div class="page-title">Veterans</div>
+    <div class="page-sub">Drivers with 100 or more race entries &mdash; {{ drivers|length }} driver{{ drivers|length|pluralize }}</div>
+  </div>
+
+  {% with max_races=drivers.0.races %}
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+    <table class="vet-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Driver</th>
+          <th>Races</th>
+          <th>Champion?</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in drivers %}
+        <tr onclick="location.href='{% url 'championship:driver_detail' d.driverId %}'"
+            onkeydown="if(event.key==='Enter')location.href='{% url 'championship:driver_detail' d.driverId %}'" tabindex="0">
+          <td style="color:var(--grey);font-size:0.82rem;">{{ forloop.counter }}</td>
+          <td>
+            <a href="{% url 'championship:driver_detail' d.driverId %}"
+               style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);text-decoration:none;"
+               onclick="event.stopPropagation()">{{ d.driverLabel }}</a>
+          </td>
+          <td>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--red);">{{ d.races }}</span>
+            <div class="races-bar-wrap">
+              <div class="races-bar" style="width:{% widthratio d.races max_races 100 %}%"></div>
+            </div>
+          </td>
+          <td>
+            {% if d.isChampion == "true" %}
+            <span class="badge-champ">&#9733; Champion</span>
+            {% else %}
+            <span style="color:var(--grey);font-size:0.82rem;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;color:var(--grey);padding:2rem;">No veterans found. Run SPIN rules first.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endwith %}
+</div>
+{% endblock %}

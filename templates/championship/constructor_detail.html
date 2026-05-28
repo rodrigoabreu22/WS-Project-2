@@ -27,17 +27,23 @@
   }
 
   .hero-avatar {
-    width: 100px;
-    height: 100px;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    font: inherit;
+    width: 120px;
+    height: 120px;
     border-radius: 8px;
-    background: var(--panel);
     border: 3px solid var(--red);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
     flex-shrink: 0;
+    transition: border-color .2s, box-shadow .2s;
   }
+  .hero-avatar:hover { border-color: var(--white); box-shadow: 0 0 0 4px rgba(225,6,0,.4); }
+  #lbImg { max-width: 90vw; max-height: 85vh; border-radius: 8px; object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,.8); display: block; }
+  #lbClose:hover { opacity: 1; }
 
   .hero-info { flex: 1; }
 
@@ -258,15 +264,22 @@
   &larr; All Constructors
 </a>
 
+<!-- Photo lightbox -->
+<dialog id="photoLightbox" aria-label="Full photo">
+  <button id="lbClose" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;opacity:.7;" aria-label="Close">&times;</button>
+  <img id="lbImg" src="" alt="{{ info.label }}" style="max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;">
+</dialog>
+
 <!-- Hero — RDFa 1.1 Lite (Schema.org/SportsOrganization) + Microformats 2 h-card -->
 <article class="hero h-card"
          vocab="https://schema.org/" typeof="SportsOrganization"
          resource="{{ request.build_absolute_uri }}">
-  <div class="hero-avatar wiki-img-slot"
-       {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
-       style="border-radius:8px;">
+  <button id="heroAvatar" class="hero-avatar wiki-img-slot"
+          {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
+          style="border-radius:8px;width:120px;height:120px;cursor:pointer;overflow:hidden;position:relative;background:var(--panel);border:3px solid var(--red);"
+          aria-label="View full photo">
     <span style="font-size:3rem;opacity:0.4;">&#127950;</span>
-  </div>
+  </button>
   <div class="hero-info">
     <div class="hero-name p-name" property="name">{{ info.label }}</div>
     <div class="hero-meta">
@@ -274,6 +287,8 @@
       {% if first_year %}<span class="meta-chip">{{ first_year }}{% if last_year and last_year != first_year %} – {{ last_year }}{% endif %}</span>{% endif %}
       <span class="meta-chip">{{ pilots|length }} pilot{{ pilots|length|pluralize }}</span>
     </div>
+    <p id="heroDesc" style="display:none;font-size:0.88rem;color:var(--grey);line-height:1.55;margin-top:0.75rem;max-width:500px;"></p>
+    <p id="heroDescSource" style="display:none;font-size:0.72rem;color:var(--grey);opacity:.65;margin-top:0.2rem;"></p>
     <div class="hero-actions">
       {% if wiki_url %}
       <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
@@ -282,6 +297,71 @@
     </div>
   </div>
 </article>
+<script>
+(function(){
+  const lb=document.getElementById('photoLightbox'),lbImg=document.getElementById('lbImg'),lbClose=document.getElementById('lbClose'),av=document.getElementById('heroAvatar');
+  function open(src){lbImg.src=src;lb.showModal();}
+  function close(){lb.close();lbImg.src='';}
+  av.addEventListener('click',function(){const fg=av.querySelector('.img-fg');open(fg?fg.src:'');});
+  av.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();av.click();}});
+  lbClose.addEventListener('click',close);
+  lb.addEventListener('click',function(e){if(e.target===lb)close();});
+  fetch('{% url "championship:api_entity_info" %}?type=constructor&name={{ info.label|urlencode }}{% if wiki_url %}&wiki={{ wiki_url|urlencode }}{% endif %}')
+    .then(r=>r.json()).then(d=>{
+      // ── Logo: if Wikidata P154 logo is available, swap hero avatar image ──
+      if (d.logo && av) {
+        const fg = av.querySelector('.img-fg');
+        if (!fg || !fg.src || fg.classList.contains('loading')) {
+          const img = document.createElement('img');
+          img.src = d.logo;
+          img.style.cssText = 'width:100%;height:100%;object-fit:contain;padding:0.75rem;';
+          img.onload = () => { av.innerHTML = ''; av.appendChild(img); };
+        }
+      }
+
+      // ── Extra meta chips (country, dissolved) ────────────────────────
+      const meta = av.closest('article')?.querySelector('.hero-meta');
+      if (meta) {
+        if (d.country) {
+          const c = document.createElement('span');
+          c.className = 'meta-chip';
+          c.textContent = d.country;
+          meta.appendChild(c);
+        }
+        if (d.dissolved) {
+          const ds = document.createElement('span');
+          ds.className = 'meta-chip';
+          ds.style.color = 'var(--grey)';
+          ds.textContent = 'Dissolved ' + d.dissolved.substring(0,4);
+          meta.appendChild(ds);
+        }
+      }
+
+      // ── Description ────────────────────────────────────────────────
+      const t = d.extract || d.description || '';
+      if (t) {
+        const de = document.getElementById('heroDesc'), se = document.getElementById('heroDescSource');
+        de.textContent = t; de.style.display = '';
+        se.innerHTML = 'Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">Wikidata</a>';
+        se.style.display = '';
+      }
+
+      // ── Extra facts (founder, website) in stats list ──────────────
+      const statsList = document.querySelector('.stats-list');
+      if (statsList) {
+        if (d.founder) {
+          statsList.insertAdjacentHTML('beforeend',
+            `<li><span class="stat-key">Founded by</span><span class="stat-val">${d.founder}</span></li>`);
+        }
+        if (d.website) {
+          const domain = d.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+          statsList.insertAdjacentHTML('beforeend',
+            `<li><span class="stat-key">Website</span><span class="stat-val"><a href="${d.website}" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">${domain}</a></span></li>`);
+        }
+      }
+    }).catch(()=>{});
+})();
+</script>
 
 <!-- Medals -->
 <div class="medals-row">
@@ -342,7 +422,7 @@
 
 <!-- Pilots -->
 <div class="section-card">
-  <div class="section-card-head">&#128100; Drivers who competed for {{ info.label }}</div>
+  <div class="section-card-head">Drivers who competed for {{ info.label }}</div>
   <table class="pilots-table">
     <thead>
       <tr>
@@ -378,15 +458,5 @@
   </table>
 </div>
 
-{% if external %}{% if external.foundingDate or external.hq %}
-<div class="section-card" style="margin-top:1.5rem;">
-  <div class="section-head">&#127758; Wikidata enrichment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">(live via SPARQLWrapper)</span></div>
-  <div style="padding:1rem 1.25rem;">
-    {% if external.foundingDate %}<p style="font-size:0.85rem;margin:0 0 0.4rem;">&#128197; Founded: <strong style="color:var(--white);">{{ external.foundingDate }}</strong></p>{% endif %}
-    {% if external.hq %}<p style="font-size:0.85rem;margin:0 0 0.4rem;">&#127970; Headquarters: <strong style="color:var(--white);">{{ external.hq }}</strong></p>{% endif %}
-    {% if external.wikidata_uri %}<p style="margin:0.4rem 0 0;"><a href="{{ external.wikidata_uri }}" target="_blank" rel="noopener" style="color:var(--red);font-size:0.8rem;">Wikidata &rarr;</a></p>{% endif %}
-  </div>
-</div>
-{% endif %}{% endif %}
 
 {% endblock %}

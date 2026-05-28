@@ -331,10 +331,10 @@
 <h1 class="page-title">Drivers</h1>
 <p class="page-subtitle">{{ total }} driver{{ total|pluralize }} &mdash; page {{ page }} of {{ total_pages }}</p>
 
-<!-- ── Podium ───────────────────────────────────────────────── -->
-{% if podium|length >= 3 %}
+<!-- ── Podium (page 1 only) ──────────────────────────────────── -->
+{% if podium|length >= 3 and page == 1 %}
 <section class="podium-section">
-  <div class="podium-title">&#127942; All-time wins leaders</div>
+  <div class="podium-title">All-time wins leaders</div>
   <div class="podium-display">
 
     <!-- 2nd place -->
@@ -395,8 +395,11 @@
 </section>
 {% endif %}
 
+<!-- ── List anchor — pagination jumps here ───────────────────── -->
+<div id="list"></div>
+
 <!-- ── Toolbar ──────────────────────────────────────────────── -->
-<form method="get" class="toolbar">
+<form method="get" class="toolbar reactive-form">
   <input type="search" name="q" placeholder="Search by name or code…" value="{{ q }}" autocomplete="off">
 
   <select name="nationality">
@@ -566,24 +569,24 @@
   {% if medal %}{# keep medal param #}{% endif %}
 
   <a class="page-btn skip {% if page == 1 %}disabled{% endif %}"
-     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page=1"
+     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page=1#list"
      title="First page">&#171;</a>
 
   <a class="page-btn {% if page == 1 %}disabled{% endif %}"
-     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ page|add:'-1' }}"
+     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ page|add:'-1' }}#list"
      title="Previous page">&#8249;</a>
 
   {% for p in page_range %}
     <a class="page-btn {% if p == page %}current{% endif %}"
-       href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ p }}">{{ p }}</a>
+       href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ p }}#list">{{ p }}</a>
   {% endfor %}
 
   <a class="page-btn {% if page == total_pages %}disabled{% endif %}"
-     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ page|add:'1' }}"
+     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ page|add:'1' }}#list"
      title="Next page">&#8250;</a>
 
   <a class="page-btn skip {% if page == total_pages %}disabled{% endif %}"
-     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ total_pages }}"
+     href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort={{ sort }}&order={{ order }}&page={{ total_pages }}#list"
      title="Last page">&#187;</a>
 
   {% endwith %}

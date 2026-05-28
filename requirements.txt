@@ -1,6 +1,8 @@
 Django==6.0.3
+mf2py==2.0.1
 pandas==3.0.2
 python-dotenv==1.2.2
 rdflib==7.6.0
+requests==2.32.3
 SPARQLWrapper==2.0.0
 

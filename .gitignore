@@ -8,3 +8,5 @@ __pycache__/
 data/rdf/
 graphdb/ws-formula1-repo.ttl
 graphDB_licence/*.license
+venv/
+venv/*

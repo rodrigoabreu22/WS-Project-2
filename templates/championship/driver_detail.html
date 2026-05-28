@@ -27,16 +27,42 @@
   }
 
   .driver-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: var(--panel);
-    border: 3px solid var(--red);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
+    /* Reset button defaults */
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    font: inherit;
+    /* Sizing */
+    width: 140px;
+    height: 140px;
     flex-shrink: 0;
+    border-radius: 50%;
+    border: 3px solid var(--red);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .driver-avatar:hover { border-color: var(--white); box-shadow: 0 0 0 4px rgba(225,6,0,.4); }
+
+  /* Lightbox img sizing — base.html handles the dialog itself */
+  #lbImg { max-width: 90vw; max-height: 85vh; border-radius: 8px; object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,.8); display: block; }
+  #lbClose { position: absolute; top: 1.5rem; right: 1.5rem; color: #fff; font-size: 2rem; line-height: 1; background: none; border: none; cursor: pointer; opacity: .7; }
+  #lbClose:hover { opacity: 1; }
+
+  /* ── Hero description (from external source) ─────────── */
+  .hero-desc {
+    font-size: 0.88rem;
+    color: var(--grey);
+    line-height: 1.55;
+    margin-top: 0.75rem;
+    max-width: 540px;
+  }
+  .hero-desc-source {
+    font-size: 0.72rem;
+    color: var(--grey);
+    opacity: 0.65;
+    margin-top: 0.25rem;
   }
 
   .driver-hero-info { flex: 1; }
@@ -265,15 +291,22 @@
   &larr; All Drivers
 </a>
 
+<!-- Photo lightbox -->
+<dialog id="photoLightbox" aria-label="Full photo">
+  <button class="lb-close" id="lbClose" aria-label="Close">&times;</button>
+  <img id="lbImg" src="" alt="{{ info.label }}">
+</dialog>
+
 <!-- Hero — RDFa 1.1 Lite (Schema.org/Person) + Microformats 2 h-card -->
 <article class="driver-hero h-card"
          vocab="https://schema.org/" typeof="Person"
          resource="{{ request.build_absolute_uri }}">
-  <div class="driver-avatar wiki-img-slot cover-mode"
-       {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
-       style="border-radius:50%;">
-    <span style="font-size:3rem;opacity:0.4;">&#128100;</span>
-  </div>
+  <button class="driver-avatar wiki-img-slot cover-mode"
+          id="driverAvatar"
+          {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
+          aria-label="View full photo">
+    <span style="font-size:3rem;opacity:0.4;position:relative;z-index:0;">&#128100;</span>
+  </button>
   <div class="driver-hero-info">
     <div class="driver-hero-name p-name" property="name">{{ info.label }}</div>
     <div class="driver-hero-meta">
@@ -284,21 +317,19 @@
       {% if info.number %}<span class="meta-chip"># {{ info.number }}</span>{% endif %}
       {% if is_champion %}
         <a href="{% url 'championship:champions' %}"
-           style="background:#3a2a00;color:#FFD700;border:1px solid #8a6800;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;">
-          &#127942; World Champion
-        </a>
+           style="background:var(--dark);color:#FFD700;border:1px solid rgba(255,215,0,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;">World Champion</a>
       {% endif %}
       {% if is_multichampion %}
-        <span style="background:#3a0a00;color:#ff9900;border:1px solid #993300;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">
-          Multi-Champion
-        </span>
+        <span style="background:var(--dark);color:#ff9900;border:1px solid rgba(255,153,0,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">Multi-Champion</span>
       {% endif %}
       {% if is_veteran %}
-        <span style="background:#0a2a1a;color:#4caf50;border:1px solid #1a6a3a;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">
-          Veteran
-        </span>
+        <span style="background:var(--dark);color:#4caf50;border:1px solid rgba(76,175,80,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">Veteran</span>
       {% endif %}
     </div>
+    <!-- Description + family injected here by async fetch -->
+    <div id="driverFamily" style="display:none;flex-wrap:wrap;gap:0.75rem;margin-top:0.6rem;"></div>
+    <p id="heroDesc" class="hero-desc" style="display:none;"></p>
+    <p id="heroDescSource" class="hero-desc-source" style="display:none;"></p>
     <div class="driver-hero-actions">
       {% if wiki_url %}
       <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
@@ -366,18 +397,19 @@
     {% endwith %}
   </div>
 
-  <!-- Constructor timeline (full width) -->
+  <!-- Constructor timeline (full width) — chips link to constructor detail -->
   <div class="section-card" style="grid-column: 1 / -1;">
     <div class="section-card-head">Constructor Career</div>
     <div class="timeline">
       {% for c in constructors %}
       <div class="timeline-item">
-        <div class="timeline-chip">
+        <a class="timeline-chip" href="{% url 'championship:constructor_detail' c.constructorId %}"
+           style="text-decoration:none;display:block;">
           <div class="timeline-title">{{ c.constructorLabel }}</div>
           <div class="timeline-years">
             {{ c.firstYear }}{% if c.firstYear != c.lastYear %} – {{ c.lastYear }}{% endif %}
           </div>
-        </div>
+        </a>
         {% if not forloop.last %}<span class="timeline-arrow">&#8594;</span>{% endif %}
       </div>
       {% empty %}
@@ -392,7 +424,7 @@
 {% if teammates %}
 <div class="section-card" style="margin-top:1.5rem;">
   <div class="section-card-head">
-    &#128101; Teammates
+    Teammates
     <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">
       (inferred via f1:wasTeammate SPIN rule)
     </span>
@@ -408,18 +440,107 @@
 </div>
 {% endif %}
 
-{% if external %}{% if external.description or external.birthPlace or external.image %}
-<div class="section-card" style="margin-top:1.5rem;">
-  <div class="section-card-head">&#127758; Wikidata enrichment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">(live via SPARQLWrapper)</span></div>
-  <div style="padding:1rem 1.25rem;display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap;">
-    {% if external.image %}<img src="{{ external.image }}" alt="{{ info.label }}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:2px solid var(--line);flex-shrink:0;">{% endif %}
-    <div>
-      {% if external.description %}<p style="color:var(--grey);font-size:0.9rem;margin:0 0 0.5rem;">{{ external.description }}</p>{% endif %}
-      {% if external.birthPlace %}<p style="font-size:0.85rem;margin:0;">&#128205; Born in <strong style="color:var(--white);">{{ external.birthPlace }}</strong></p>{% endif %}
-      {% if external.wikidata_uri %}<p style="margin:0.4rem 0 0;"><a href="{{ external.wikidata_uri }}" target="_blank" rel="noopener" style="color:var(--red);font-size:0.8rem;">Wikidata &rarr;</a></p>{% endif %}
-    </div>
-  </div>
-</div>
-{% endif %}{% endif %}
+
+<script>
+(function() {
+  // ── Lightbox ──────────────────────────────────────────────────────
+  const lb      = document.getElementById('photoLightbox');
+  const lbImg   = document.getElementById('lbImg');
+  const lbClose = document.getElementById('lbClose');
+  const avatar  = document.getElementById('driverAvatar');
+
+  function openLightbox(src) {
+    if (!src) return;
+    lbImg.src = src;
+    lb.showModal();
+  }
+  function closeLightbox() { lb.close(); lbImg.src = ''; }
+
+  avatar.addEventListener('click', function() {
+    const fg = avatar.querySelector('.img-fg');
+    const img = fg && (fg.tagName === 'IMG' ? fg : fg.querySelector('img'));
+    const src = img ? img.src : '';
+    openLightbox(src);
+  });
+  avatar.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); avatar.click(); }
+  });
+  lbClose.addEventListener('click', closeLightbox);
+  lb.addEventListener('click', function(e) { if (e.target === lb) closeLightbox(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && lb.open) closeLightbox(); });
+
+  // ── Async external enrichment ─────────────────────────────────────
+  const apiUrl = '{% url "championship:api_entity_info" %}?type=driver'
+    + '&name={{ info.label|urlencode }}'
+    + '{% if wiki_url %}&wiki={{ wiki_url|urlencode }}{% endif %}';
+
+  fetch(apiUrl)
+    .then(r => r.json())
+    .then(d => {
+      // ── Death date: add † to name + "born–died" lifespan ─────────
+      if (d.deathDate) {
+        const nameEl = document.querySelector('.driver-hero-name');
+        if (nameEl && !nameEl.querySelector('.death-mark')) {
+          const mark = document.createElement('sup');
+          mark.className = 'death-mark';
+          mark.title = `Died ${d.deathDate}`;
+          mark.textContent = ' †';
+          mark.style.cssText = 'font-size:0.55em;color:var(--grey);font-weight:400;';
+          nameEl.appendChild(mark);
+        }
+        // Replace "age X yrs" chip with "born–died" lifespan
+        document.querySelectorAll('.meta-chip').forEach(chip => {
+          if (chip.textContent.match(/\d+ yrs/)) {
+            chip.textContent = '{{ info.dob|default:"" }}'.substring(0,4)
+              + ' – ' + d.deathDate.substring(0,4);
+          }
+        });
+      }
+
+      // ── Height ────────────────────────────────────────────────────
+      if (d.height) {
+        const meta = document.querySelector('.driver-hero-meta');
+        if (meta) {
+          const chip = document.createElement('span');
+          chip.className = 'meta-chip';
+          const cm = parseFloat(d.height);
+          chip.textContent = isNaN(cm) ? d.height : `${Math.round(cm)} cm`;
+          meta.appendChild(chip);
+        }
+      }
+
+      // ── Description ───────────────────────────────────────────────
+      const text = d.extract || d.description || '';
+      if (text) {
+        const descEl   = document.getElementById('heroDesc');
+        const sourceEl = document.getElementById('heroDescSource');
+        descEl.textContent   = text;
+        descEl.style.display = '';
+        sourceEl.innerHTML   = 'Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">Wikidata</a>';
+        sourceEl.style.display = '';
+      }
+
+      // ── Family links (F1 dynasties) ───────────────────────────────
+      if (d.fatherName || d.childNames) {
+        const familyEl = document.getElementById('driverFamily');
+        if (familyEl) {
+          let html = '';
+          if (d.fatherName) {
+            html += `<span style="font-size:0.8rem;color:var(--grey);">Father: <strong style="color:var(--white);">${d.fatherName}</strong></span>`;
+          }
+          const children = d.childNames ? d.childNames.split('|').filter(Boolean) : [];
+          children.forEach(c => {
+            html += `<span style="font-size:0.8rem;color:var(--grey);">${children.length === 1 ? 'Son/daughter' : 'Child'}: <strong style="color:var(--white);">${c}</strong></span>`;
+          });
+          if (html) {
+            familyEl.innerHTML = html;
+            familyEl.style.display = 'flex';
+          }
+        }
+      }
+    })
+    .catch(() => {});
+})();
+</script>
 
 {% endblock %}

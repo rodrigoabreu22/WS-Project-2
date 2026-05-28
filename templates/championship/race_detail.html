@@ -397,7 +397,7 @@
     <div class="podium-info-card">
       <span class="podium-medal">&#129352;</span>
       <a class="podium-driver" href="{% url 'championship:driver_detail' p2.driver_id %}">{{ p2.driver_label }}</a>
-      <div class="podium-team">{{ p2.constructor_label }}</div>
+      <div class="podium-team">{% if p2.constructor_id %}<a href="{% url 'championship:constructor_detail' p2.constructor_id %}" class="grey-link">{{ p2.constructor_label }}</a>{% else %}{{ p2.constructor_label }}{% endif %}</div>
       {% if p2.time %}<div class="podium-time">{{ p2.time }}</div>{% endif %}
       {% if p2.points %}<div class="podium-pts">{{ p2.points }} pts</div>{% endif %}
     </div>
@@ -411,7 +411,7 @@
     <div class="podium-info-card">
       <span class="podium-medal">&#129351;</span>
       <a class="podium-driver" href="{% url 'championship:driver_detail' p1.driver_id %}">{{ p1.driver_label }}</a>
-      <div class="podium-team">{{ p1.constructor_label }}</div>
+      <div class="podium-team">{% if p1.constructor_id %}<a href="{% url 'championship:constructor_detail' p1.constructor_id %}" class="grey-link">{{ p1.constructor_label }}</a>{% else %}{{ p1.constructor_label }}{% endif %}</div>
       {% if p1.time %}<div class="podium-time">{{ p1.time }}</div>{% endif %}
       {% if p1.points %}<div class="podium-pts">{{ p1.points }} pts</div>{% endif %}
     </div>
@@ -425,7 +425,7 @@
     <div class="podium-info-card">
       <span class="podium-medal">&#129353;</span>
       <a class="podium-driver" href="{% url 'championship:driver_detail' p3.driver_id %}">{{ p3.driver_label }}</a>
-      <div class="podium-team">{{ p3.constructor_label }}</div>
+      <div class="podium-team">{% if p3.constructor_id %}<a href="{% url 'championship:constructor_detail' p3.constructor_id %}" class="grey-link">{{ p3.constructor_label }}</a>{% else %}{{ p3.constructor_label }}{% endif %}</div>
       {% if p3.time %}<div class="podium-time">{{ p3.time }}</div>{% endif %}
       {% if p3.points %}<div class="podium-pts">{{ p3.points }} pts</div>{% endif %}
     </div>
@@ -438,7 +438,7 @@
 
 <!-- ── Race Results ────────────────────────────────────────────────────────── -->
 <div class="section-card">
-  <div class="section-card-head">&#127937; Race Results</div>
+  <div class="section-card-head">Race Results</div>
   <table class="results-table">
     <thead>
       <tr>
@@ -463,7 +463,11 @@
         <td>
           <a class="driver-link" href="{% url 'championship:driver_detail' r.driver_id %}">{{ r.driver_label }}</a>
         </td>
-        <td style="color:var(--grey);font-size:0.85rem;">{{ r.constructor_label }}</td>
+        <td style="color:var(--grey);font-size:0.85rem;">
+          {% if r.constructor_id %}
+          <a href="{% url 'championship:constructor_detail' r.constructor_id %}" class="grey-link">{{ r.constructor_label }}</a>
+          {% else %}{{ r.constructor_label }}{% endif %}
+        </td>
         <td style="color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-weight:600;">
           {{ r.grid|default:"—" }}
         </td>
@@ -540,7 +544,7 @@
 
 {% if qualifying %}
 <div class="section-card">
-  <div class="section-card-head">&#9203; Qualifying</div>
+  <div class="section-card-head">Qualifying</div>
   <table class="results-table">
     <thead>
       <tr>

@@ -27,17 +27,23 @@
   }
 
   .hero-avatar {
-    width: 100px;
-    height: 100px;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    font: inherit;
+    width: 120px;
+    height: 120px;
     border-radius: 8px;
-    background: var(--panel);
     border: 3px solid var(--red);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
     flex-shrink: 0;
+    transition: border-color .2s, box-shadow .2s;
   }
+  .hero-avatar:hover { border-color: var(--white); box-shadow: 0 0 0 4px rgba(225,6,0,.4); }
+  #lbImg { max-width: 90vw; max-height: 85vh; border-radius: 8px; object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,.8); display: block; }
+  #lbClose:hover { opacity: 1; }
 
   .hero-info { flex: 1; }
 
@@ -394,17 +400,24 @@
   &larr; All Circuits
 </a>
 
+<!-- Photo lightbox -->
+<dialog id="photoLightbox" aria-label="Full photo">
+  <button id="lbClose" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;opacity:.7;" aria-label="Close">&times;</button>
+  <img id="lbImg" src="" alt="{{ info.label }}" style="max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;">
+</dialog>
+
 <!-- Hero — RDFa 1.1 Lite (Schema.org/SportsActivityLocation) + Microformats 2 h-card / h-adr -->
 <article class="hero h-card h-adr"
          vocab="https://schema.org/" typeof="SportsActivityLocation"
          resource="{{ request.build_absolute_uri }}">
   {% if info.lat %}<meta property="latitude"  content="{{ info.lat }}" />{% endif %}
   {% if info.lng %}<meta property="longitude" content="{{ info.lng }}" />{% endif %}
-  <div class="hero-avatar wiki-img-slot"
-       {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
-       style="border-radius:8px;">
+  <button id="heroAvatar" class="hero-avatar wiki-img-slot"
+          {% if wiki_url %}data-wiki-url="{{ wiki_url }}" data-label="{{ info.label }}"{% endif %}
+          style="border-radius:8px;width:120px;height:120px;cursor:pointer;overflow:hidden;position:relative;background:var(--panel);border:3px solid var(--red);"
+          aria-label="View full photo">
     <span style="font-size:3rem;opacity:0.4;">&#127937;</span>
-  </div>
+  </button>
   <div class="hero-info">
     <div class="hero-name p-name" property="name">{{ info.label }}</div>
     <div class="hero-meta">
@@ -417,6 +430,8 @@
         <span class="meta-chip chip-retired">Retired</span>
       {% endif %}
     </div>
+    <p id="heroDesc" style="display:none;font-size:0.88rem;color:var(--grey);line-height:1.55;margin-top:0.75rem;max-width:500px;"></p>
+    <p id="heroDescSource" style="display:none;font-size:0.72rem;color:var(--grey);opacity:.65;margin-top:0.2rem;"></p>
     <div class="hero-actions">
       {% if wiki_url %}
         <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
@@ -425,9 +440,57 @@
     </div>
   </div>
 </article>
+<script>
+(function(){
+  const lb=document.getElementById('photoLightbox'),lbImg=document.getElementById('lbImg'),lbClose=document.getElementById('lbClose'),av=document.getElementById('heroAvatar');
+  function open(src){if(src){lbImg.src=src;lb.showModal();}}
+  function close(){lb.close();lbImg.src='';}
+  av.addEventListener('click',function(){const fg=av.querySelector('.img-fg');open(fg?fg.src:'');});
+  av.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();av.click();}});
+  lbClose.addEventListener('click',close);
+  lb.addEventListener('click',function(e){if(e.target===lb)close();});
+  fetch('{% url "championship:api_entity_info" %}?type=circuit&name={{ info.label|urlencode }}{% if wiki_url %}&wiki={{ wiki_url|urlencode }}{% endif %}')
+    .then(r=>r.json()).then(d=>{
+      // ── Description ────────────────────────────────────────────────
+      const t = d.extract || d.abstract || d.description || '';
+      if (t) {
+        const de = document.getElementById('heroDesc'), se = document.getElementById('heroDescSource');
+        de.textContent = t; de.style.display = '';
+        se.innerHTML = 'Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">DBpedia</a>';
+        se.style.display = '';
+      }
 
-<!-- Stat tiles -->
-<div class="stat-tiles">
+      // ── Inject DBpedia facts into the Circuit details list ─────────
+      const statsList = document.getElementById('circuitStatsList');
+      if (statsList) {
+        const addRow = (key, val) => statsList.insertAdjacentHTML('beforeend',
+          `<li><span class="stat-key">${key}</span><span class="stat-val">${val}</span></li>`);
+        if (d.opened)   addRow('Year opened', String(d.opened).substring(0,4));
+        if (d.turns)    addRow('Corners', d.turns);
+        if (d.length)   addRow('Track length', d.length + ' km');
+        if (d.capacity) {
+          const cap = parseInt(d.capacity);
+          addRow('Capacity', isNaN(cap) ? d.capacity : cap.toLocaleString() + ' spectators');
+        }
+      }
+
+      // ── Lap record card ────────────────────────────────────────────
+      if (d.lapRecord) {
+        const lapEl = document.getElementById('lapRecordPanel');
+        if (lapEl) {
+          lapEl.innerHTML =
+            `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.4rem;">Lap Record</div>
+             <div style="font-size:1.1rem;color:var(--white);line-height:1.4;">${d.lapRecord}</div>
+             <div style="font-size:0.72rem;color:var(--grey);margin-top:0.3rem;">Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">DBpedia</a></div>`;
+          lapEl.style.display = '';
+        }
+      }
+    }).catch(()=>{});
+})();
+</script>
+
+<!-- Stat tiles — DBpedia adds turns, capacity, opened dynamically -->
+<div class="stat-tiles" id="circuitStatTiles">
   <div class="stat-tile">
     <div class="tile-value">{{ total_races }}</div>
     <div class="tile-label">Races held</div>
@@ -449,7 +512,7 @@
 <!-- Year activity timeline -->
 {% if timeline %}
 <div class="timeline-section">
-  <div class="section-head">&#128197; Race activity by year</div>
+  <div class="section-head">Race activity by year</div>
   <div class="timeline-body">
     <!-- Decade labels -->
     <div class="decade-labels">
@@ -484,8 +547,8 @@
 
   <!-- Circuit info -->
   <div class="section-card">
-    <div class="section-head">&#128205; Circuit details</div>
-    <ul class="stats-list">
+    <div class="section-head">Circuit details</div>
+    <ul class="stats-list" id="circuitStatsList">
       {% if info.location %}<li><span class="stat-key">City</span><span class="stat-val">{{ info.location }}</span></li>{% endif %}
       {% if info.country  %}<li><span class="stat-key">Country</span><span class="stat-val">{{ info.country }}</span></li>{% endif %}
       {% if first_year    %}<li><span class="stat-key">First Grand Prix</span><span class="stat-val">{{ first_year }}</span></li>{% endif %}
@@ -498,12 +561,15 @@
       </li>
       {% if info.alt %}<li><span class="stat-key">Altitude</span><span class="stat-val">{{ info.alt }} m</span></li>{% endif %}
       {% if info.lat %}<li><span class="stat-key">Coordinates</span><span class="stat-val" style="font-size:0.85rem;">{{ info.lat }}, {{ info.lng }}</span></li>{% endif %}
+      <!-- DBpedia: turns, length, capacity, opened injected here by JS -->
     </ul>
+    <!-- Lap record injected by JS -->
+    <div id="lapRecordPanel" style="display:none;padding:0.75rem 1.25rem;border-top:1px solid var(--line);"></div>
   </div>
 
   <!-- Fastest laps -->
   <div class="section-card">
-    <div class="section-head">&#9889; Fastest laps ever</div>
+    <div class="section-head">Fastest laps ever</div>
     {% if fastest %}
       {% for f in fastest %}
       <div class="lap-row">
@@ -520,7 +586,7 @@
 
   <!-- Top winners -->
   <div class="section-card" style="grid-column: 1 / -1;">
-    <div class="section-head">&#127942; Most victories at this circuit</div>
+    <div class="section-head">Most victories at this circuit</div>
     {% if top_winners %}
       {% for w in top_winners %}
       <a class="winner-row" href="{% url 'championship:driver_detail' w.id %}">
@@ -541,7 +607,7 @@
 
 <!-- Race history -->
 <div class="section-card">
-  <div class="section-head">&#128196; Race history</div>
+  <div class="section-head">Race history</div>
   <table class="race-table">
     <thead>
       <tr>
@@ -576,15 +642,5 @@
   </table>
 </div>
 
-{% if external %}{% if external.abstract or external.length %}
-<div class="section-card" style="margin-top:1.5rem;">
-  <div class="section-head">&#127758; DBpedia enrichment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">(live via SPARQLWrapper)</span></div>
-  <div style="padding:1rem 1.25rem;">
-    {% if external.abstract %}<p style="color:var(--grey);font-size:0.88rem;margin:0 0 0.5rem;line-height:1.5;">{{ external.abstract|truncatechars:400 }}</p>{% endif %}
-    {% if external.length %}<p style="font-size:0.85rem;margin:0;">&#128207; Length: <strong style="color:var(--white);">{{ external.length }}</strong></p>{% endif %}
-    {% if external.dbpedia_uri %}<p style="margin:0.4rem 0 0;"><a href="{{ external.dbpedia_uri }}" target="_blank" rel="noopener" style="color:var(--red);font-size:0.8rem;">DBpedia &rarr;</a></p>{% endif %}
-  </div>
-</div>
-{% endif %}{% endif %}
 
 {% endblock %}

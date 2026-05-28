@@ -334,10 +334,10 @@
 <h1 class="page-title">Circuits</h1>
 <p class="page-subtitle">{{ total }} circuit{{ total|pluralize }} &mdash; page {{ page }} of {{ total_pages }}</p>
 
-<!-- ── Podium ───────────────────────────────────────────────── -->
-{% if podium|length >= 3 %}
+<!-- ── Podium (page 1 only) ──────────────────────────────────── -->
+{% if podium|length >= 3 and page == 1 %}
 <section class="podium-section">
-  <div class="podium-title">&#127937; Most raced circuits</div>
+  <div class="podium-title">Most raced circuits</div>
   <div class="podium-display">
 
     <!-- 2nd place -->
@@ -395,8 +395,9 @@
 </section>
 {% endif %}
 
+<div id="list"></div>
 <!-- ── Toolbar ──────────────────────────────────────────────── -->
-<form method="get" class="toolbar">
+<form method="get" class="toolbar reactive-form">
   <input type="search" name="q" placeholder="Search circuit or country…" value="{{ q }}" autocomplete="off">
 
   <select name="country">

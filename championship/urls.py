@@ -18,8 +18,14 @@ urlpatterns = [
     path("circuits/", views.circuits, name="circuits"),
     path("circuits/<str:circuit_id>/", views.circuit_detail, name="circuit_detail"),
     path("champions/", views.champions, name="champions"),
+    path("champions/multi/", views.multichampions, name="multichampions"),
+    path("champions/veterans/", views.veterans, name="veterans"),
+    path("constructors/champions/", views.constructor_champions, name="constructor_champions"),
     path("sparql/", views.sparql, name="sparql"),
+    path("tools/", views.semantic_tools, name="semantic_tools"),
     path("api/wiki-image/", views.api_wiki_image, name="api_wiki_image"),
+    path("api/entity-info/", views.api_entity_info, name="api_entity_info"),
+    path("api/parse-microformats/", views.api_parse_microformats, name="api_parse_microformats"),
 
     # ── Admin ──────────────────────────────────────────────────────────────
     path("admin-panel/login/",   admin_views.admin_login,   name="admin_login"),

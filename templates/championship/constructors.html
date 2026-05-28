@@ -124,14 +124,7 @@
   }
   .podium-slot:hover .podium-photo { height: 200px; }
 
-  .podium-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 1rem;
-    position: absolute;
-    inset: 0;
-  }
+  /* wiki-img-slot cover-mode handles .img-fg sizing — no override needed */
 
   .podium-photo .photo-fallback { font-size: 2.8rem; line-height: 1; }
 
@@ -317,10 +310,10 @@
 <h1 class="page-title">Constructors</h1>
 <p class="page-subtitle">{{ total }} constructor{{ total|pluralize }} &mdash; page {{ page }} of {{ total_pages }}</p>
 
-<!-- ── Podium ───────────────────────────────────────────────── -->
-{% if podium|length >= 3 %}
+<!-- ── Podium (page 1 only) ──────────────────────────────────── -->
+{% if podium|length >= 3 and page == 1 %}
 <section class="podium-section">
-  <div class="podium-title">&#127942; All-time wins leaders</div>
+  <div class="podium-title">All-time wins leaders</div>
   <div class="podium-display">
 
     <!-- 2nd place -->
@@ -381,8 +374,9 @@
 </section>
 {% endif %}
 
+<div id="list"></div>
 <!-- ── Toolbar ──────────────────────────────────────────────── -->
-<form method="get" class="toolbar">
+<form method="get" class="toolbar reactive-form">
   <input type="search" name="q" placeholder="Search constructor…" value="{{ q }}" autocomplete="off">
 
   <select name="nationality">

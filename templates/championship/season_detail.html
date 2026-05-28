@@ -281,15 +281,21 @@
         </td>
         <td class="cal-hide" style="color:var(--grey);font-size:0.85rem;white-space:nowrap;">{{ r.date }}</td>
         <td>
-          <div style="font-size:0.88rem;color:var(--white);">{{ r.circuitLabel }}</div>
+          {% if r.circuitId %}
+          <a class="name-link" href="{% url 'championship:circuit_detail' r.circuitId %}" onclick="event.stopPropagation()" style="font-size:0.88rem;">{{ r.circuitLabel }}</a>
+          {% else %}<div style="font-size:0.88rem;color:var(--white);">{{ r.circuitLabel }}</div>{% endif %}
           {% if r.circuitCountry %}<div class="circuit-sub">{{ r.circuitCountry }}</div>{% endif %}
         </td>
         <td>
           {% if r.winnerDriverId %}
-          <a class="name-link" href="{% url 'championship:driver_detail' r.winnerDriverId %}">{{ r.winnerLabel }}</a>
+          <a class="name-link" href="{% url 'championship:driver_detail' r.winnerDriverId %}" onclick="event.stopPropagation()">{{ r.winnerLabel }}</a>
           {% else %}<span style="color:var(--grey);">—</span>{% endif %}
         </td>
-        <td class="cal-hide" style="font-size:0.82rem;color:var(--grey);">{{ r.winnerConstructor|default:"—" }}</td>
+        <td class="cal-hide" style="font-size:0.82rem;">
+          {% if r.winnerConstructorId %}
+          <a href="{% url 'championship:constructor_detail' r.winnerConstructorId %}" class="grey-link" onclick="event.stopPropagation()">{{ r.winnerConstructor }}</a>
+          {% else %}{{ r.winnerConstructor|default:"—" }}{% endif %}
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="6" style="text-align:center;color:var(--grey);padding:2rem;">No races found.</td></tr>

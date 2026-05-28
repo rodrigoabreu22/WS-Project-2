@@ -308,9 +308,9 @@ def driver_detail(request, driver_id: str):
         except (ValueError, TypeError):
             pass
 
-    # Constructor career
+    # Constructor career (include constructorId for deep-link)
     constructor_rows = db.query(f"""
-        SELECT DISTINCT ?constructorLabel
+        SELECT DISTINCT ?constructorLabel ?constructorId
                (MIN(?year) AS ?firstYear)
                (MAX(?year) AS ?lastYear)
         WHERE {{
@@ -319,9 +319,10 @@ def driver_detail(request, driver_id: str):
              f1:constructor ?constructor ;
              f1:race ?race .
           ?race f1:year ?year .
-          ?constructor rdfs:label ?constructorLabel .
+          ?constructor rdfs:label ?constructorLabel ;
+                       f1:constructorId ?constructorId .
         }}
-        GROUP BY ?constructorLabel
+        GROUP BY ?constructorLabel ?constructorId
         ORDER BY ?firstYear
     """)
 
@@ -371,8 +372,6 @@ def driver_detail(request, driver_id: str):
         LIMIT 30
     """)
 
-    external = get_driver_wikidata(info.get("label", ""))
-
     return render(request, "championship/driver_detail.html", {
         "info":             info,
         "driver_id":        driver_id,
@@ -388,7 +387,6 @@ def driver_detail(request, driver_id: str):
         "is_multichampion": is_multichampion,
         "is_veteran":       is_veteran,
         "teammates":        teammate_rows,
-        "external":         external,
     })
 
 
@@ -627,8 +625,6 @@ def constructor_detail(request, constructor_id: str):
             "last_year":  r.get("lastYear", ""),
         })
 
-    external = get_constructor_wikidata(info.get("label", ""))
-
     return render(request, "championship/constructor_detail.html", {
         "info":            info,
         "constructor_id":  constructor_id,
@@ -641,7 +637,6 @@ def constructor_detail(request, constructor_id: str):
         "last_year":       last_year,
         "circuits":        circuit_rows,
         "pilots":          pilots,
-        "external":        external,
     })
 
 
@@ -748,8 +743,6 @@ def circuit_detail(request, circuit_id: str):
         LIMIT 5
     """)
 
-    external = get_circuit_dbpedia(info.get("label", ""))
-
     return render(request, "championship/circuit_detail.html", {
         "info":                  info,
         "circuit_id":            circuit_id,
@@ -763,7 +756,6 @@ def circuit_detail(request, circuit_id: str):
         "top_winners":           top_winners,
         "unique_winners_count":  unique_winners_count,
         "fastest":               fastest_rows,
-        "external":              external,
     })
 
 
@@ -838,9 +830,11 @@ def season_detail(request, year: str):
     race_rows = db.query(f"""
         SELECT ?raceId ?raceName ?round ?date
                ?circuitLabel ?circuitCountry
-               (SAMPLE(?winnerLabel) AS ?winnerLabel)
+               (SAMPLE(?circuitIdV)     AS ?circuitId)
+               (SAMPLE(?winnerLabel)    AS ?winnerLabel)
                (SAMPLE(?winnerDriverId) AS ?winnerDriverId)
-               (SAMPLE(?winnerConstructor) AS ?winnerConstructor) WHERE {{
+               (SAMPLE(?winnerConstructor)   AS ?winnerConstructor)
+               (SAMPLE(?winnerConstructorId) AS ?winnerConstructorId) WHERE {{
           ?race f1:round ?round ;
                 f1:year ?yr ;
                 f1:raceId ?raceId ;
@@ -850,7 +844,8 @@ def season_detail(request, year: str):
           OPTIONAL {{
             ?race f1:circuit ?circuit .
             ?circuit rdfs:label ?circuitLabel .
-            OPTIONAL {{ ?circuit f1:country ?circuitCountry }}
+            OPTIONAL {{ ?circuit f1:country    ?circuitCountry }}
+            OPTIONAL {{ ?circuit f1:circuitId  ?circuitIdV     }}
           }}
           OPTIONAL {{
             ?res f1:resultId ?anyId ;
@@ -861,6 +856,7 @@ def season_detail(request, year: str):
             ?winner rdfs:label ?winnerLabel ;
                     f1:driverId ?winnerDriverId .
             ?ctor   rdfs:label ?winnerConstructor .
+            OPTIONAL {{ ?ctor f1:constructorId ?winnerConstructorId }}
           }}
         }}
         GROUP BY ?raceId ?raceName ?round ?date ?circuitLabel ?circuitCountry
@@ -1148,7 +1144,7 @@ def race_detail(request, race_id: str):
     # with regular results, causing duplicate rows for every driver.
     result_rows = db.query(f"""
         SELECT ?positionOrder ?grid ?laps ?time ?points ?statusText
-               ?driverLabel ?driverId ?constructorLabel WHERE {{
+               ?driverLabel ?driverId ?constructorLabel ?constructorId WHERE {{
           ?res f1:resultId ?anyId ;
                f1:race {uri} ;
                f1:positionOrder ?positionOrder ;
@@ -1168,6 +1164,7 @@ def race_detail(request, race_id: str):
           ?driver rdfs:label ?driverLabel ;
                   f1:driverId ?driverId .
           ?constructor rdfs:label ?constructorLabel .
+          OPTIONAL {{ ?constructor f1:constructorId ?constructorId }}
         }}
         ORDER BY ?positionOrder
     """)
@@ -1184,6 +1181,7 @@ def race_detail(request, race_id: str):
             "driver_label":      r.get("driverLabel", ""),
             "driver_id":         r.get("driverId", ""),
             "constructor_label": r.get("constructorLabel", ""),
+            "constructor_id":    r.get("constructorId", ""),
         })
 
     # Podium (p1, p2, p3 individually for template clarity)
@@ -1437,6 +1435,67 @@ def champions(request):
     return render(request, "championship/champions.html", {"champions": rows})
 
 
+def multichampions(request):
+    """Drivers who won 2+ championships (f1:MultichampionDriver SPIN-inferred)."""
+    db = GraphDBClient()
+    rows = db.query("""
+        SELECT ?driver ?driverLabel ?driverId
+               (COUNT(DISTINCT ?season) AS ?titles)
+               (SAMPLE(?wiki) AS ?wikiUrl)
+        WHERE {
+          ?driver rdf:type f1:MultichampionDriver ;
+                  rdfs:label ?driverLabel ;
+                  f1:driverId ?driverId ;
+                  f1:wonChampionship ?season .
+          OPTIONAL { ?driver rdfs:seeAlso ?wiki }
+        }
+        GROUP BY ?driver ?driverLabel ?driverId
+        ORDER BY DESC(?titles) ?driverLabel
+    """)
+    return render(request, "championship/multichampions.html", {"drivers": rows})
+
+
+def veterans(request):
+    """Drivers with 100+ race entries (f1:Veteran SPIN-inferred)."""
+    db = GraphDBClient()
+    rows = db.query("""
+        SELECT ?driver ?driverLabel ?driverId
+               (COUNT(DISTINCT ?r) AS ?races)
+               (IF(EXISTS { ?driver rdf:type f1:WorldChampion }, "true", "false") AS ?isChampion)
+               (SAMPLE(?wiki) AS ?wikiUrl)
+        WHERE {
+          ?driver rdf:type f1:Veteran ;
+                  rdfs:label ?driverLabel ;
+                  f1:driverId ?driverId .
+          ?r f1:resultId ?rid ; f1:driver ?driver .
+          OPTIONAL { ?driver rdfs:seeAlso ?wiki }
+        }
+        GROUP BY ?driver ?driverLabel ?driverId
+        ORDER BY DESC(?races)
+    """)
+    return render(request, "championship/veterans.html", {"drivers": rows})
+
+
+def constructor_champions(request):
+    """Constructors that won at least one Constructors Championship (f1:ConstructorChampion)."""
+    db = GraphDBClient()
+    rows = db.query("""
+        SELECT ?ctor ?ctorLabel ?ctorId
+               (COUNT(DISTINCT ?season) AS ?titles)
+               (SAMPLE(?wiki) AS ?wikiUrl)
+        WHERE {
+          ?ctor rdf:type f1:ConstructorChampion ;
+                rdfs:label ?ctorLabel ;
+                f1:constructorId ?ctorId ;
+                f1:wonConstructorChampionship ?season .
+          OPTIONAL { ?ctor rdfs:seeAlso ?wiki }
+        }
+        GROUP BY ?ctor ?ctorLabel ?ctorId
+        ORDER BY DESC(?titles) ?ctorLabel
+    """)
+    return render(request, "championship/constructor_champions.html", {"constructors": rows})
+
+
 def sparql(request):
     """Interactive SPARQL explorer — accepts arbitrary SELECT queries."""
     db      = GraphDBClient()
@@ -1479,6 +1538,114 @@ def api_wiki_image(request):
     wiki_url = request.GET.get("url", "")
     image = get_wikipedia_image(wiki_url) if wiki_url else ""
     return JsonResponse({"image": image})
+
+
+# ── Semantic Tools ────────────────────────────────────────────────────────────
+
+def semantic_tools(request):
+    """
+    /tools/ — demonstrates three semantic-web features:
+      1. Reification  — SPARQL query over rdf:Statement nodes
+      2. Microformats parser (mf2py) — parse MF2 from any page on this site
+      3. RDFa Play / W3C distiller — extract RDFa triples from a page URL
+    """
+    db = GraphDBClient()
+
+    # ── Reification: show a few reified wonChampionship statements ──────────
+    reification_rows = db.query("""
+        SELECT ?stmt ?driverLabel ?yr ?pts WHERE {
+          ?stmt rdf:type rdf:Statement ;
+                rdf:predicate f1:wonChampionship ;
+                rdf:subject   ?driver ;
+                rdf:object    ?season ;
+                f1:finalPoints ?pts .
+          ?driver rdfs:label ?driverLabel .
+          ?season f1:year ?yr .
+        }
+        ORDER BY DESC(?yr) LIMIT 20
+    """)
+
+    return render(request, "championship/semantic_tools.html", {
+        "reification_rows": reification_rows,
+    })
+
+
+def api_entity_info(request):
+    """
+    GET /api/entity-info/?type=driver|constructor|circuit&name=<label>&wiki=<url>
+    Returns JSON with Wikipedia summary (image, description, extract)
+    and Wikidata/DBpedia enrichment. Called client-side after page render.
+    """
+    from .services.external_data import (
+        get_wikipedia_summary, get_driver_wikidata,
+        get_constructor_wikidata, get_circuit_dbpedia,
+    )
+    entity_type = request.GET.get("type", "")
+    name        = request.GET.get("name", "").strip()
+    wiki_url    = request.GET.get("wiki", "").strip()
+
+    result: dict = {}
+
+    # Wikipedia REST summary (fast, works for all entity types)
+    if wiki_url:
+        result.update(get_wikipedia_summary(wiki_url))
+
+    # Semantic enrichment from Wikidata / DBpedia
+    if entity_type == "driver" and name:
+        wd = get_driver_wikidata(name)
+        result["birthPlace"]   = wd.get("birthPlace", "")
+        result["deathDate"]    = wd.get("deathDate", "")
+        result["height"]       = wd.get("height", "")
+        result["fatherName"]   = wd.get("fatherName", "")
+        result["childNames"]   = wd.get("childNames", "")
+        result["wikidata_uri"] = wd.get("wikidata_uri", "")
+        if not result.get("description"):
+            result["description"] = wd.get("description", "")
+    elif entity_type == "constructor" and name:
+        wd = get_constructor_wikidata(name)
+        result["foundingDate"] = wd.get("foundingDate", "")
+        result["hq"]           = wd.get("hq", "")
+        result["logo"]         = wd.get("logo", "")
+        result["website"]      = wd.get("website", "")
+        result["country"]      = wd.get("country", "")
+        result["founder"]      = wd.get("founder", "")
+        result["dissolved"]    = wd.get("dissolved", "")
+        result["wikidata_uri"] = wd.get("wikidata_uri", "")
+    elif entity_type == "circuit" and name:
+        db = get_circuit_dbpedia(name)
+        result["abstract"]    = db.get("abstract", "")[:400]
+        result["length"]      = db.get("length", "")
+        result["turns"]       = db.get("turns", "")
+        result["capacity"]    = db.get("capacity", "")
+        result["opened"]      = db.get("opened", "")
+        result["lapRecord"]   = db.get("lapRecord", "")
+        result["dbpedia_uri"] = db.get("dbpedia_uri", "")
+        if not result.get("description"):
+            result["description"] = result["abstract"]
+
+    return JsonResponse(result)
+
+
+def api_parse_microformats(request):
+    """
+    GET /api/parse-microformats/?url=<absolute-url>
+    Fetches the page at <url>, parses Microformats 2 with mf2py,
+    and returns the result as JSON.
+    """
+    import mf2py
+    import requests as http_requests
+
+    url = request.GET.get("url", "").strip()
+    if not url:
+        return JsonResponse({"error": "url parameter required"}, status=400)
+
+    try:
+        resp = http_requests.get(url, timeout=8, headers={"User-Agent": "F1-MF2-Parser/1.0"})
+        resp.raise_for_status()
+        parsed = mf2py.parse(doc=resp.text, url=url)
+        return JsonResponse(parsed, safe=False)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
 
 
 def error_404(request, _exception):

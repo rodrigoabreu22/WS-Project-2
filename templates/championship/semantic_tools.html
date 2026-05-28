@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+{% block title %}Semantic Tools{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tools-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .tool-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .tool-head {
+    background: var(--dark);
+    border-bottom: 2px solid var(--red);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .tool-head-icon {
+    font-size: 1.3rem;
+  }
+
+  .tool-head-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .tool-head-badge {
+    margin-left: auto;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+
+  .badge-rdf    { color: #60a5fa; border-color: #60a5fa; }
+  .badge-mf2    { color: #34d399; border-color: #34d399; }
+  .badge-rdfa   { color: #f472b6; border-color: #f472b6; }
+
+  .tool-body { padding: 1.25rem; }
+
+  .tool-desc {
+    color: var(--grey);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.55;
+  }
+
+  /* ── Reification table ───────────────────────────────────────── */
+  .reif-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .reif-table thead tr { border-bottom: 2px solid var(--red); background: var(--dark); }
+  .reif-table th {
+    padding: 0.6rem 1rem;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+  .reif-table td {
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    color: var(--white);
+  }
+  .reif-table tr:last-child td { border-bottom: none; }
+  .mono {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: var(--grey);
+    word-break: break-all;
+  }
+
+  /* ── URL input form ──────────────────────────────────────────── */
+  .url-form {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .url-input {
+    flex: 1;
+    min-width: 260px;
+    padding: 0.5rem 0.85rem;
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+  }
+
+  .url-input:focus { border-color: var(--red); }
+
+  /* ── JSON output box ─────────────────────────────────────────── */
+  .json-output {
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem;
+    color: #86efac;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 420px;
+    overflow-y: auto;
+    display: none;
+  }
+
+  .json-output.visible { display: block; }
+
+  /* ── SPARQL snippet ──────────────────────────────────────────── */
+  .sparql-box {
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #93c5fd;
+    white-space: pre;
+    overflow-x: auto;
+    margin-top: 1rem;
+    line-height: 1.55;
+  }
+
+  /* ── RDFa links grid ─────────────────────────────────────────── */
+  .rdfa-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .rdfa-link-card {
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .rdfa-link-card a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--red);
+    text-decoration: none;
+  }
+
+  .rdfa-link-card a:hover { text-decoration: underline; }
+
+  .rdfa-link-card p {
+    font-size: 0.8rem;
+    color: var(--grey);
+    margin: 0;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.88rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: var(--grey); min-width: 160px; flex-shrink: 0; }
+  .info-val { color: var(--white); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;">
+  <h1 class="page-title" style="margin-bottom:0.2rem;">Semantic Web Tools</h1>
+  <p style="color:var(--grey);font-size:0.9rem;">
+    Live demonstrations of RDF reification, Microformats 2 parsing, and RDFa extraction built into this knowledge system.
+  </p>
+</div>
+
+<div class="tools-grid">
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       TOOL 1 — RDF Reification
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="tool-card">
+    <div class="tool-head">
+      <span class="tool-head-icon">&#128260;</span>
+      <span class="tool-head-title">RDF Reification</span>
+      <span class="tool-head-badge badge-rdf">rdf:Statement</span>
+    </div>
+    <div class="tool-body">
+      <p class="tool-desc">
+        Standard RDF reification wraps an existing triple inside an <code>rdf:Statement</code> resource,
+        allowing metadata to be attached to the triple itself — not just to the subject or object.
+        Here each <strong>f1:wonChampionship</strong> triple is reified with the driver's
+        <strong>final championship points</strong> by a SPIN rule (<code>reify_wonChampionship</code>),
+        producing a stable URI of the form <code>stmt/champ/{driverId}/{year}</code>.
+      </p>
+
+      <div class="sparql-box">PREFIX f1:  &lt;http://example.org/f1/&gt;
+PREFIX rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+
+SELECT ?stmt ?driverLabel ?yr ?pts WHERE {
+  ?stmt rdf:type      rdf:Statement ;
+        rdf:predicate f1:wonChampionship ;
+        rdf:subject   ?driver ;
+        rdf:object    ?season ;
+        f1:finalPoints ?pts .
+  ?driver rdfs:label ?driverLabel .
+  ?season f1:year    ?yr .
+} ORDER BY DESC(?yr) LIMIT 20</div>
+
+      {% if reification_rows %}
+      <div style="margin-top:1.25rem;overflow-x:auto;">
+        <table class="reif-table">
+          <thead>
+            <tr>
+              <th>Statement URI</th>
+              <th>Driver</th>
+              <th>Year</th>
+              <th>Final Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reification_rows %}
+            <tr>
+              <td class="mono">{{ r.stmt|cut:"http://example.org/resource/" }}</td>
+              <td><strong>{{ r.driverLabel }}</strong></td>
+              <td style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--red);">{{ r.yr }}</td>
+              <td style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:#fbbf24;">{{ r.pts }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" style="text-align:center;color:var(--grey);padding:1.5rem;">
+                No reified statements found — run <code>python manage.py run_spin_rules</code> first.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="margin-top:1rem;padding:1rem;border:1px solid var(--line);border-radius:6px;color:var(--grey);font-size:0.88rem;">
+        No reified statements in the graph yet. Run <code>python manage.py run_spin_rules</code> to materialise them.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       TOOL 2 — Microformats 2 Parser
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="tool-card">
+    <div class="tool-head">
+      <span class="tool-head-icon">&#129302;</span>
+      <span class="tool-head-title">Microformats 2 Parser</span>
+      <span class="tool-head-badge badge-mf2">mf2py</span>
+    </div>
+    <div class="tool-body">
+      <p class="tool-desc">
+        Every page on this site embeds <strong>Microformats 2</strong> classes (<code>h-card</code>,
+        <code>h-event</code>, <code>p-name</code>, <code>u-url</code>, <code>dt-bday</code>, …)
+        directly in the HTML.  The parser below uses
+        <a href="https://github.com/microformats/mf2py" target="_blank" rel="noopener" style="color:var(--red);">mf2py</a>
+        to fetch any page on this site and extract the structured Microformats data as JSON.
+      </p>
+
+      <div class="url-form">
+        <input type="url" id="mf2Url" class="url-input"
+               placeholder="https://this-site/drivers/1/"
+               value="{{ request.scheme }}://{{ request.get_host }}{% url 'championship:champions' %}">
+        <button class="btn btn-primary" onclick="parseMF2()">Parse MF2</button>
+      </div>
+
+      <div style="font-size:0.8rem;color:var(--grey);margin-bottom:0.75rem;">
+        Quick-load:
+        <a href="#" onclick="setUrl('{% url 'championship:champions' %}');return false" style="color:var(--red);">Champions</a> ·
+        <a href="#" onclick="setUrl('{% url 'championship:drivers' %}');return false" style="color:var(--red);">Drivers</a> ·
+        <a href="#" onclick="setUrl('{% url 'championship:circuits' %}');return false" style="color:var(--red);">Circuits</a>
+      </div>
+
+      <div id="mf2Status" style="font-size:0.82rem;color:var(--grey);margin-bottom:0.5rem;display:none;"></div>
+      <pre id="mf2Output" class="json-output"></pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       TOOL 3 — RDFa Play / W3C Distiller
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="tool-card">
+    <div class="tool-head">
+      <span class="tool-head-icon">&#127760;</span>
+      <span class="tool-head-title">RDFa Extraction</span>
+      <span class="tool-head-badge badge-rdfa">RDFa 1.1 Lite</span>
+    </div>
+    <div class="tool-body">
+      <p class="tool-desc">
+        Every detail page embeds <strong>RDFa 1.1 Lite</strong> using Schema.org vocabulary
+        (<code>vocab</code>, <code>typeof</code>, <code>property</code>, <code>resource</code>).
+        Use the links below to extract the RDF triples from any page via the
+        <strong>W3C pyRDFa distiller</strong> or validate structured data with Google's testing tool.
+      </p>
+
+      <div class="rdfa-links">
+        {% with pages=rdfa_pages %}
+        <div class="rdfa-link-card">
+          <a href="https://www.w3.org/2012/pyRdfa/extract?format=turtle&uri={{ request.scheme }}://{{ request.get_host }}{% url 'championship:champions' %}"
+             target="_blank" rel="noopener">
+            W3C Distiller — Champions &#8599;
+          </a>
+          <p>Extracts RDFa from the Champions page as Turtle RDF.</p>
+        </div>
+        <div class="rdfa-link-card">
+          <a href="https://www.w3.org/2012/pyRdfa/extract?format=turtle&uri={{ request.scheme }}://{{ request.get_host }}{% url 'championship:drivers' %}"
+             target="_blank" rel="noopener">
+            W3C Distiller — Drivers &#8599;
+          </a>
+          <p>Extracts RDFa from the Drivers listing page.</p>
+        </div>
+        <div class="rdfa-link-card">
+          <a href="https://search.google.com/test/rich-results?url={{ request.scheme }}://{{ request.get_host }}{% url 'championship:champions' %}"
+             target="_blank" rel="noopener">
+            Google Rich Results Test &#8599;
+          </a>
+          <p>Validates Schema.org structured data for search-engine rich snippets.</p>
+        </div>
+        <div class="rdfa-link-card">
+          <a href="https://rdfa.info/play/" target="_blank" rel="noopener">
+            RDFa Play &#8599;
+          </a>
+          <p>Online RDFa playground — paste any page's HTML to visualise extracted triples.</p>
+        </div>
+        {% endwith %}
+      </div>
+
+      <p style="font-size:0.82rem;color:var(--grey);margin-top:0.5rem;">
+        &#128276; The W3C distiller links work when the server is publicly reachable.
+        For local testing, paste your page HTML directly into
+        <a href="https://rdfa.info/play/" target="_blank" rel="noopener" style="color:var(--red);">rdfa.info/play</a>.
+      </p>
+
+      <!-- What RDFa types are used -->
+      <div style="margin-top:1.25rem;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.6rem;">RDFa annotations in this project</div>
+        <div class="info-row"><span class="info-key">Drivers</span><span class="info-val"><code>typeof="Person"</code> · <code>property="name"</code>, <code>birthDate</code>, <code>nationality"</code>, <code>sameAs</code></span></div>
+        <div class="info-row"><span class="info-key">Constructors</span><span class="info-val"><code>typeof="SportsOrganization"</code> · <code>property="name"</code>, <code>nationality</code>, <code>sameAs</code></span></div>
+        <div class="info-row"><span class="info-key">Circuits</span><span class="info-val"><code>typeof="SportsActivityLocation"</code> · <code>property="name"</code>, <code>latitude</code>, <code>longitude</code>, <code>addressLocality</code></span></div>
+        <div class="info-row"><span class="info-key">Races</span><span class="info-val"><code>typeof="SportsEvent"</code> · <code>property="name"</code>, <code>startDate</code>, <code>locationCreated</code></span></div>
+        <div class="info-row"><span class="info-key">Champions list</span><span class="info-val"><code>typeof="ItemList"</code> with <code>typeof="Person"</code> items · <code>property="itemListElement"</code></span></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tools-grid -->
+
+<script>
+function setUrl(path) {
+  document.getElementById('mf2Url').value =
+    window.location.protocol + '//' + window.location.host + path;
+}
+
+function parseMF2() {
+  const url    = document.getElementById('mf2Url').value.trim();
+  const status = document.getElementById('mf2Status');
+  const output = document.getElementById('mf2Output');
+
+  if (!url) { return; }
+
+  status.style.display = 'block';
+  status.textContent   = 'Fetching and parsing…';
+  output.classList.remove('visible');
+
+  fetch('{% url "championship:api_parse_microformats" %}?url=' + encodeURIComponent(url))
+    .then(r => r.json())
+    .then(data => {
+      status.textContent = 'Parsed ' + (data.items ? data.items.length : 0) + ' top-level item(s)';
+      output.textContent = JSON.stringify(data, null, 2);
+      output.classList.add('visible');
+    })
+    .catch(err => {
+      status.textContent = 'Error: ' + err.message;
+    });
+}
+</script>
+{% endblock %}
