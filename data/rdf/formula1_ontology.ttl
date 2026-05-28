@@ -1,0 +1,558 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix f1:   <http://example.org/f1/> .
+@prefix res:  <http://example.org/resource/> .
+
+# ── Ontology header ────────────────────────────────────────────────────────────
+
+<http://example.org/f1/ontology>
+    rdf:type owl:Ontology ;
+    rdfs:label "Formula 1 Knowledge Ontology" ;
+    rdfs:comment "OWL/RDFS ontology for the F1 Kaggle knowledge system (TP2, MEI Web Semantics)." ;
+    owl:versionInfo "2.0" .
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CLASSES
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Abstract root classes ─────────────────────────────────────────────────────
+
+f1:Entity rdf:type owl:Class ;
+    rdfs:label "Entity" ;
+    rdfs:comment "Abstract root for all named entities in the F1 domain." .
+
+f1:Person rdf:type owl:Class ;
+    rdfs:subClassOf f1:Entity ;
+    rdfs:label "Person" .
+
+f1:Team rdf:type owl:Class ;
+    rdfs:subClassOf f1:Entity ;
+    rdfs:label "Team" .
+
+f1:Venue rdf:type owl:Class ;
+    rdfs:subClassOf f1:Entity ;
+    rdfs:label "Venue" .
+
+f1:Event rdf:type owl:Class ;
+    rdfs:label "Event" ;
+    rdfs:comment "Abstract class for time-bounded events." .
+
+f1:PerformanceRecord rdf:type owl:Class ;
+    rdfs:label "PerformanceRecord" ;
+    rdfs:comment "Abstract class for recorded performance data." .
+
+f1:Standing rdf:type owl:Class ;
+    rdfs:label "Standing" .
+
+# ── Concrete asserted classes — names MUST match class_name in csv_to_rdf.py ──
+#
+# Base class inference strategy
+# ──────────────────────────────
+# Driver, Constructor and Circuit each have a unique "ref" data property that
+# appears ONLY on their respective CSV (driverRef in drivers.csv, etc.).
+# Two complementary mechanisms enable base class inference:
+#
+#   1. rdfs:domain on the ref property — sufficient for GraphDB (RDFS+/OWL-Max)
+#      and gives HermiT the "has property → is class" direction.
+#   2. owl:equivalentClass with owl:someValuesFrom — adds the bidirectional
+#      necessary-and-sufficient definition so HermiT can classify individuals
+#      from the property alone, without explicit rdf:type assertions.
+#
+# For more complex classifications (WorldChampion, Veteran, HistoricCircuit, etc.)
+# OWL DL cannot express the required aggregation (COUNT, GROUP BY, MAX), so these
+# are handled by SPIN rules — see championship/spin_rules.py.
+
+f1:Driver rdf:type owl:Class ;
+    rdfs:subClassOf f1:Person ;
+    rdfs:label "Driver" ;
+    rdfs:comment "A racing driver.  Inferred from f1:driverRef via owl:equivalentClass." .
+
+f1:Driver owl:equivalentClass [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:driverRef ;
+    owl:someValuesFrom xsd:string
+] .
+
+f1:Constructor rdf:type owl:Class ;
+    rdfs:subClassOf f1:Team ;
+    rdfs:label "Constructor" ;
+    rdfs:comment "An F1 constructor (team).  Inferred from f1:constructorRef via owl:equivalentClass." .
+
+f1:Constructor owl:equivalentClass [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:constructorRef ;
+    owl:someValuesFrom xsd:string
+] .
+
+f1:Circuit rdf:type owl:Class ;
+    rdfs:subClassOf f1:Venue ;
+    rdfs:label "Circuit" ;
+    rdfs:comment "A racing circuit.  Inferred from f1:circuitRef via owl:equivalentClass." .
+
+f1:Circuit owl:equivalentClass [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:circuitRef ;
+    owl:someValuesFrom xsd:string
+] .
+
+f1:Season rdf:type owl:Class ;
+    rdfs:subClassOf f1:Event ;
+    rdfs:label "Season" .
+
+f1:Race rdf:type owl:Class ;
+    rdfs:subClassOf f1:Event ;
+    rdfs:label "Race" .
+
+f1:Result rdf:type owl:Class ;
+    rdfs:subClassOf f1:PerformanceRecord ;
+    rdfs:label "Result" .
+
+f1:QualifyingResult rdf:type owl:Class ;
+    rdfs:subClassOf f1:PerformanceRecord ;
+    rdfs:label "QualifyingResult" .
+
+f1:LapTime rdf:type owl:Class ;
+    rdfs:subClassOf f1:PerformanceRecord ;
+    rdfs:label "LapTime" .
+
+f1:PitStop rdf:type owl:Class ;
+    rdfs:subClassOf f1:PerformanceRecord ;
+    rdfs:label "PitStop" .
+
+f1:ConstructorResult rdf:type owl:Class ;
+    rdfs:subClassOf f1:PerformanceRecord ;
+    rdfs:label "ConstructorResult" .
+
+f1:DriverStanding rdf:type owl:Class ;
+    rdfs:subClassOf f1:Standing ;
+    rdfs:label "DriverStanding" .
+
+f1:ConstructorStanding rdf:type owl:Class ;
+    rdfs:subClassOf f1:Standing ;
+    rdfs:label "ConstructorStanding" .
+
+f1:Status rdf:type owl:Class ;
+    rdfs:label "Status" .
+
+# ── Inferred subclasses — populated by SPIN rules, not by raw data ────────────
+
+f1:WorldChampion rdf:type owl:Class ;
+    rdfs:subClassOf f1:Driver ;
+    rdfs:label "WorldChampion" ;
+    rdfs:comment "Driver who won at least one Drivers Championship." .
+
+f1:MultichampionDriver rdf:type owl:Class ;
+    rdfs:subClassOf f1:WorldChampion ;
+    rdfs:label "MultichampionDriver" ;
+    rdfs:comment "Driver who won two or more championships." .
+
+f1:Veteran rdf:type owl:Class ;
+    rdfs:subClassOf f1:Driver ;
+    rdfs:label "Veteran" ;
+    rdfs:comment "Driver with 100 or more race entries." .
+
+f1:ActiveCircuit rdf:type owl:Class ;
+    rdfs:subClassOf f1:Circuit ;
+    rdfs:label "ActiveCircuit" ;
+    rdfs:comment "Circuit that hosted a race in the most recent season in the dataset." .
+
+f1:HistoricCircuit rdf:type owl:Class ;
+    rdfs:subClassOf f1:Circuit ;
+    rdfs:label "HistoricCircuit" ;
+    rdfs:comment "Circuit that has not hosted a race in the last 10 years of the dataset." .
+
+f1:ConstructorChampion rdf:type owl:Class ;
+    rdfs:subClassOf f1:Constructor ;
+    rdfs:label "ConstructorChampion" ;
+    rdfs:comment "Constructor that won at least one Constructors Championship." .
+
+f1:PodiumResult rdf:type owl:Class ;
+    rdfs:subClassOf f1:Result ;
+    rdfs:label "PodiumResult" ;
+    rdfs:comment "Race result where positionOrder is 1, 2 or 3." .
+
+# ── Disjointness axioms ───────────────────────────────────────────────────────
+
+f1:Driver    owl:disjointWith f1:Constructor .
+f1:Driver    owl:disjointWith f1:Circuit .
+f1:Circuit   owl:disjointWith f1:Constructor .
+f1:Race      owl:disjointWith f1:Season .
+f1:Race      owl:disjointWith f1:Driver .
+f1:Result    owl:disjointWith f1:QualifyingResult .
+f1:Result    owl:disjointWith f1:LapTime .
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OBJECT PROPERTIES
+# Predicate names match the link relation_name values in csv_to_rdf.py.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Raw data object properties (emitted by csv_to_rdf.py links)
+#
+# Domain omitted on f1:race, f1:driver, f1:constructor: these object properties
+# also appear on DriverStanding and ConstructorStanding (which are not
+# PerformanceRecord), so a domain of f1:PerformanceRecord would cause the same
+# disjoint-type inconsistency as the foreign-key ID issue above.
+
+f1:race rdf:type owl:ObjectProperty ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "race" .
+
+f1:driver rdf:type owl:ObjectProperty ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:range  f1:Driver ;
+    rdfs:label  "driver" .
+
+f1:constructor rdf:type owl:ObjectProperty ;
+    rdfs:range  f1:Constructor ;
+    rdfs:label  "constructor" .
+
+f1:status rdf:type owl:ObjectProperty ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  f1:Status ;
+    rdfs:label  "status" .
+
+# f1:statusLabel holds the human-readable status text on Status entities
+# (e.g. "Finished", "Accident"). Renamed from "status" in csv_to_rdf.py
+# to avoid the OWL 2 DL violation of using one property as both object and datatype.
+f1:statusLabel rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Status ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "statusLabel" .
+
+# f1:circuit links Race → Circuit (emitted for race rows via circuitId link)
+f1:circuit rdf:type owl:ObjectProperty ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:domain f1:Race ;
+    rdfs:range  f1:Circuit ;
+    rdfs:label  "circuit" .
+
+# f1:season links Race → Season (emitted for race rows via year link)
+f1:season rdf:type owl:ObjectProperty ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:domain f1:Race ;
+    rdfs:range  f1:Season ;
+    rdfs:label  "season" .
+
+# Inferred object properties (materialised by SPIN rules)
+
+f1:heldAt rdf:type owl:ObjectProperty ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:domain f1:Race ;
+    rdfs:range  f1:Circuit ;
+    rdfs:label  "heldAt" .
+
+f1:wonChampionship rdf:type owl:ObjectProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Season ;
+    rdfs:label  "wonChampionship" .
+
+# Used on rdf:Statement reification nodes produced by the reify_wonChampionship SPIN rule.
+# The subject of the statement (a Driver) accumulated these points by the final race of the season.
+f1:finalPoints rdf:type owl:DatatypeProperty ;
+    rdfs:domain rdf:Statement ;
+    rdfs:range  xsd:decimal ;
+    rdfs:label  "finalPoints" ;
+    rdfs:comment "Championship points total at season end, attached to reified f1:wonChampionship statements." .
+
+f1:wonConstructorChampionship rdf:type owl:ObjectProperty ;
+    rdfs:domain f1:Constructor ;
+    rdfs:range  f1:Season ;
+    rdfs:label  "wonConstructorChampionship" .
+
+f1:wonRace rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:competedIn ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "wonRace" .
+
+f1:achievedPodium rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:competedIn ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "achievedPodium" .
+
+f1:competedIn rdf:type owl:ObjectProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "competedIn" .
+
+f1:drovFor rdf:type owl:ObjectProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Constructor ;
+    rdfs:label  "drovFor" .
+
+f1:hadDriver rdf:type owl:ObjectProperty ;
+    owl:inverseOf f1:drovFor ;
+    rdfs:domain f1:Constructor ;
+    rdfs:range  f1:Driver ;
+    rdfs:label  "hadDriver" .
+
+# Symmetric property — owl:SymmetricProperty causes GraphDB (OWL-Max) to
+# automatically infer the inverse triple without a SPIN rule.
+f1:wasTeammate rdf:type owl:ObjectProperty ;
+    rdf:type owl:SymmetricProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Driver ;
+    rdfs:label  "wasTeammate" .
+
+# ══════════════════════════════════════════════════════════════════════════════
+# DATATYPE PROPERTIES
+# Column names from csv_to_rdf.py become f1: predicates.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Identifier properties
+#
+# Foreign-key IDs (driverId, constructorId, raceId, circuitId, statusId) appear
+# as literal columns on MULTIPLE entity types (e.g. resultId row also has driverId
+# and constructorId literals). Declaring rdfs:domain on these would cause HermiT to
+# infer contradictory types (Driver AND Constructor on the same Result individual),
+# triggering owl:disjointWith inconsistencies. Domain is intentionally omitted.
+
+f1:driverId rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "driverId" .
+
+f1:constructorId rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "constructorId" .
+
+f1:circuitId rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "circuitId" .
+
+f1:raceId rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "raceId" .
+
+f1:statusId rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "statusId" .
+
+# ── Unique ref properties — one per entity type, used as inference anchors ───
+#
+# These appear in EXACTLY ONE CSV file each, so rdfs:domain can be declared
+# safely without cross-table false positives.  Combined with the owl:equivalentClass
+# restrictions declared above, the OWL reasoner infers Driver/Constructor/Circuit
+# from these properties alone — without requiring explicit rdf:type assertions.
+
+f1:driverRef rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "driverRef" .
+
+f1:constructorRef rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Constructor ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "constructorRef" .
+
+f1:circuitRef rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Circuit ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "circuitRef" .
+
+# Pure entity IDs — these columns only appear on their own entity's table,
+# so domain declarations are safe.
+
+f1:resultId rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "resultId" .
+
+f1:qualifyId rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:QualifyingResult ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "qualifyId" .
+
+f1:driverStandingsId rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:DriverStanding ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "driverStandingsId" .
+
+f1:constructorStandingsId rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:ConstructorStanding ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "constructorStandingsId" .
+
+f1:constructorResultsId rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:ConstructorResult ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "constructorResultsId" .
+
+# Shared string properties
+
+f1:nationality rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Entity ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "nationality" .
+
+f1:name rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Entity ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "name" .
+
+f1:url rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Entity ;
+    rdfs:range  xsd:anyURI ;
+    rdfs:label  "url" .
+
+# Driver-specific
+
+f1:forename rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "forename" .
+
+f1:surname rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "surname" .
+
+f1:dob rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  xsd:date ;
+    rdfs:label  "dob" .
+
+f1:code rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "code" .
+
+f1:number rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "number" .
+
+# Circuit-specific
+
+f1:location rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Circuit ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "location" .
+
+f1:country rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Circuit ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "country" .
+
+f1:lat rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Circuit ;
+    rdfs:range  xsd:decimal ;
+    rdfs:label  "lat" .
+
+f1:lng rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Circuit ;
+    rdfs:range  xsd:decimal ;
+    rdfs:label  "lng" .
+
+f1:alt rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Circuit ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "alt" .
+
+# Season/Race temporal
+
+f1:year rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Event ;
+    rdfs:range  xsd:gYear ;
+    rdfs:label  "year" .
+
+f1:round rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Race ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "round" .
+
+f1:date rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Race ;
+    rdfs:range  xsd:date ;
+    rdfs:label  "date" .
+
+# Result/performance
+
+f1:positionOrder rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "positionOrder" .
+
+f1:position rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "position" .
+
+f1:points rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:decimal ;
+    rdfs:label  "points" .
+
+f1:grid rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "grid" .
+
+f1:laps rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "laps" .
+
+f1:milliseconds rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:PerformanceRecord ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "milliseconds" .
+
+f1:fastestLap rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "fastestLap" .
+
+f1:rank rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Result ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "rank" .
+
+f1:wins rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:Standing ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "wins" .
+
+f1:lap rdf:type owl:DatatypeProperty ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "lap" .
+
+f1:stop rdf:type owl:DatatypeProperty ;
+    rdfs:domain f1:PitStop ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "stop" .
+
+# ══════════════════════════════════════════════════════════════════════════════
+# RESTRICTION AXIOMS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# A Race is held at exactly 1 circuit.
+f1:Race rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:circuit ;
+    owl:maxCardinality "1"^^xsd:nonNegativeInteger
+] .
+
+# WorldChampion ⊑ Driver who has won at least one championship.
+# rdfs:subClassOf (not owl:equivalentClass) — membership requires f1:wonChampionship
+# which is materialised by a SPIN rule, not present in raw data.
+f1:WorldChampion rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:wonChampionship ;
+    owl:someValuesFrom f1:Season
+] .
+
+f1:ConstructorChampion rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:wonConstructorChampionship ;
+    owl:someValuesFrom f1:Season
+] .
+
+# A PodiumResult has positionOrder ≤ 3 (arithmetic bound enforced by SPIN rule;
+# the OWL restriction expresses the structural intent: the value must exist).
+f1:PodiumResult rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty     f1:positionOrder ;
+    owl:someValuesFrom xsd:integer
+] .
