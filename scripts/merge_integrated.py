@@ -16,7 +16,7 @@ from rdflib import Graph
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Merge RDF facts and ontology into one NT file.")
-    parser.add_argument("--facts",    type=Path, default=Path("data/rdf/formula1_facts.nt"))
+    parser.add_argument("--facts",    type=Path, default=Path("data/rdf/formula1.nt"))
     parser.add_argument("--ontology", type=Path, default=Path("data/rdf/formula1_ontology.ttl"))
     parser.add_argument("--output",   type=Path, default=Path("data/rdf/formula1_integrated.nt"))
     return parser.parse_args()

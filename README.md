@@ -38,66 +38,103 @@ No relational database is used for domain data. Django's SQLite is used only for
 
 - Python 3.12+
 - [GraphDB Free](https://www.ontotext.com/products/graphdb/download/) running on `http://localhost:7200`
-- A GraphDB repository named **`ws-formula1`** (create via the Workbench UI)
+- A GraphDB repository named **`ws-formula1-owlmax`** created with the **`owl-max-optimized`** ruleset (see step 6 below — this is critical for `rdfs:domain` inference to work)
 - Ergast CSV files in `data/raw/` (download from [ergast.com](https://ergast.com/mrd/db/))
 - A Google Gemini API key (only needed for the F1 Assistant page)
 
-### Steps
+> **Why `owl-max-optimized`?** GraphDB's `rdfsplus-optimized` ruleset does not materialise `rdfs:domain` inference during bulk REST API loads. The `owl-max-optimized` ruleset + server-side import (used by this project's load script) is the only configuration that correctly triggers `rdfs:domain → rdf:type` forward-chaining, enabling the ontology to classify Driver/Constructor/Circuit entities without explicit `rdf:type` in the facts file.
+
+### Quick start (single command)
 
 ```bash
-# 1. Clone and create virtual environment
-git clone <repo-url> && cd WS-Project-2
-python -m venv venv && source venv/bin/activate
+# Clone the repo, ensure GraphDB is running and data/raw/ has Ergast CSVs, then:
+bash scripts/setup.sh
+```
 
-# 2. Install dependencies
+`setup.sh` handles everything: creates the virtual environment, installs dependencies,
+creates the GraphDB repository, generates RDF files, loads data, runs all inference
+rules, and sets up Django. You only need to start the server after:
+
+```bash
+source venv/bin/activate && python manage.py runserver
+```
+
+### Manual step-by-step
+
+If you prefer to run each step individually:
+
+```bash
+# 1. Virtual environment and dependencies
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# 3. Configure environment
+# 2. Configure environment
 cp .env.example .env
-# Edit .env — set at minimum:
-#   DJANGO_SECRET_KEY=<any-long-random-string>
-#   GRAPHDB_BASE_URL=http://localhost:7200
-#   GRAPHDB_REPOSITORY=ws-formula1
-#   GEMINI_KEY=<your-gemini-api-key>   (optional, for F1 Assistant only)
+# The defaults in .env.example work as-is. Add GEMINI_KEY for the F1 Assistant.
 
-# 4. Generate RDF facts from CSV
-python scripts/csv_to_rdf.py
-# Output: data/rdf/formula1.nt  (~798 MB, gitignored)
+# 3. Create GraphDB repository (owl-max-optimized ruleset — required)
+#    GraphDB must be running at http://localhost:7200 first.
+bash scripts/create_graphdb_repo.sh
 
-# 5. Merge ontology + facts into one file
-python scripts/merge_integrated.py
-# Output: data/rdf/formula1_integrated.nt  (~798 MB, gitignored)
+# 4. Generate RDF facts from CSV (Ergast files must be in data/raw/)
+python scripts/csv_to_rdf.py          # → data/rdf/formula1.nt (~798 MB)
 
-# 6. Load into GraphDB
-#    Open http://localhost:7200 → ws-formula1 repository
-#    Import → Server files → select data/rdf/formula1_integrated.nt
-#    (or: bash scripts/load_rdf_to_graphdb.sh)
+# 5. Merge ontology + facts
+python scripts/merge_integrated.py    # → data/rdf/formula1_integrated.nt
+
+# 6. Load into GraphDB (server-side import, ~2 min)
+bash scripts/load_rdf_to_graphdb.sh
 
 # 7. Run SPIN inference rules (15 rules, ~1 min)
-python manage.py run_spin_rules
-# Materialises WorldChampion, Veteran, HistoricCircuit, PodiumResult,
-# wasTeammate, wonChampionship, reification nodes, and more.
+python manage.py run_spin_rules        # expected: 15/15 rules applied successfully
 
-# 8. Set up Django (SQLite — auth only)
+# 8. Django setup
 python manage.py migrate
-python manage.py createsuperuser   # needed for the admin panel
+python manage.py createsuperuser       # for admin panel access
 
-# 9. Start the dev server
+# 9. Start the server
 python manage.py runserver
 ```
 
-Open `http://localhost:8000`.  
-Admin panel: `http://localhost:8000/admin-panel/login/`
+Open `http://localhost:8000`. Admin panel: `http://localhost:8000/admin-panel/login/`
 
-### Re-running inference
-
-If you change the SPIN rules or reload GraphDB data:
+### Re-running inference after data changes
 
 ```bash
-python manage.py run_spin_rules
+python manage.py run_spin_rules   # all 15 rules are idempotent
 ```
 
-All 15 rules are idempotent — safe to run multiple times.
+### Why `owl-max-optimized` + server-side import?
+
+GraphDB's `rdfsplus-optimized` ruleset and the streaming REST API
+(`POST /repositories/{id}/statements`) do **not** trigger forward-chaining
+`rdfs:domain → rdf:type` inference during bulk loads. The combination of:
+
+- **`owl-max-optimized` ruleset** — enables full OWL-Max inference including
+  `rdfs:domain`, `owl:inverseOf`, `owl:SymmetricProperty`
+- **Server-side import** (`load_rdf_to_graphdb.sh`) — uses GraphDB's internal import
+  pipeline (same as the Workbench UI) which correctly fires inference during ingestion
+
+This is what allows the ontology to classify Driver/Constructor/Circuit entities
+from their property usage (`f1:driverRef`, `f1:constructorRef`, `f1:circuitRef`)
+without any explicit `rdf:type` in the facts file — exactly as the TP2 assignment requires.
+
+### Why all 15 SPIN rules are still needed
+
+The `owl-max-optimized` ruleset handles *ontological* inference (property → type via
+`rdfs:domain`, inverse properties, subClassOf chains). The SPIN rules handle
+*data-driven* inference that OWL DL fundamentally cannot express:
+
+| Category | Examples |
+|---|---|
+| Aggregation | `COUNT(results) ≥ 100` (Veteran), `COUNT(championships) ≥ 2` (MultichampionDriver) |
+| `GROUP BY + MAX` | Final round detection for championship rules |
+| Arithmetic on data | `positionOrder = 1` (wonRace), `positionOrder ≤ 3` (PodiumResult) |
+| Complex joins | Same race + same constructor + different driver (wasTeammate) |
+| Negation-as-failure | `FILTER NOT EXISTS` for HistoricCircuit |
+| RDF reification | `rdf:Statement` nodes with `f1:finalPoints` annotation |
+
+None of these overlap with what OWL-Max provides.
 
 ---
 
