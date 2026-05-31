@@ -179,6 +179,7 @@
   }
 
   .status-rb.active:checked   + .status-label { background: #1a3a1a; border-color: #4caf50; color: #4caf50; }
+  .status-rb.historic:checked + .status-label { background: #2a1a00; border-color: #f59e0b; color: #f59e0b; }
   .status-rb.inactive:checked + .status-label { background: #2a2a2a; border-color: var(--grey); color: var(--white); }
 
   .filter-sep { width: 1px; height: 1.5rem; background: var(--line); margin: 0 0.2rem; flex-shrink: 0; }
@@ -411,7 +412,10 @@
 
   <div class="status-filters">
     <input class="status-rb active"   type="radio" name="status" value="active"   id="rb-active"   {% if status == 'active'   %}checked{% endif %}>
-    <label class="status-label" for="rb-active">&#9679; Active</label>
+    <label class="status-label" for="rb-active" title="f1:ActiveCircuit (SPIN-inferred)">&#9679; Active</label>
+
+    <input class="status-rb historic" type="radio" name="status" value="historic" id="rb-historic" {% if status == 'historic' %}checked{% endif %}>
+    <label class="status-label" for="rb-historic" title="f1:HistoricCircuit (SPIN-inferred)">&#9670; Historic</label>
 
     <input class="status-rb inactive" type="radio" name="status" value="inactive" id="rb-inactive" {% if status == 'inactive' %}checked{% endif %}>
     <label class="status-label" for="rb-inactive">&#9675; Inactive</label>

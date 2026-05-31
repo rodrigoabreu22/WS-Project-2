@@ -366,14 +366,27 @@
     <div class="section-card-head">Career Statistics</div>
     <ul class="stats-list">
       <li><span class="stat-key">Races entered</span>  <span class="stat-val">{{ total_races }}</span></li>
-      <li><span class="stat-key">Victories</span>      <span class="stat-val">{{ wins }}</span></li>
-      <li><span class="stat-key">Podiums</span>        <span class="stat-val">{{ wins|add:seconds|add:thirds }}</span></li>
+      <li><span class="stat-key">Victories</span>
+          <span class="stat-val">{{ wins }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:wonRace</small>
+          </span>
+      </li>
+      <li><span class="stat-key">Podiums</span>
+          <span class="stat-val">{{ wins|add:seconds|add:thirds }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:PodiumResult</small>
+          </span>
+      </li>
       <li><span class="stat-key">Total points</span>   <span class="stat-val">{{ total_points }}</span></li>
+      {% if championship_count > 0 %}
+      <li><span class="stat-key">Championships</span>
+          <span class="stat-val" style="color:#FFD700;">{{ championship_count }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:wonChampionship</small>
+          </span>
+      </li>
+      {% endif %}
       <li><span class="stat-key">Win rate</span>
         <span class="stat-val">
-          {% if total_races > 0 %}
-            {% widthratio wins total_races 100 %}%
-          {% else %}—{% endif %}
+          {% if total_races > 0 %}{% widthratio wins total_races 100 %}%{% else %}—{% endif %}
         </span>
       </li>
     </ul>

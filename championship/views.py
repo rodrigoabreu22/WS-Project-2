@@ -286,27 +286,42 @@ def driver_detail(request, driver_id: str):
     dob  = info.get("dob", "")
     info["age"] = _calc_age(dob)
 
-    # Anchor on f1:resultId to avoid rdf:type inference cost.
+    # Total races and points — raw result scan (no inferred equivalent)
     result_rows = db.query(f"""
-        SELECT ?positionOrder ?points WHERE {{
-          ?r f1:resultId ?anyId ;
-             f1:driver {uri} ;
-             f1:positionOrder ?positionOrder .
+        SELECT ?points WHERE {{
+          ?r f1:resultId ?anyId ; f1:driver {uri} .
           OPTIONAL {{ ?r f1:points ?points }}
         }}
     """)
-    wins = seconds = thirds = total_races = 0
-    total_points = 0.0
-    for r in result_rows:
-        pos = int(r.get("positionOrder", 0))
-        total_races += 1
-        if pos == 1: wins    += 1
-        if pos == 2: seconds += 1
-        if pos == 3: thirds  += 1
-        try:
-            total_points += float(r.get("points", 0))
-        except (ValueError, TypeError):
-            pass
+    total_races  = len(result_rows)
+    total_points = sum(float(r.get("points", 0) or 0) for r in result_rows)
+
+    # Wins — use SPIN-inferred f1:wonRace (driver → race link)
+    wins_rows = db.query(f"""
+        SELECT (COUNT(DISTINCT ?race) AS ?n) WHERE {{
+          {uri} f1:wonRace ?race .
+        }}
+    """)
+    wins = int(wins_rows[0]["n"]) if wins_rows else 0
+
+    # Podium breakdown — use SPIN-inferred f1:PodiumResult (positionOrder ≤ 3)
+    podium_rows = db.query(f"""
+        SELECT ?pos WHERE {{
+          ?r rdf:type f1:PodiumResult ;
+             f1:driver {uri} ;
+             f1:positionOrder ?pos .
+        }}
+    """)
+    seconds = sum(1 for r in podium_rows if int(r.get("pos", 0)) == 2)
+    thirds  = sum(1 for r in podium_rows if int(r.get("pos", 0)) == 3)
+
+    # Championship count — use SPIN-inferred f1:wonChampionship
+    champ_rows = db.query(f"""
+        SELECT (COUNT(DISTINCT ?season) AS ?n) WHERE {{
+          {uri} f1:wonChampionship ?season .
+        }}
+    """)
+    championship_count = int(champ_rows[0]["n"]) if champ_rows else 0
 
     # Constructor career (include constructorId for deep-link)
     constructor_rows = db.query(f"""
@@ -326,13 +341,13 @@ def driver_detail(request, driver_id: str):
         ORDER BY ?firstYear
     """)
 
-    # Top circuits
+    # Top circuits — use SPIN-inferred f1:heldAt (Race → Circuit)
     circuit_rows = db.query(f"""
         SELECT ?circuitLabel (COUNT(*) AS ?count) WHERE {{
           ?r f1:resultId ?anyId ;
              f1:driver {uri} ;
              f1:race ?race .
-          ?race f1:circuit ?circuit .
+          ?race f1:heldAt ?circuit .
           ?circuit rdfs:label ?circuitLabel .
         }}
         GROUP BY ?circuitLabel
@@ -373,20 +388,21 @@ def driver_detail(request, driver_id: str):
     """)
 
     return render(request, "championship/driver_detail.html", {
-        "info":             info,
-        "driver_id":        driver_id,
-        "wins":             wins,
-        "seconds":          seconds,
-        "thirds":           thirds,
-        "total_races":      total_races,
-        "total_points":     int(total_points),
-        "constructors":     constructor_rows,
-        "circuits":         circuit_rows,
-        "wiki_url":         wiki_url,
-        "is_champion":      is_champion,
-        "is_multichampion": is_multichampion,
-        "is_veteran":       is_veteran,
-        "teammates":        teammate_rows,
+        "info":               info,
+        "driver_id":          driver_id,
+        "wins":               wins,
+        "seconds":            seconds,
+        "thirds":             thirds,
+        "total_races":        total_races,
+        "total_points":       int(total_points),
+        "championship_count": championship_count,
+        "constructors":       constructor_rows,
+        "circuits":           circuit_rows,
+        "wiki_url":           wiki_url,
+        "is_champion":        is_champion,
+        "is_multichampion":   is_multichampion,
+        "is_veteran":         is_veteran,
+        "teammates":          teammate_rows,
     })
 
 
@@ -576,13 +592,13 @@ def constructor_detail(request, constructor_id: str):
     first_year = min(years_set) if years_set else ""
     last_year  = max(years_set) if years_set else ""
 
-    # Top circuits by appearances
+    # Top circuits — use SPIN-inferred f1:heldAt (Race → Circuit)
     circuit_rows = db.query(f"""
         SELECT ?circuitLabel (COUNT(*) AS ?count) WHERE {{
           ?r f1:resultId ?anyId ;
              f1:constructor {uri} ;
              f1:race ?race .
-          ?race f1:circuit ?circuit .
+          ?race f1:heldAt ?circuit .
           ?circuit rdfs:label ?circuitLabel .
         }}
         GROUP BY ?circuitLabel
@@ -590,22 +606,44 @@ def constructor_detail(request, constructor_id: str):
         LIMIT 6
     """)
 
-    # Pilots — stats per driver for this constructor
+    # Championship count — use SPIN-inferred f1:wonConstructorChampionship
+    ctor_champ_rows = db.query(f"""
+        SELECT (COUNT(DISTINCT ?season) AS ?n) WHERE {{
+          {uri} f1:wonConstructorChampionship ?season .
+        }}
+    """)
+    championship_count = int(ctor_champ_rows[0]["n"]) if ctor_champ_rows else 0
+
+    # Pilots — use OWL-inferred f1:hadDriver (inverseOf f1:drovFor) for the
+    # driver list; wins via f1:wonRace; podiums via f1:PodiumResult
     pilot_rows = db.query(f"""
         SELECT ?driver ?driverLabel
-               (COUNT(*) AS ?races)
-               (SUM(IF(?pos = 1, 1, 0)) AS ?wins)
-               (SUM(IF(?pos IN (1,2,3), 1, 0)) AS ?podiums)
+               (COUNT(DISTINCT ?r) AS ?races)
+               (COUNT(DISTINCT ?winRace) AS ?wins)
+               (COUNT(DISTINCT ?pr) AS ?podiums)
                (MIN(?year) AS ?firstYear)
                (MAX(?year) AS ?lastYear)
         WHERE {{
+          {uri} f1:hadDriver ?driver .
+          ?driver rdfs:label ?driverLabel .
           ?r f1:resultId ?anyId ;
              f1:constructor {uri} ;
              f1:driver ?driver ;
-             f1:positionOrder ?pos ;
              f1:race ?race .
           ?race f1:year ?year .
-          ?driver rdfs:label ?driverLabel .
+          OPTIONAL {{
+            ?driver f1:wonRace ?winRace .
+            ?r2 f1:resultId ?wrid ;
+                f1:race ?winRace ;
+                f1:driver ?driver ;
+                f1:constructor {uri} .
+          }}
+          OPTIONAL {{
+            ?pr rdf:type f1:PodiumResult ;
+                f1:driver ?driver ;
+                f1:constructor {uri} ;
+                f1:race ?race .
+          }}
         }}
         GROUP BY ?driver ?driverLabel
         ORDER BY DESC(?wins) DESC(?races)
@@ -626,17 +664,18 @@ def constructor_detail(request, constructor_id: str):
         })
 
     return render(request, "championship/constructor_detail.html", {
-        "info":            info,
-        "constructor_id":  constructor_id,
-        "wiki_url":        wiki_url,
-        "wins":            wins,
-        "seconds":         seconds,
-        "thirds":          thirds,
-        "total_races":     total_races,
-        "first_year":      first_year,
-        "last_year":       last_year,
-        "circuits":        circuit_rows,
-        "pilots":          pilots,
+        "info":               info,
+        "constructor_id":     constructor_id,
+        "wiki_url":           wiki_url,
+        "wins":               wins,
+        "seconds":            seconds,
+        "thirds":             thirds,
+        "total_races":        total_races,
+        "first_year":         first_year,
+        "last_year":          last_year,
+        "championship_count": championship_count,
+        "circuits":           circuit_rows,
+        "pilots":             pilots,
     })
 
 
@@ -665,21 +704,31 @@ def circuit_detail(request, circuit_id: str):
     wiki_rows = db.query(f"SELECT ?url WHERE {{ {uri} rdfs:seeAlso ?url . }} LIMIT 1")
     wiki_url = wiki_rows[0]["url"] if wiki_rows else ""
 
-    # Race history with winner — anchor on f1:circuit (unique to races)
+    # Active/historic classification — use SPIN-inferred types directly
+    active   = bool(db.query(f"ASK WHERE {{ {uri} rdf:type f1:ActiveCircuit }}"))
+    historic = bool(db.query(f"ASK WHERE {{ {uri} rdf:type f1:HistoricCircuit }}"))
+    if active:
+        circuit_type = "active"
+    elif historic:
+        circuit_type = "historic"
+    else:
+        circuit_type = "unknown"
+
+    # Race history — use SPIN-inferred f1:heldAt (Race → Circuit)
     race_rows = db.query(f"""
         SELECT ?year ?raceName ?winnerLabel ?winnerDriverId ?constructorLabel WHERE {{
-          ?race f1:circuit {uri} ;
+          ?race f1:heldAt {uri} ;
                 f1:year    ?year ;
                 rdfs:label ?raceName .
           OPTIONAL {{
+            ?winner f1:wonRace ?race ;
+                    rdfs:label ?winnerLabel ;
+                    f1:driverId ?winnerDriverId .
             ?res f1:resultId ?anyId ;
                  f1:race ?race ;
-                 f1:positionOrder 1 ;
                  f1:driver ?winner ;
                  f1:constructor ?ctor .
-            ?winner rdfs:label ?winnerLabel .
-            ?winner f1:driverId ?winnerDriverId .
-            ?ctor   rdfs:label  ?constructorLabel .
+            ?ctor rdfs:label ?constructorLabel .
           }}
         }}
         ORDER BY DESC(?year)
@@ -696,31 +745,32 @@ def circuit_detail(request, circuit_id: str):
     first_year  = min(year_counts.keys(), default="")
     last_year   = max(year_counts.keys(), default="")
 
-    # Global latest year to determine active status
-    max_yr_rows = db.query("""
-        SELECT (MAX(?year) AS ?maxYear) WHERE { ?r f1:circuit ?c ; f1:year ?year . }
-    """)
-    global_max_year = max_yr_rows[0].get("maxYear", "0") if max_yr_rows else "0"
-    active = last_year == global_max_year
-
     # Year-range timeline (fill gaps between first and last year)
     timeline: list[dict] = []
     if year_counts:
         for y in range(int(first_year), int(last_year) + 1):
             timeline.append({"year": y, "races": year_counts.get(str(y), 0)})
 
-    # Top winners at this circuit
-    driver_wins: dict[tuple, int] = {}
-    for r in race_rows:
-        w = r.get("winnerLabel", "")
-        wid = r.get("winnerDriverId", "")
-        if w:
-            driver_wins[(w, wid)] = driver_wins.get((w, wid), 0) + 1
-    unique_winners_count = len(driver_wins)
+    # Top winners — use SPIN-inferred f1:wonRace + f1:heldAt
+    top_winner_rows = db.query(f"""
+        SELECT ?winnerLabel ?winnerId (COUNT(DISTINCT ?race) AS ?wins) WHERE {{
+          ?winner f1:wonRace ?race ;
+                  rdfs:label ?winnerLabel ;
+                  f1:driverId ?winnerId .
+          ?race f1:heldAt {uri} .
+        }}
+        GROUP BY ?winner ?winnerLabel ?winnerId
+        ORDER BY DESC(?wins) LIMIT 5
+    """)
     top_winners = [
-        {"label": k[0], "id": k[1], "wins": v}
-        for k, v in sorted(driver_wins.items(), key=lambda x: x[1], reverse=True)[:5]
+        {"label": r["winnerLabel"], "id": r["winnerId"], "wins": int(r["wins"])}
+        for r in top_winner_rows
     ]
+    unique_winners_count = len(db.query(f"""
+        SELECT DISTINCT ?winner WHERE {{
+          ?winner f1:wonRace ?race . ?race f1:heldAt {uri} .
+        }}
+    """))
 
     # Fastest laps — anchor with f1:position which exists on lap_times but NOT
     # on pit_stops (which has f1:stop). Both have f1:lap and f1:milliseconds,
@@ -752,6 +802,8 @@ def circuit_detail(request, circuit_id: str):
         "first_year":            first_year,
         "last_year":             last_year,
         "active":                active,
+        "historic":              historic,
+        "circuit_type":          circuit_type,
         "timeline":              timeline,
         "top_winners":           top_winners,
         "unique_winners_count":  unique_winners_count,
@@ -1309,8 +1361,7 @@ def circuits(request):
         }
     """)
 
-    # Race stats per circuit — f1:circuit is the URI link property emitted only
-    # from races.csv, so no need for an extra anchor predicate.
+    # Race stats per circuit — use SPIN-inferred f1:heldAt (Race → Circuit)
     stats: dict[str, dict] = {}
     for r in db.query("""
         SELECT ?circuit
@@ -1318,8 +1369,8 @@ def circuits(request):
                (MIN(?year)  AS ?firstYear)
                (MAX(?year)  AS ?lastYear)
         WHERE {
-          ?race f1:circuit ?circuit ;
-                f1:year    ?year .
+          ?race f1:heldAt ?circuit ;
+                f1:year   ?year .
         } GROUP BY ?circuit
     """):
         stats[r["circuit"]] = {
@@ -1327,6 +1378,10 @@ def circuits(request):
             "first_year": r.get("firstYear", ""),
             "last_year":  r.get("lastYear",  ""),
         }
+
+    # Active/historic URIs — from SPIN-inferred f1:ActiveCircuit / f1:HistoricCircuit
+    active_uris   = {r["uri"] for r in db.query("SELECT ?uri WHERE { ?uri rdf:type f1:ActiveCircuit }")}
+    historic_uris = {r["uri"] for r in db.query("SELECT ?uri WHERE { ?uri rdf:type f1:HistoricCircuit }")}
 
     all_circuits = []
     for r in rows:
@@ -1345,12 +1400,9 @@ def circuits(request):
             "last_year":  s.get("last_year", ""),
             "img":        _entity_image(label, _CIRCUIT_IMAGES),
             "wiki_url":   r.get("wikiUrl", ""),
+            "active":     uri in active_uris,
+            "historic":   uri in historic_uris,
         })
-
-    # Determine active: last_year == max year in dataset
-    max_year = max((c["last_year"] for c in all_circuits if c["last_year"]), default="0")
-    for c in all_circuits:
-        c["active"] = c["last_year"] == max_year
 
     # Podium sidebar — top 3 by race count
     podium = sorted(all_circuits, key=lambda c: c["races"], reverse=True)[:3]
@@ -1373,6 +1425,8 @@ def circuits(request):
         filtered = [c for c in filtered if c["country"] == country]
     if status == "active":
         filtered = [c for c in filtered if c["active"]]
+    elif status == "historic":
+        filtered = [c for c in filtered if c["historic"]]
     elif status == "inactive":
         filtered = [c for c in filtered if not c["active"]]
 

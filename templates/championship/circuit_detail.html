@@ -424,8 +424,10 @@
       {% if info.location %}<span class="meta-chip p-locality" property="addressLocality">{{ info.location }}</span>{% endif %}
       {% if info.country  %}<span class="meta-chip p-country-name" property="addressCountry">{{ info.country }}</span>{% endif %}
       {% if first_year    %}<span class="meta-chip">{{ first_year }}{% if last_year and last_year != first_year %} – {{ last_year }}{% endif %}</span>{% endif %}
-      {% if active %}
-        <span class="meta-chip chip-active">&#9679; Active</span>
+      {% if circuit_type == "active" %}
+        <span class="meta-chip chip-active" title="Inferred: rdf:type f1:ActiveCircuit">&#9679; Active</span>
+      {% elif circuit_type == "historic" %}
+        <span class="meta-chip" style="color:#f59e0b;border-color:#f59e0b;" title="Inferred: rdf:type f1:HistoricCircuit">Historic</span>
       {% else %}
         <span class="meta-chip chip-retired">Retired</span>
       {% endif %}
@@ -555,9 +557,17 @@
       {% if last_year     %}<li><span class="stat-key">Last Grand Prix</span><span class="stat-val">{{ last_year }}</span></li>{% endif %}
       <li><span class="stat-key">Total races</span><span class="stat-val">{{ total_races }}</span></li>
       <li><span class="stat-key">Status</span>
-        <span class="stat-val" style="{% if active %}color:#4caf50{% else %}color:var(--grey){% endif %}">
-          {% if active %}Active{% else %}Retired{% endif %}
-        </span>
+        {% if circuit_type == "active" %}
+          <span class="stat-val" style="color:#4caf50;">Active
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">rdf:type f1:ActiveCircuit</small>
+          </span>
+        {% elif circuit_type == "historic" %}
+          <span class="stat-val" style="color:#f59e0b;">Historic
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">rdf:type f1:HistoricCircuit</small>
+          </span>
+        {% else %}
+          <span class="stat-val" style="color:var(--grey);">Retired</span>
+        {% endif %}
       </li>
       {% if info.alt %}<li><span class="stat-key">Altitude</span><span class="stat-val">{{ info.alt }} m</span></li>{% endif %}
       {% if info.lat %}<li><span class="stat-key">Coordinates</span><span class="stat-val" style="font-size:0.85rem;">{{ info.lat }}, {{ info.lng }}</span></li>{% endif %}
