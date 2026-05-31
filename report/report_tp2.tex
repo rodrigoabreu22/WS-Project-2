@@ -782,6 +782,125 @@ SELECT DISTINCT ?tLabel WHERE {
 }
 \end{lstlisting}
 
+\subsection{Inference Used Directly in Application Views}
+\label{sec:inference-in-views}
+
+A critical principle of semantic web applications is that the application should
+\textbf{query what the reasoning engine already knows}, not recompute it in
+application code. The following queries demonstrate how each inferred property
+and class is used directly in the Django views to power the web pages.
+
+\subsubsection{Driver Statistics via f1:wonRace and f1:PodiumResult}
+
+The driver detail page previously counted wins by scanning all results and
+checking \texttt{positionOrder = 1} in Python. It now queries the SPIN-inferred
+\texttt{f1:wonRace} property and the \texttt{f1:PodiumResult} class directly:
+
+\begin{lstlisting}[style=sparql, caption={Win count from SPIN-inferred f1:wonRace (driver detail view)}]
+SELECT (COUNT(DISTINCT ?race) AS ?n) WHERE {
+  <res:driver/1> f1:wonRace ?race .
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=sparql, caption={Podium breakdown from SPIN-inferred f1:PodiumResult}]
+SELECT ?pos WHERE {
+  ?r rdf:type f1:PodiumResult ;
+     f1:driver <res:driver/1> ;
+     f1:positionOrder ?pos .
+}
+\end{lstlisting}
+
+The championship count displayed in the stats uses \texttt{f1:wonChampionship}:
+
+\begin{lstlisting}[style=sparql, caption={Championship count from SPIN-inferred f1:wonChampionship}]
+SELECT (COUNT(DISTINCT ?season) AS ?n) WHERE {
+  <res:driver/1> f1:wonChampionship ?season .
+}
+\end{lstlisting}
+
+\subsubsection{Constructor Pilots via f1:hadDriver}
+
+The constructor detail page previously joined results to enumerate all drivers
+who raced for a team. It now uses the OWL \texttt{owl:inverseOf}-inferred
+\texttt{f1:hadDriver} as the primary driver source, with \texttt{f1:wonRace}
+and \texttt{f1:PodiumResult} for per-driver statistics:
+
+\begin{lstlisting}[style=sparql, caption={Driver roster via OWL-inferred f1:hadDriver + SPIN-inferred f1:wonRace}]
+SELECT ?driver ?driverLabel
+       (COUNT(DISTINCT ?r) AS ?races)
+       (COUNT(DISTINCT ?winRace) AS ?wins)
+       (COUNT(DISTINCT ?pr) AS ?podiums)
+       (MIN(?year) AS ?firstYear) (MAX(?year) AS ?lastYear)
+WHERE {
+  <res:constructor/6> f1:hadDriver ?driver .     -- OWL inverseOf
+  ?driver rdfs:label ?driverLabel .
+  ?r f1:resultId ?anyId ;
+     f1:constructor <res:constructor/6> ;
+     f1:driver ?driver ; f1:race ?race .
+  ?race f1:year ?year .
+  OPTIONAL {
+    ?driver f1:wonRace ?winRace .                -- SPIN-inferred
+    ?r2 f1:resultId ?wrid ; f1:race ?winRace ;
+        f1:driver ?driver ; f1:constructor <res:constructor/6> .
+  }
+  OPTIONAL {
+    ?pr rdf:type f1:PodiumResult ;               -- SPIN-inferred
+        f1:driver ?driver ;
+        f1:constructor <res:constructor/6> ; f1:race ?race .
+  }
+}
+GROUP BY ?driver ?driverLabel
+ORDER BY DESC(?wins) DESC(?races)
+\end{lstlisting}
+
+\subsubsection{Circuit Classification from f1:ActiveCircuit and f1:HistoricCircuit}
+
+The most important design change: the application previously recomputed circuit
+activity status in Python by comparing \texttt{MAX(year)} across all races in
+the dataset. It now queries the SPIN-inferred types directly:
+
+\begin{lstlisting}[style=sparql, caption={Circuit active/historic status from SPIN-inferred rdf:type}]
+-- Was: Python max_year = max(last_year for ...) ; active = last_year == max_year
+-- Now: query what the reasoning engine already knows
+
+ASK WHERE { <res:circuit/6> rdf:type f1:ActiveCircuit }
+ASK WHERE { <res:circuit/6> rdf:type f1:HistoricCircuit }
+
+-- For the circuits list: fetch both sets at once
+SELECT ?uri WHERE { ?uri rdf:type f1:ActiveCircuit }
+SELECT ?uri WHERE { ?uri rdf:type f1:HistoricCircuit }
+\end{lstlisting}
+
+The circuits list page now offers three filter states: \emph{Active} (24 circuits,
+\texttt{f1:ActiveCircuit}), \emph{Historic} (45 circuits, \texttt{f1:HistoricCircuit}),
+and \emph{Inactive}. The Active and Historic filters are driven entirely by SPIN
+inference; no application code recomputes the classification.
+
+\subsubsection{Race History and Top Winners via f1:heldAt and f1:wonRace}
+
+The circuit detail page race history previously used the raw \texttt{f1:circuit} FK
+property and joined results to find position-1 finishers. It now uses the
+SPIN-inferred \texttt{f1:heldAt} and \texttt{f1:wonRace}:
+
+\begin{lstlisting}[style=sparql, caption={Top race winners at a circuit using SPIN-inferred f1:wonRace + f1:heldAt}]
+SELECT ?winnerLabel ?winnerId (COUNT(DISTINCT ?race) AS ?wins) WHERE {
+  ?winner f1:wonRace ?race ;          -- SPIN-inferred
+          rdfs:label ?winnerLabel ;
+          f1:driverId ?winnerId .
+  ?race   f1:heldAt <res:circuit/6> . -- SPIN-inferred
+}
+GROUP BY ?winner ?winnerLabel ?winnerId
+ORDER BY DESC(?wins)
+LIMIT 5
+\end{lstlisting}
+
+\begin{infobox}
+\textbf{Key principle:} Each SPARQL query in this subsection replaces equivalent
+Python logic that recomputed information the reasoning engine had already
+materialised. Querying inferred data directly is both semantically correct and
+more efficient --- the graph already holds the answer.
+\end{infobox}
+
 % =============================================================================
 \section{Use and Integration of Wikidata and DBpedia}
 % =============================================================================
@@ -1122,6 +1241,63 @@ Navigation shortcuts were added throughout the application:
   \item Race winner constructors in the season calendar link to constructor detail pages.
 \end{itemize}
 
+\subsection{Inference Surfaced Throughout the Application}
+
+A systematic audit identified that several SPIN-inferred properties and classes
+were being \emph{computed in Python} rather than queried from the graph. These
+were corrected so that the application always queries what the reasoning engine
+already knows (documented in detail in Section~\ref{sec:inference-in-views}).
+
+\begin{center}
+\begin{tabular}{@{}p{4.2cm}p{4.5cm}p{5cm}@{}}
+\toprule
+\textbf{Page} & \textbf{Before} & \textbf{After} \\
+\midrule
+Driver detail — wins &
+  Python: count \texttt{positionOrder = 1} &
+  SPARQL: \texttt{f1:wonRace} COUNT \\[0.3em]
+Driver detail — podiums &
+  Python: count \texttt{positionOrder $\leq$ 3} &
+  SPARQL: \texttt{rdf:type f1:PodiumResult} \\[0.3em]
+Driver detail — championships &
+  Not shown &
+  SPARQL: \texttt{f1:wonChampionship} COUNT \\[0.3em]
+Constructor detail — pilots &
+  Result join to enumerate drivers &
+  SPARQL: \texttt{f1:hadDriver} (\texttt{owl:inverseOf}) \\[0.3em]
+Constructor detail — wins &
+  \texttt{SUM(IF(positionOrder=1,...))}&
+  SPARQL: \texttt{f1:wonRace} \\[0.3em]
+Constructor detail — championships &
+  Not shown &
+  SPARQL: \texttt{f1:wonConstructorChampionship} \\[0.3em]
+Circuit detail — active status &
+  Python: \texttt{last\_year == MAX(year)} &
+  SPARQL: \texttt{rdf:type f1:ActiveCircuit} \\[0.3em]
+Circuit detail — historic status &
+  Not distinguished from inactive &
+  SPARQL: \texttt{rdf:type f1:HistoricCircuit} \\[0.3em]
+Circuit detail — top winners &
+  Python dict aggregation over race rows &
+  SPARQL: \texttt{f1:wonRace + f1:heldAt} \\[0.3em]
+Circuit detail — race history &
+  Raw FK: \texttt{f1:circuit} &
+  Semantic link: \texttt{f1:heldAt} \\[0.3em]
+Circuits list — filter &
+  Active / Inactive only (Python) &
+  Active / Historic / Inactive (GraphDB) \\[0.3em]
+All detail pages — top circuits &
+  Raw FK: \texttt{f1:circuit} &
+  Semantic link: \texttt{f1:heldAt} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The stats cards in driver and constructor detail pages now annotate each inferred
+value with its source property (e.g.\ ``via \texttt{f1:wonRace}'',
+``via \texttt{f1:PodiumResult}'', ``via \texttt{f1:hadDriver}''), making the
+inference layer visible to the user.
+
 \subsection{Podium Visibility Control}
 
 The ``all-time wins'' podium at the top of the Drivers, Constructors, and Circuits
@@ -1145,6 +1321,12 @@ extending TP1's data foundation with a full knowledge layer.
         that OWL DL cannot express. All 15 pass with verified real-world counts.
   \item \textbf{RDF reification} of 75 championship-winning triples with final points
         annotation --- a canonical demonstration of making statements about statements.
+  \item \textbf{Inference fully surfaced in the application}: after a systematic audit,
+        every inferred property and class is now queried directly from the graph.
+        Application code no longer recomputes what the reasoning engine already knows
+        (\texttt{f1:wonRace}, \texttt{f1:PodiumResult}, \texttt{f1:hadDriver},
+        \texttt{f1:heldAt}, \texttt{f1:ActiveCircuit}, \texttt{f1:HistoricCircuit},
+        \texttt{f1:wonChampionship}, \texttt{f1:wonConstructorChampionship}).
   \item \textbf{Linked data integration} from two SPARQL endpoints (Wikidata,
         DBpedia) and the Wikipedia REST API, with each data source contributing
         distinct information not available from the others.
@@ -1168,6 +1350,17 @@ extending TP1's data foundation with a full knowledge layer.
         \texttt{Result} entities carry \texttt{f1:driver} and \texttt{f1:points},
         causing duplicate reification nodes. Adding \texttt{?ds rdf:type
         f1:DriverStanding} restricted the join to the correct entity type.
+  \item \textbf{GraphDB ruleset and import method:} The \texttt{rdfsplus-optimized}
+        ruleset does not materialise \texttt{rdfs:domain} inference during bulk REST API
+        loads. Switching to \texttt{owl-max-optimized} and using GraphDB's server-side
+        import API (the same pipeline as the Workbench UI) resolved the issue.
+  \item \textbf{Inference generated but not consumed:} An audit revealed that several
+        SPIN-inferred properties (\texttt{f1:wonRace}, \texttt{f1:heldAt},
+        \texttt{f1:hadDriver}, \texttt{f1:PodiumResult}) and classes
+        (\texttt{f1:ActiveCircuit}, \texttt{f1:HistoricCircuit}) were being recomputed
+        in Python instead of queried from the graph. The application was corrected to
+        query the reasoning engine's output directly, eliminating redundant computation
+        and making the inference layer the authoritative source for all derived data.
 \end{itemize}
 
 % =============================================================================
@@ -1180,7 +1373,8 @@ extending TP1's data foundation with a full knowledge layer.
   \item Python 3.12+
   \item \href{https://www.ontotext.com/products/graphdb/download/}{GraphDB Free}
         running on \texttt{http://localhost:7200}, with a repository named
-        \textbf{\texttt{ws-formula1}} (OWL-Max with RDFS ruleset enabled)
+        \textbf{\texttt{ws-formula1-owlmax}} using the \textbf{\texttt{owl-max-optimized}}
+        ruleset (created automatically by \texttt{scripts/create\_graphdb\_repo.sh})
   \item Ergast CSV files in \texttt{data/raw/}
 \end{itemize}
 

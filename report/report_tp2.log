@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.8)  31 MAY 2026 21:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.8)  1 JUN 2026 00:12
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -821,7 +821,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.43 ...ro Section Enrichment}{19}{subsection.7.3}
+l.44 ... {6.5}RDFa Validation}{20}{subsection.6.5}
                                                   % [1])
 \tf@toc=\write4
 \openout4 = `report_tp2.toc'.
@@ -1401,8 +1401,26 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [14]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[15]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[16]
 LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
-835.
+954.
  (/usr/share/texmf/tex/latex/lm/ts1lmtt.fd
 File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1422,7 +1440,7 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
-[15] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+[17] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
 
@@ -1433,30 +1451,8 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
-[16]
-Overfull \hbox (42.51273pt too wide) in paragraph at lines 949--961
- [] 
- []
-
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[17]
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
 [18]
-Overfull \hbox (24.0342pt too wide) in paragraph at lines 1056--1066
+Overfull \hbox (42.51273pt too wide) in paragraph at lines 1068--1080
  [] 
  []
 
@@ -1478,22 +1474,7 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [20]
-Overfull \hbox (21.5196pt too wide) in paragraph at lines 1181--1184
-[][][]\T1/lmr/m/n/12 (-20) GraphDB Free[][] run-ning on \T1/lmtt/m/n/12 http://
-localhost:7200\T1/lmr/m/n/12 (-20) , with a repos-i-tory named \T1/lmtt/b/n/12 
-ws-formula1
- []
-
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[21]
-Overfull \hbox (36.85216pt too wide) in paragraph at lines 1261--1271
+Overfull \hbox (24.0342pt too wide) in paragraph at lines 1175--1185
  [] 
  []
 
@@ -1505,20 +1486,178 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
-[22] (./report_tp2.aux)
+[21]
+Underfull \hbox (badness 10000) in paragraph at lines 1257--1257
+[]|\T1/lmr/m/n/12 (+20) Python: count
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1258--1258
+[]|\T1/lmr/m/n/12 (+20) SPARQL: \T1/lmtt/m/n/12 f1:wonRace
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1260--1260
+[]|\T1/lmr/m/n/12 (+20) Python: count
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1260--1260
+\T1/lmtt/m/n/12 positionOrder $\OMS/lmsy/m/n/12 ^^T$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1261
+[]|\T1/lmr/m/n/12 (+20) SPARQL: \T1/lmtt/m/n/12 rdf:type
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1264--1264
+[]|\T1/lmr/m/n/12 (+20) SPARQL:
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1264--1264
+\T1/lmtt/m/n/12 f1:wonChampionship
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1267--1267
+[]|\T1/lmr/m/n/12 (+20) SPARQL: \T1/lmtt/m/n/12 f1:hadDriver
+ []
+
+
+Underfull \hbox (badness 1701) in paragraph at lines 1268--1268
+[]|\T1/lmr/m/n/12 (+20) Constructor de-tail ^^V
+ []
+
+
+Overfull \hbox (44.86269pt too wide) in paragraph at lines 1269--1269
+[]|\T1/lmtt/m/n/12 SUM(IF(positionOrder=1,...))| 
+ []
+
+
+Underfull \hbox (badness 1701) in paragraph at lines 1271--1271
+[]|\T1/lmr/m/n/12 (+20) Constructor de-tail ^^V
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1273--1273
+[]|\T1/lmr/m/n/12 (+20) SPARQL:
+ []
+
+
+Overfull \hbox (36.81131pt too wide) in paragraph at lines 1273--1273
+\T1/lmtt/m/n/12 f1:wonConstructorChampionship| 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1276--1276
+[]|\T1/lmr/m/n/12 (+20) SPARQL: \T1/lmtt/m/n/12 rdf:type
+ []
+
+
+Underfull \hbox (badness 1107) in paragraph at lines 1277--1277
+[]|\T1/lmr/m/n/12 (+20) Circuit de-tail ^^V his-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1279--1279
+[]|\T1/lmr/m/n/12 (+20) SPARQL: \T1/lmtt/m/n/12 rdf:type
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1282--1282
+[]|\T1/lmr/m/n/12 (+20) SPARQL: \T1/lmtt/m/n/12 f1:wonRace +
+ []
+
+
+Underfull \hbox (badness 1210) in paragraph at lines 1287--1287
+[]|\T1/lmr/m/n/12 (+20) Active / In-ac-tive only
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[22]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[23]
+Overfull \hbox (39.00491pt too wide) in paragraph at lines 1324--1330
+\T1/lmtt/m/n/12 f1:hadDriver\T1/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 f1:heldAt\T1
+/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 f1:ActiveCircuit\T1/lmr/m/n/12 (-20) , \T1/
+lmtt/m/n/12 f1:HistoricCircuit\T1/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 f1:wonCham
+pionship\T1/lmr/m/n/12 (-20) ,
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[24]
+Overfull \hbox (65.61952pt too wide) in paragraph at lines 1374--1378
+[][][]\T1/lmr/m/n/12 (-20) GraphDB Free[][] run-ning on \T1/lmtt/m/n/12 http://
+localhost:7200\T1/lmr/m/n/12 (-20) , with a repos-i-tory named \T1/lmtt/b/n/12 
+ws-formula1-owlmax
+ []
+
+
+Overfull \hbox (73.69481pt too wide) in paragraph at lines 1374--1378
+\T1/lmr/m/n/12 (-20) us-ing the \T1/lmtt/b/n/12 owl-max-optimized \T1/lmr/m/n/1
+2 (-20) rule-set (cre-ated au-to-mat-i-cally by \T1/lmtt/m/n/12 scripts/create_
+graphdb_repo.sh\T1/lmr/m/n/12 (-20) ) 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[25]
+Overfull \hbox (36.85216pt too wide) in paragraph at lines 1455--1465
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[26] (./report_tp2.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `report_tp2.out' has not changed.
-(rerunfilecheck)             Checksum: 600F1F9EABE98326A3B1CE8A8E0FD331;10991.
+(rerunfilecheck)             Checksum: F004DE5C28B2351BFF1E8E4134910B28;12969.
  ) 
 Here is how much of TeX's memory you used:
- 19627 strings out of 476048
- 313039 string characters out of 5792217
- 2154975 words of memory out of 5000000
- 40834 multiletter control sequences out of 15000+600000
- 613570 words of font info for 139 fonts, out of 8000000 for 9000
+ 19757 strings out of 476048
+ 314727 string characters out of 5792217
+ 2155975 words of memory out of 5000000
+ 40878 multiletter control sequences out of 15000+600000
+ 614342 words of font info for 147 fonts, out of 8000000 for 9000
  83 hyphenation exceptions out of 8191
  79i,13n,93p,1199b,2099s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/ty
@@ -1528,10 +1667,10 @@ lic/lm/lmri12.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/shar
 e/texmf/fonts/type1/public/lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/l
 m/lmtt10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt12.pfb></usr/share/tex
 mf/fonts/type1/public/lm/lmtti10.pfb>
-Output written on report_tp2.pdf (23 pages, 330001 bytes).
+Output written on report_tp2.pdf (27 pages, 347437 bytes).
 PDF statistics:
- 873 PDF objects out of 1000 (max. 8388607)
- 816 compressed objects within 9 object streams
- 406 named destinations out of 1000 (max. 500000)
- 34233 words of extra memory for PDF output out of 35830 (max. 10000000)
+ 997 PDF objects out of 1000 (max. 8388607)
+ 935 compressed objects within 10 object streams
+ 476 named destinations out of 1000 (max. 500000)
+ 34281 words of extra memory for PDF output out of 35830 (max. 10000000)
 
