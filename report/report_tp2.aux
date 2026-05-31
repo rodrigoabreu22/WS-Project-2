@@ -1,0 +1,92 @@
+\relax 
+\providecommand\zref@newlabel[2]{}
+\providecommand\babel@aux[2]{}
+\@nameuse{bbl@beforestart}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\babel@aux{english}{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{3}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Dataset}{3}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Ontology Definition (RDFS and OWL)}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}OWL Profile}{3}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Class Hierarchy}{4}{subsection.2.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Top-level class hierarchy in the ontology}}{4}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Base Class Inference Without Explicit rdf:type}{4}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.1}rdfs:domain (for GraphDB)}{4}{subsubsection.2.3.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces rdfs:domain declarations as inference anchors}}{4}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.2}owl:equivalentClass (for Protégé / HermiT)}{4}{subsubsection.2.3.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Bidirectional equivalentClass definition for Driver}}{5}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Why rdfs:domain is Omitted on Foreign-Key Properties}{5}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Key OWL Axioms}{6}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Restriction Axioms for Inferred Subclasses}{7}{subsection.2.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Restriction on WorldChampion: must have at least one wonChampionship}}{7}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Inference Verification}{7}{subsection.2.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.8}Protégé Validation with HermiT Reasoner}{7}{subsection.2.8}\protected@file@percent }
+\newlabel{sec:hermit}{{2.8}{7}{Protégé Validation with HermiT Reasoner}{subsection.2.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.8.1}OWL 2 Datatype Map Compliance}{7}{subsubsection.2.8.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Original range declarations causing HermiT rejection}}{7}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.8.2}Design Decision}{8}{subsubsection.2.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.8.3}HermiT Verification Results}{8}{subsubsection.2.8.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces Class hierarchy inferred by HermiT from owl:equivalentClass + rdfs:subClassOf axioms}}{9}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Inference Rules (SPIN)}{9}{section.3}\protected@file@percent }
+\newlabel{sec:spin}{{3}{9}{Inference Rules (SPIN)}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Championship Inference}{9}{subsection.3.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}{\ignorespaces SPIN rule: infer\_wonChampionship}}{10}{lstlisting.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Teammate Inference}{10}{subsection.3.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}{\ignorespaces SPIN rule: infer\_wasTeammate}}{10}{lstlisting.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Classification Rules}{10}{subsection.3.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}{\ignorespaces classify\_MultichampionDriver: COUNT aggregation}}{11}{lstlisting.9}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}{\ignorespaces classify\_Veteran: COUNT results $\geq $ 100}}{11}{lstlisting.10}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}{\ignorespaces classify\_HistoricCircuit: MAX(year) arithmetic + negation}}{11}{lstlisting.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}RDF Reification}{11}{subsection.3.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}{\ignorespaces SPIN rule: reify\_wonChampionship}}{11}{lstlisting.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}New Operations on the Data (SPARQL)}{12}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}World Champions Who Raced as Teammates}{12}{subsection.4.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}{\ignorespaces Champions who shared a constructor in the same race}}{12}{lstlisting.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Constructors That Fielded the Most World Champions}{13}{subsection.4.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}{\ignorespaces Constructor champion headcount via inverseOf-inferred hadDriver}}{13}{lstlisting.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}SPARQL Property Paths via rdfs:subPropertyOf}{13}{subsection.4.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}{\ignorespaces Circuits where Hamilton won or achieved a podium}}{13}{lstlisting.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Reification Query: Championship Final Points}{13}{subsection.4.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {16}{\ignorespaces Championship points retrieved from rdf:Statement reification nodes}}{13}{lstlisting.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Veteran World Champions (Class Intersection)}{14}{subsection.4.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {17}{\ignorespaces Drivers classified as both WorldChampion and Veteran}}{14}{lstlisting.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Two-Hop Teammate Graph Traversal}{14}{subsection.4.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {18}{\ignorespaces Teammates of Hamilton's teammates (2-hop traversal)}}{14}{lstlisting.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Use and Integration of Wikidata and DBpedia}{14}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Driver Enrichment (Wikidata)}{14}{subsection.5.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {19}{\ignorespaces Wikidata query for driver enrichment with new fields}}{14}{lstlisting.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Constructor Enrichment (Wikidata)}{15}{subsection.5.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {20}{\ignorespaces Wikidata query for constructor enrichment}}{15}{lstlisting.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Circuit Enrichment (DBpedia)}{16}{subsection.5.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {21}{\ignorespaces Direct URI construction for DBpedia circuit lookup (external\_data.py)}}{16}{lstlisting.21}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {22}{\ignorespaces DBpedia query using direct resource URI}}{16}{lstlisting.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Publication of Semantic Data (RDFa and Microformats)}{16}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}RDFa 1.1 Lite}{17}{subsection.6.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {23}{\ignorespaces RDFa on the driver detail page}}{17}{lstlisting.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Microformats 2}{17}{subsection.6.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {24}{\ignorespaces Microformats 2 on the circuit detail page (h-card + h-adr)}}{17}{lstlisting.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Why Both Standards?}{18}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Microformats 2 Parser Demonstration}{18}{subsection.6.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {25}{\ignorespaces Calling the live MF2 parser endpoint}}{18}{lstlisting.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}RDFa Validation}{18}{subsection.6.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Application Functionalities (UI)}{19}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}New Pages Driven by Inferred Knowledge}{19}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Semantic Tools Page (/tools/)}{19}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Hero Section Enrichment}{19}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Navigation with Dropdown Menus}{19}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Card Hover Expansion}{20}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Deep Links}{20}{subsection.7.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.7}Podium Visibility Control}{20}{subsection.7.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusions}{20}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Key Achievements}{20}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Challenges and Solutions}{21}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Configuration to Run the Application}{21}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Prerequisites}{21}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Step-by-Step Setup}{21}{subsection.9.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {26}{\ignorespaces Complete setup from a fresh clone}}{21}{lstlisting.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Protégé Validation}{22}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Re-running Inference}{22}{subsection.9.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5}Data Files Summary}{22}{subsection.9.5}\protected@file@percent }
+\gdef \@abspage@last{23}

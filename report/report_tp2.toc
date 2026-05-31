@@ -1,0 +1,56 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Dataset}{3}{subsection.1.1}%
+\contentsline {section}{\numberline {2}Ontology Definition (RDFS and OWL)}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}OWL Profile}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Class Hierarchy}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Base Class Inference Without Explicit rdf:type}{4}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}rdfs:domain (for GraphDB)}{4}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}owl:equivalentClass (for Protégé / HermiT)}{4}{subsubsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.4}Why rdfs:domain is Omitted on Foreign-Key Properties}{5}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Key OWL Axioms}{6}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Restriction Axioms for Inferred Subclasses}{7}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Inference Verification}{7}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Protégé Validation with HermiT Reasoner}{7}{subsection.2.8}%
+\contentsline {subsubsection}{\numberline {2.8.1}OWL 2 Datatype Map Compliance}{7}{subsubsection.2.8.1}%
+\contentsline {subsubsection}{\numberline {2.8.2}Design Decision}{8}{subsubsection.2.8.2}%
+\contentsline {subsubsection}{\numberline {2.8.3}HermiT Verification Results}{8}{subsubsection.2.8.3}%
+\contentsline {section}{\numberline {3}Inference Rules (SPIN)}{9}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Championship Inference}{9}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Teammate Inference}{10}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Classification Rules}{10}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}RDF Reification}{11}{subsection.3.4}%
+\contentsline {section}{\numberline {4}New Operations on the Data (SPARQL)}{12}{section.4}%
+\contentsline {subsection}{\numberline {4.1}World Champions Who Raced as Teammates}{12}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Constructors That Fielded the Most World Champions}{13}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}SPARQL Property Paths via rdfs:subPropertyOf}{13}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Reification Query: Championship Final Points}{13}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Veteran World Champions (Class Intersection)}{14}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Two-Hop Teammate Graph Traversal}{14}{subsection.4.6}%
+\contentsline {section}{\numberline {5}Use and Integration of Wikidata and DBpedia}{14}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Driver Enrichment (Wikidata)}{14}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Constructor Enrichment (Wikidata)}{15}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Circuit Enrichment (DBpedia)}{16}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Publication of Semantic Data (RDFa and Microformats)}{16}{section.6}%
+\contentsline {subsection}{\numberline {6.1}RDFa 1.1 Lite}{17}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Microformats 2}{17}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Why Both Standards?}{18}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Microformats 2 Parser Demonstration}{18}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}RDFa Validation}{18}{subsection.6.5}%
+\contentsline {section}{\numberline {7}Application Functionalities (UI)}{19}{section.7}%
+\contentsline {subsection}{\numberline {7.1}New Pages Driven by Inferred Knowledge}{19}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Semantic Tools Page (/tools/)}{19}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Hero Section Enrichment}{19}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Navigation with Dropdown Menus}{19}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Card Hover Expansion}{20}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Deep Links}{20}{subsection.7.6}%
+\contentsline {subsection}{\numberline {7.7}Podium Visibility Control}{20}{subsection.7.7}%
+\contentsline {section}{\numberline {8}Conclusions}{20}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Key Achievements}{20}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Challenges and Solutions}{21}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Configuration to Run the Application}{21}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Prerequisites}{21}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Step-by-Step Setup}{21}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Protégé Validation}{22}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Re-running Inference}{22}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Data Files Summary}{22}{subsection.9.5}%

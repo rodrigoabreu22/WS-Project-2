@@ -1,0 +1,1273 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{mdframed}
+\usepackage{tabularx}
+
+% ── Page geometry ─────────────────────────────────────────────────────────────
+\geometry{
+  top=2.5cm, bottom=2.5cm,
+  left=2.5cm, right=2.5cm,
+  headheight=15pt
+}
+
+% ── Colours ───────────────────────────────────────────────────────────────────
+\definecolor{f1red}{HTML}{E10600}
+\definecolor{codebg}{HTML}{1F1F27}
+\definecolor{codetext}{HTML}{E8E8F0}
+\definecolor{codekw}{HTML}{FF7B72}
+\definecolor{codestr}{HTML}{A5D6FF}
+\definecolor{codecomment}{HTML}{8B949E}
+\definecolor{codenumber}{HTML}{79C0FF}
+\definecolor{lightgray}{HTML}{F5F5F5}
+\definecolor{darkgray}{HTML}{555555}
+\definecolor{turtlebg}{HTML}{F0F8F0}
+\definecolor{turtlekw}{HTML}{005B00}
+
+% ── Hyperref setup ────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=darkgray,
+  urlcolor=darkgray,
+  citecolor=darkgray,
+  pdftitle={F1 Knowledge System -- TP2 Web Semantics Report},
+  pdfauthor={Rodrigo Abreu},
+}
+
+% ── Section styling ───────────────────────────────────────────────────────────
+\titleformat{\section}
+  {\large\bfseries}
+  {\thesection.}{0.6em}{}
+  [\vspace{-0.4em}\color{darkgray}\rule{\linewidth}{1.5pt}]
+
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{darkgray}}
+  {\thesubsection.}{0.5em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\itshape\color{darkgray}}
+  {\thesubsubsection.}{0.5em}{}
+
+% ── Code listing styles ───────────────────────────────────────────────────────
+\lstdefinelanguage{SPARQL}{
+  morekeywords={PREFIX,SELECT,WHERE,OPTIONAL,FILTER,GROUP,BY,ORDER,LIMIT,
+                OFFSET,DISTINCT,COUNT,MIN,MAX,SUM,SAMPLE,INSERT,DELETE,DATA,
+                ASC,DESC,UNION,BOUND,STR,CONTAINS,STRSTARTS,IF,IN,AS,FROM,
+                GRAPH,CONSTRUCT,ASK,DESCRIBE,HAVING,VALUES,BIND,NOT,EXISTS,
+                LCASE,REPLACE,IRI,CONCAT,LANG,LANGMATCHES},
+  sensitive=true,
+  morestring=[b]",
+  morestring=[b]',
+  morecomment=[l]{\#},
+}
+
+\lstdefinelanguage{Turtle}{
+  morekeywords={a,rdf,rdfs,owl,xsd,PREFIX,BASE},
+  sensitive=false,
+  morestring=[b]",
+  morestring=[b]',
+  morecomment=[l]{\#},
+}
+
+\lstdefinestyle{sparql}{
+  language=SPARQL,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize\color{codetext},
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecomment}\itshape,
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2,
+  showstringspaces=false,
+  frame=single, framesep=6pt, framerule=0pt, rulecolor=\color{codebg},
+  xleftmargin=6pt, xrightmargin=6pt, captionpos=b,
+}
+
+\lstdefinestyle{turtle}{
+  language=Turtle,
+  backgroundcolor=\color{turtlebg},
+  basicstyle=\ttfamily\footnotesize\color{black},
+  keywordstyle=\color{turtlekw}\bfseries,
+  stringstyle=\color{codekw},
+  commentstyle=\color{codecomment}\itshape,
+  breaklines=true, tabsize=2, showstringspaces=false,
+  frame=single, framesep=6pt, framerule=0pt, rulecolor=\color{turtlebg},
+  xleftmargin=6pt, xrightmargin=6pt, captionpos=b,
+}
+
+\lstdefinestyle{html}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize\color{codetext},
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  breaklines=true, tabsize=2, showstringspaces=false,
+  frame=single, framesep=6pt, framerule=0pt, rulecolor=\color{codebg},
+  xleftmargin=6pt, xrightmargin=6pt, captionpos=b,
+}
+
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize\color{codetext},
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecomment}\itshape,
+  breaklines=true, tabsize=2, showstringspaces=false,
+  frame=single, framesep=6pt, framerule=0pt, rulecolor=\color{codebg},
+  xleftmargin=6pt, xrightmargin=6pt, captionpos=b,
+}
+
+\lstdefinestyle{shell}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize\color{codetext},
+  breaklines=true, frame=single, framesep=6pt, framerule=0pt,
+  rulecolor=\color{codebg}, xleftmargin=6pt, xrightmargin=6pt,
+}
+
+% ── Header / Footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{darkgray} F1 Knowledge System}
+\fancyhead[R]{\small\color{darkgray} Web Semantics --- TP2}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\color{darkgray}\rule{\linewidth}{0.4pt}}
+
+% ── Info box ──────────────────────────────────────────────────────────────────
+\newmdenv[
+  backgroundcolor=lightgray,
+  linecolor=f1red,
+  linewidth=3pt,
+  leftline=true, rightline=false, topline=false, bottomline=false,
+  innerleftmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt,
+]{infobox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+% ─────────────────────────────────────────────────────────────────────────────
+
+% ── Title page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+
+  {\fontsize{48}{52}\selectfont\bfseries\color{f1red} F\textcolor{black}{1}}\\[0.4cm]
+  {\Large\bfseries Knowledge System}\\[0.3cm]
+  {\large\color{darkgray} Web Semantics --- Practical Assignment 2 --- Report}
+
+  \vspace{1.5cm}
+  \color{darkgray}\rule{0.4\linewidth}{2pt}\\[0.1cm]
+  \color{darkgray}\rule{\linewidth}{0.4pt}
+  \vspace{1cm}
+
+  \begin{tabular}{rl}
+    \textbf{Authors}    & Rodrigo Abreu (113626), Hugo Ribeiro (113402) \\[0.3em]
+    \textbf{Course}     & Web Semantics \\[0.3em]
+    \textbf{Year}       & 2025--2026 \\[0.3em]
+    \textbf{Technology} & Django 6 $\cdot$ GraphDB $\cdot$ OWL 2 DL $\cdot$ SPIN $\cdot$ RDFa $\cdot$ MF2 \\
+  \end{tabular}
+
+  \vspace{1.5cm}
+  \color{darkgray}\rule{\linewidth}{0.4pt}\\[0.1cm]
+  \color{darkgray}\rule{0.4\linewidth}{2pt}
+
+  \vfill
+  {\small\color{darkgray}\today}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+This report describes \textbf{Practical Assignment 2} (TP2), a continuation of the F1 Knowledge Graph Explorer built in TP1. TP1 established the foundation: a Django web application backed by GraphDB, with all domain data stored as RDF triples and queried through SPARQL. It achieved a grade of \textbf{15/20}.
+
+TP2 adds a full \textbf{semantic knowledge layer} on top of that foundation. The key additions are:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item An \textbf{OWL 2 DL ontology} that formally describes the F1 domain,
+        enabling automatic entity classification directly from the data properties
+        of each entity --- without any explicit \texttt{rdf:type} assertions in
+        the facts file.
+  \item \textbf{15 SPIN rules} (SPARQL INSERT WHERE) that materialise
+        inferences OWL cannot express: World Champions, Veterans, Historic
+        Circuits, podium results, and the teammate relation between drivers who
+        raced together.
+  \item \textbf{RDF reification} annotating every championship-winning triple
+        with the driver's final points total.
+  \item \textbf{Live semantic enrichment} from Wikidata and DBpedia via
+        SPARQLWrapper: driver death dates, team logos, circuit lap records, and more.
+  \item \textbf{RDFa 1.1 Lite} (Schema.org) and \textbf{Microformats 2} embedded
+        in every detail page, making the site machine-readable by search engines
+        and IndieWeb tools alike.
+  \item New application pages driven entirely by inferred knowledge:
+        World Champions, Multi-Champions, Veterans, and Constructor Champions.
+\end{itemize}
+
+\subsection{Dataset}
+
+The dataset is the \textbf{Ergast Formula 1 World Championship} (1950--2024):
+75 seasons, 861 drivers, 212 constructors, 77 circuits, and approximately 25{,}000 race results.
+The raw data comes from 13 CSV files loaded into a GraphDB repository named \texttt{ws-formula1}.
+
+% =============================================================================
+\section{Ontology Definition (RDFS and OWL)}
+% =============================================================================
+
+The ontology is defined in \texttt{data/rdf/formula1\_ontology.ttl} as an OWL 2 DL
+Turtle file. It is the \textbf{only hand-authored source file} in the data pipeline;
+all other RDF files are generated by scripts.
+
+\subsection{OWL Profile}
+
+The ontology uses \textbf{OWL 2 DL} --- a decidable fragment of first-order logic.
+GraphDB is configured with the \textbf{OWL-Max with RDFS} ruleset, which applies
+\texttt{rdfs:domain}, \texttt{rdfs:range}, \texttt{rdfs:subClassOf},
+\texttt{owl:inverseOf}, and \texttt{owl:SymmetricProperty} entailments at triple
+load time, before any SPARQL queries run.
+
+\subsection{Class Hierarchy}
+
+The ontology defines 18 OWL classes organised in a deep hierarchy:
+
+\begin{lstlisting}[style=turtle, caption={Top-level class hierarchy in the ontology}]
+f1:Entity      rdfs:subClassOf  owl:Thing .
+f1:Person      rdfs:subClassOf  f1:Entity .
+f1:Team        rdfs:subClassOf  f1:Entity .
+f1:Venue       rdfs:subClassOf  f1:Entity .
+f1:Driver      rdfs:subClassOf  f1:Person .
+f1:Constructor rdfs:subClassOf  f1:Team .
+f1:Circuit     rdfs:subClassOf  f1:Venue .
+f1:Race        rdfs:subClassOf  f1:Event .
+f1:Season      rdfs:subClassOf  f1:Event .
+f1:Result      rdfs:subClassOf  f1:PerformanceRecord .
+% Inferred subclasses (populated by SPIN rules):
+f1:WorldChampion      rdfs:subClassOf  f1:Driver .
+f1:MultichampionDriver rdfs:subClassOf f1:WorldChampion .
+f1:Veteran            rdfs:subClassOf  f1:Driver .
+f1:ConstructorChampion rdfs:subClassOf f1:Constructor .
+f1:ActiveCircuit      rdfs:subClassOf  f1:Circuit .
+f1:HistoricCircuit    rdfs:subClassOf  f1:Circuit .
+f1:PodiumResult       rdfs:subClassOf  f1:Result .
+\end{lstlisting}
+
+\subsection{Base Class Inference Without Explicit rdf:type}
+
+A central design requirement was that the facts file should contain \textbf{no explicit}
+\texttt{rdf:type f1:Driver} (or Constructor, Circuit) assertions. The ontology must
+infer these types purely from the properties present on each entity.
+
+This is achieved using two complementary mechanisms:
+
+\subsubsection{rdfs:domain (for GraphDB)}
+
+Each ``signature'' property that appears exclusively on one entity class is declared
+with \texttt{rdfs:domain}. GraphDB's OWL-Max ruleset then infers \texttt{rdf:type} at
+load time from any occurrence of that property:
+
+\begin{lstlisting}[style=turtle, caption={rdfs:domain declarations as inference anchors}]
+f1:driverRef       rdfs:domain  f1:Driver .
+f1:constructorRef  rdfs:domain  f1:Constructor .
+f1:circuitRef      rdfs:domain  f1:Circuit .
+\end{lstlisting}
+
+So \texttt{<driver/1> f1:driverRef "hamilton"} causes GraphDB to automatically
+infer \texttt{<driver/1> rdf:type f1:Driver} without any explicit assertion.
+
+\subsubsection{owl:equivalentClass (for Protégé / HermiT)}
+
+For validation in Protégé, the OWL reasoner HermiT requires a
+\emph{necessary and sufficient} condition. Each base class is therefore defined with
+\texttt{owl:equivalentClass} using a \texttt{someValuesFrom} restriction:
+
+\begin{lstlisting}[style=turtle, caption={Bidirectional equivalentClass definition for Driver}]
+f1:Driver  owl:equivalentClass  [
+    rdf:type        owl:Restriction ;
+    owl:onProperty  f1:driverRef ;
+    owl:someValuesFrom  xsd:string
+] .
+\end{lstlisting}
+
+This means: an individual is a \texttt{f1:Driver} \textbf{if and only if} it has
+at least one \texttt{f1:driverRef} value. HermiT can classify anonymous individuals
+without an explicit type assertion, making the ontology verifiable in Protégé.
+
+\begin{infobox}
+\textbf{Verification:} Loading the facts file alone into GraphDB (without the
+ontology) returns 0 results for \texttt{SELECT * WHERE \{?d rdf:type f1:Driver\}}.
+After loading the integrated file (ontology + facts), the same query returns 861 drivers.
+The ontology, not the data, does the classification.
+\end{infobox}
+
+\subsection{Why rdfs:domain is Omitted on Foreign-Key Properties}
+
+Properties like \texttt{f1:driverId}, \texttt{f1:constructorId}, and \texttt{f1:raceId}
+appear as \textbf{literal columns on multiple entity types}. For example, a
+\texttt{Result} row carries both a \texttt{f1:driverId} and a \texttt{f1:constructorId}
+literal. Declaring \texttt{rdfs:domain f1:Driver} on \texttt{f1:driverId} would cause
+GraphDB to infer that every \texttt{Result} individual is also a \texttt{Driver},
+immediately triggering the \texttt{owl:disjointWith f1:Constructor} inconsistency.
+Domain declarations are intentionally omitted for these FK properties.
+
+\subsection{Key OWL Axioms}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Construct} & \textbf{Applied to} & \textbf{Purpose} \\
+\midrule
+\texttt{owl:FunctionalProperty} & \texttt{race}, \texttt{driver}, \texttt{status},
+  \texttt{circuit}, \texttt{season}, \texttt{heldAt}
+  & At most one value per subject \\[0.4em]
+\texttt{owl:SymmetricProperty} & \texttt{wasTeammate}
+  & $x$ wasTeammate $y \Rightarrow y$ wasTeammate $x$ (GraphDB materialises the inverse) \\[0.4em]
+\texttt{owl:inverseOf} & \texttt{hadDriver} $\leftrightarrow$ \texttt{drovFor}
+  & Constructor $\to$ Driver navigation without storing the triple twice \\[0.4em]
+\texttt{rdfs:subPropertyOf} & \texttt{wonRace} $\sqsubseteq$ \texttt{competedIn},
+  \texttt{achievedPodium} $\sqsubseteq$ \texttt{competedIn}
+  & Race wins also appear as \texttt{competedIn} triples; enables property-path queries \\[0.4em]
+\texttt{owl:maxCardinality 1} & \texttt{Race $\sqsubseteq$ $\leq$1 circuit}
+  & Each race is held at exactly one circuit \\[0.4em]
+\texttt{owl:disjointWith} & Driver/Constructor, Driver/Circuit, Race/Season,
+  Result/Qualifying\-Result, \ldots
+  & Detects modelling errors during Protégé validation \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Restriction Axioms for Inferred Subclasses}
+
+Three inferred subclasses carry \texttt{rdfs:subClassOf} restriction axioms
+that document the structural intent --- even though the actual classification
+is performed by SPIN rules (Section~\ref{sec:spin}):
+
+\begin{lstlisting}[style=turtle, caption={Restriction on WorldChampion: must have at least one wonChampionship}]
+f1:WorldChampion  rdfs:subClassOf  [
+    rdf:type          owl:Restriction ;
+    owl:onProperty    f1:wonChampionship ;
+    owl:someValuesFrom  f1:Season
+] .
+\end{lstlisting}
+
+\subsection{Inference Verification}
+
+After loading the integrated file and running the 15 SPIN rules, all 15 inference
+checks pass:
+
+\begin{center}
+\begin{tabular}{@{}llr@{}}
+\toprule
+\textbf{Mechanism} & \textbf{Inferred} & \textbf{Count} \\
+\midrule
+\texttt{rdfs:domain driverRef} & \texttt{f1:Driver} entities & 861 \\
+\texttt{rdfs:domain constructorRef} & \texttt{f1:Constructor} entities & 212 \\
+\texttt{rdfs:domain circuitRef} & \texttt{f1:Circuit} entities & 77 \\
+SPIN \texttt{classify\_WorldChampion} & \texttt{f1:WorldChampion} & 34 \\
+SPIN \texttt{classify\_MultichampionDriver} & \texttt{f1:MultichampionDriver} & 17 \\
+SPIN \texttt{classify\_Veteran} & \texttt{f1:Veteran} & 86 \\
+SPIN \texttt{classify\_ConstructorChampion} & \texttt{f1:ConstructorChampion} & 17 \\
+SPIN \texttt{classify\_ActiveCircuit} & \texttt{f1:ActiveCircuit} & 24 \\
+SPIN \texttt{classify\_HistoricCircuit} & \texttt{f1:HistoricCircuit} & 45 \\
+SPIN \texttt{classify\_PodiumResult} & \texttt{f1:PodiumResult} & 3{,}397 \\
+SPIN \texttt{infer\_wonRace} & \texttt{f1:wonRace} triples & 1{,}128 \\
+SPIN \texttt{infer\_wasTeammate} & \texttt{f1:wasTeammate} triples & 10{,}012 \\
+SPIN \texttt{infer\_wonChampionship} & \texttt{f1:wonChampionship} triples & 75 \\
+\texttt{owl:inverseOf} & \texttt{f1:hadDriver} triples & 2{,}150 \\
+SPIN \texttt{infer\_heldAt} & \texttt{f1:heldAt} triples & 1{,}125 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =============================================================================
+\subsection{Protégé Validation with HermiT Reasoner}
+\label{sec:hermit}
+% =============================================================================
+
+The ontology was formally validated using the \textbf{HermiT 1.4.3} DL reasoner
+(bundled with Protégé 5.6.9) running programmatically via the \texttt{owlready2}
+Python library. This section documents the complete analysis, including a real
+issue encountered and the design decision taken to resolve it.
+
+\subsubsection{OWL 2 Datatype Map Compliance}
+
+During validation, HermiT raised an \texttt{UnsupportedDatatypeException} for three
+\texttt{rdfs:range} declarations:
+
+\begin{lstlisting}[style=turtle, caption={Original range declarations causing HermiT rejection}]
+f1:dob   rdfs:range  xsd:date .   -- NOT in OWL 2 datatype map
+f1:date  rdfs:range  xsd:date .   -- NOT in OWL 2 datatype map
+f1:year  rdfs:range  xsd:gYear .  -- NOT in OWL 2 datatype map
+\end{lstlisting}
+
+The OWL 2 specification defines a strict \emph{datatype map} --- a subset of XML
+Schema datatypes that OWL 2 DL reasoners are required to support. This map includes
+\texttt{xsd:dateTime} and \texttt{xsd:dateTimeStamp} but \textbf{not}
+\texttt{xsd:date} or \texttt{xsd:gYear}. The teacher's slides state that
+``A OWL faz uso dos tipos de dados definidos no XML Schema'' (OWL uses XML Schema
+datatypes), but the key constraint is that only a \emph{subset} of XML Schema
+types are in the OWL 2 DL datatype map.
+
+\subsubsection{Design Decision}
+
+The \texttt{rdfs:range} declaration is defined in RDFS as \emph{optional}: it
+states what kind of values a property \emph{may} take, but its absence does not
+prevent the property from functioning. The decision was to
+\textbf{remove the three non-compliant range declarations} rather than replacing
+them with an incorrect type (e.g., \texttt{xsd:dateTime}) or a loss of type
+information (e.g., \texttt{xsd:string}).
+
+\textbf{Justification:} The semantic power of the ontology is entirely unchanged.
+All inference mechanisms --- \texttt{rdfs:domain} for base class classification,
+\texttt{owl:equivalentClass} for Driver/Constructor/Circuit,
+\texttt{owl:disjointWith} for consistency checking,
+\texttt{owl:FunctionalProperty}, \texttt{owl:SymmetricProperty},
+\texttt{owl:inverseOf}, and \texttt{rdfs:subPropertyOf} --- are independent of
+these three range declarations. The domain declarations
+(\texttt{f1:dob rdfs:domain f1:Driver}, \texttt{f1:year rdfs:domain f1:Event},
+\texttt{f1:date rdfs:domain f1:Race}) are preserved and still provide useful
+type inference. The actual data values in GraphDB remain typed as
+\texttt{xsd:date} and \texttt{xsd:gYear}, which GraphDB handles correctly
+under its OWL-Max ruleset.
+
+\subsubsection{HermiT Verification Results}
+
+After removing the three non-compliant range declarations, HermiT was run on the
+complete ontology (352 triples, 27 classes, 15 object properties, 42 datatype
+properties, 0 asserted individuals). The reasoning completed in \textbf{838~ms}.
+
+\begin{center}
+\begin{tabular}{@{}lp{10cm}@{}}
+\toprule
+\textbf{Check} & \textbf{Result} \\
+\midrule
+Consistency & \textbf{CONSISTENT} --- no exception, no contradiction \\
+Unsatisfiable classes & \textbf{0} --- every named class has a non-empty extension \\
+Equivalent class definitions & Driver~$\equiv$~$\exists$\texttt{driverRef.string},
+  Constructor~$\equiv$~$\exists$\texttt{constructorRef.string},
+  Circuit~$\equiv$~$\exists$\texttt{circuitRef.string} \\
+Property hierarchy & \texttt{wonRace}~$\sqsubseteq$~\texttt{competedIn},
+  \texttt{achievedPodium}~$\sqsubseteq$~\texttt{competedIn} \\
+Functional properties & \texttt{circuit}, \texttt{driver}, \texttt{heldAt},
+  \texttt{race}, \texttt{season}, \texttt{status} \\
+Symmetric properties & \texttt{wasTeammate} \\
+Disjoint classes & 7 pairs verified (Driver~$\perp$~Constructor, Driver~$\perp$~Circuit,
+  Circuit~$\perp$~Constructor, Race~$\perp$~Season, Driver~$\perp$~Race,
+  Result~$\perp$~QualifyingResult, LapTime~$\perp$~Result) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The full inferred class hierarchy produced by HermiT:
+
+\begin{lstlisting}[style=shell, caption={Class hierarchy inferred by HermiT from owl:equivalentClass + rdfs:subClassOf axioms}]
+owl:Thing
+  Entity
+    Person  ->  Driver  ->  WorldChampion  ->  MultichampionDriver
+                         ->  Veteran
+    Team    ->  Constructor  ->  ConstructorChampion
+    Venue   ->  Circuit      ->  ActiveCircuit
+                             ->  HistoricCircuit
+  Event
+    Race
+    Season
+  PerformanceRecord
+    Result  ->  PodiumResult
+    QualifyingResult
+    LapTime
+    PitStop
+    ConstructorResult
+  Standing
+    DriverStanding
+    ConstructorStanding
+  Status
+\end{lstlisting}
+
+This hierarchy proves the ontology's inference power: the
+\texttt{WorldChampion}, \texttt{Veteran}, \texttt{ConstructorChampion},
+\texttt{ActiveCircuit}, \texttt{HistoricCircuit}, and \texttt{PodiumResult}
+subclasses are all correctly positioned by HermiT using
+\texttt{rdfs:subClassOf} alone, confirming that the ontology structure is
+semantically sound.
+
+% =============================================================================
+\section{Inference Rules (SPIN)}
+\label{sec:spin}
+% =============================================================================
+
+SPIN (SPARQL Inference Notation) fills the expressivity gap between OWL DL and
+the kind of reasoning the F1 domain requires. OWL DL --- being based on Description
+Logic --- has no mechanism for:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Aggregation}: \texttt{COUNT}, \texttt{GROUP BY}, \texttt{MAX}
+  \item \textbf{Arithmetic comparisons} on data values: \texttt{positionOrder $\leq$ 3}
+  \item \textbf{Negation-as-failure}: \texttt{FILTER NOT EXISTS} over derived patterns
+  \item \textbf{Cross-entity joins}: same race, same constructor, different driver
+\end{itemize}
+
+The 15 rules are defined in \texttt{championship/spin\_rules.py} as a list of
+Python dictionaries, each containing a \texttt{name}, \texttt{description}, and
+\texttt{query} (a SPARQL 1.1 \texttt{INSERT WHERE} statement). They are executed
+sequentially by the management command \texttt{python manage.py run\_spin\_rules}.
+
+\subsection{Championship Inference}
+
+The most important pair of rules infers the \texttt{f1:wonChampionship} property
+by identifying the driver who held position~1 in the \texttt{DriverStanding}
+at the \emph{final round} of each season. OWL cannot express this because
+``final round'' requires computing the maximum over a GROUP BY aggregate:
+
+\begin{lstlisting}[style=sparql, caption={SPIN rule: infer\_wonChampionship}]
+INSERT { ?driver f1:wonChampionship ?season . }
+WHERE {
+  ?ds f1:driverStandingsId ?anyId ;
+      f1:race ?race ;
+      f1:driver ?driver ;
+      f1:position 1 .
+  ?race f1:round ?round ;
+        f1:year ?yr .
+  ?season rdf:type f1:Season ;   -- type guard: prevents matching Race entities
+          f1:year ?yr .
+  {
+    SELECT ?yr (MAX(?r) AS ?maxRound)
+    WHERE { ?rc f1:round ?r ; f1:year ?yr . }
+    GROUP BY ?yr
+  }
+  FILTER(?round = ?maxRound)
+  FILTER NOT EXISTS { ?driver f1:wonChampionship ?season }
+}
+\end{lstlisting}
+
+\begin{infobox}
+\textbf{Bug found and fixed:} The initial version lacked the
+\texttt{?season rdf:type f1:Season} type guard. Because \texttt{Race} entities
+also carry \texttt{f1:year}, the variable \texttt{?season} matched all 17 races
+per season in addition to the single \texttt{Season} resource, producing
+$17 \times 75 = 1{,}275$ triples instead of 75. Adding the type guard corrected
+the count to exactly 75 (one per F1 season from 1950 to 2024).
+The same bug affected \texttt{infer\_wonConstructorChampionship} and was fixed
+identically.
+\end{infobox}
+
+\subsection{Teammate Inference}
+
+The \texttt{infer\_wasTeammate} rule establishes 10{,}012 symmetric pairs between
+drivers who shared a constructor in the same race. This is a three-entity cross-join
+that OWL cannot express:
+
+\begin{lstlisting}[style=sparql, caption={SPIN rule: infer\_wasTeammate}]
+INSERT { ?d1 f1:wasTeammate ?d2 . ?d2 f1:wasTeammate ?d1 . }
+WHERE {
+  ?r1 f1:resultId ?id1 ; f1:race ?race ; f1:constructor ?ctor ; f1:driver ?d1 .
+  ?r2 f1:resultId ?id2 ; f1:race ?race ; f1:constructor ?ctor ; f1:driver ?d2 .
+  FILTER(?d1 != ?d2)
+  FILTER NOT EXISTS { ?d1 f1:wasTeammate ?d2 }
+}
+\end{lstlisting}
+
+Note that the rule inserts \emph{both} directions in the same \texttt{INSERT}, rather
+than relying on the \texttt{owl:SymmetricProperty} entailment, to ensure full
+materialisation in the graph.
+
+\subsection{Classification Rules}
+
+The following three classification rules illustrate the arithmetic and aggregation
+patterns that OWL cannot handle:
+
+\begin{lstlisting}[style=sparql, caption={classify\_MultichampionDriver: COUNT aggregation}]
+INSERT { ?driver rdf:type f1:MultichampionDriver . }
+WHERE {
+  SELECT ?driver (COUNT(?season) AS ?titles)
+  WHERE { ?driver f1:wonChampionship ?season . }
+  GROUP BY ?driver
+  HAVING(?titles >= 2)
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=sparql, caption={classify\_Veteran: COUNT results $\geq$ 100}]
+INSERT { ?driver rdf:type f1:Veteran . }
+WHERE {
+  SELECT ?driver (COUNT(?r) AS ?entries)
+  WHERE { ?r f1:resultId ?id ; f1:driver ?driver . }
+  GROUP BY ?driver
+  HAVING(?entries >= 100)
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=sparql, caption={classify\_HistoricCircuit: MAX(year) arithmetic + negation}]
+INSERT { ?circuit rdf:type f1:HistoricCircuit . }
+WHERE {
+  ?race f1:circuit ?circuit ; f1:year ?yr .
+  {
+    SELECT (MAX(?y) AS ?maxYear) WHERE { ?r f1:year ?y . }
+  }
+  FILTER NOT EXISTS {
+    ?recentRace f1:circuit ?circuit ;
+                f1:year ?recentYr .
+    FILTER(xsd:integer(str(?recentYr)) > xsd:integer(str(?maxYear)) - 10)
+  }
+}
+\end{lstlisting}
+
+\subsection{RDF Reification}
+
+The \texttt{reify\_wonChampionship} rule creates \textbf{75 \texttt{rdf:Statement}
+nodes} --- one per F1 World Drivers' Championship from 1950 to 2024. Each node
+annotates the existing \texttt{driver wonChampionship season} triple with the
+driver's final points total using the custom property \texttt{f1:finalPoints}:
+
+\begin{lstlisting}[style=sparql, caption={SPIN rule: reify\_wonChampionship}]
+INSERT {
+  _:stmt rdf:type      rdf:Statement ;
+         rdf:subject   ?driver ;
+         rdf:predicate f1:wonChampionship ;
+         rdf:object    ?season ;
+         f1:finalPoints ?pts .
+}
+WHERE {
+  ?driver f1:wonChampionship ?season .
+  ?season rdf:type f1:Season ; f1:year ?yr .
+  ?ds rdf:type f1:DriverStanding ;   -- type guard: prevents matching Result entities
+      f1:driver ?driver ;
+      f1:race ?race ;
+      f1:points ?pts .
+  ?race f1:round ?round ; f1:year ?yr .
+  {
+    SELECT ?yr (MAX(?r) AS ?maxRound)
+    WHERE { ?rc f1:round ?r ; f1:year ?yr . }
+    GROUP BY ?yr
+  }
+  FILTER(?round = ?maxRound)
+  FILTER NOT EXISTS {
+    ?s rdf:type rdf:Statement ;
+       rdf:subject ?driver ; rdf:predicate f1:wonChampionship ; rdf:object ?season
+  }
+}
+\end{lstlisting}
+
+\textbf{Why reification?} The triple \texttt{driver wonChampionship season} already
+exists as a plain triple. Reification allows attaching metadata \emph{to that triple
+itself} --- not to the driver (who has many seasons) or the season (which has one
+champion). This is the canonical RDF use case: making statements about statements.
+The \texttt{f1:finalPoints} property is declared in the ontology with
+\texttt{rdfs:domain rdf:Statement}, ensuring it only appears on reification nodes.
+
+% =============================================================================
+\section{New Operations on the Data (SPARQL)}
+% =============================================================================
+
+This section presents SPARQL queries that are \textbf{only possible because of
+inferred knowledge} --- none can be answered from the raw CSV data directly.
+
+\subsection{World Champions Who Raced as Teammates}
+
+Combines \texttt{f1:wasTeammate} (SPIN-inferred) with \texttt{rdf:type f1:WorldChampion}
+(SPIN-inferred). Both properties are absent from the raw data:
+
+\begin{lstlisting}[style=sparql, caption={Champions who shared a constructor in the same race}]
+SELECT ?aLabel ?bLabel WHERE {
+  ?a rdf:type f1:WorldChampion ; rdfs:label ?aLabel ; f1:wasTeammate ?b .
+  ?b rdf:type f1:WorldChampion ; rdfs:label ?bLabel .
+  FILTER(?a != ?b)
+  FILTER(STR(?aLabel) < STR(?bLabel))
+}
+ORDER BY ?aLabel
+\end{lstlisting}
+
+Result: Alain Prost \& Ayrton Senna, Prost \& Niki Lauda, Prost \& Nigel Mansell
+(the legendary McLaren era confirmed by pure graph traversal).
+
+\subsection{Constructors That Fielded the Most World Champions}
+
+Uses \texttt{f1:hadDriver} (OWL \texttt{owl:inverseOf}-inferred from \texttt{f1:drovFor})
+combined with \texttt{rdf:type f1:WorldChampion}:
+
+\begin{lstlisting}[style=sparql, caption={Constructor champion headcount via inverseOf-inferred hadDriver}]
+SELECT ?ctorLabel (COUNT(DISTINCT ?d) AS ?champions) WHERE {
+  ?ctor f1:hadDriver ?d .          -- inverseOf f1:drovFor, not in raw data
+  ?d    rdf:type f1:WorldChampion .
+  ?ctor rdfs:label ?ctorLabel .
+}
+GROUP BY ?ctor ?ctorLabel
+ORDER BY DESC(?champions)
+LIMIT 8
+\end{lstlisting}
+
+Result: McLaren (15), Ferrari (15), Williams (11), Team Lotus (10).
+
+\subsection{SPARQL Property Paths via rdfs:subPropertyOf}
+
+The ontology declares \texttt{wonRace $\sqsubseteq$ competedIn} and
+\texttt{achievedPodium $\sqsubseteq$ competedIn}. This enables alternation
+path queries that would otherwise require a \texttt{UNION}:
+
+\begin{lstlisting}[style=sparql, caption={Circuits where Hamilton won or achieved a podium}]
+SELECT DISTINCT ?cLabel WHERE {
+  ?h rdfs:label "Lewis Hamilton" .
+  ?h (f1:wonRace | f1:achievedPodium) ?race .
+  ?race f1:heldAt ?circuit ; rdfs:label ?cLabel .
+}
+\end{lstlisting}
+
+\subsection{Reification Query: Championship Final Points}
+
+The only way to retrieve the final championship points for each winner is through
+the reified \texttt{rdf:Statement} nodes created by the \texttt{reify\_wonChampionship}
+SPIN rule:
+
+\begin{lstlisting}[style=sparql, caption={Championship points retrieved from rdf:Statement reification nodes}]
+SELECT ?driverLabel ?yr ?pts WHERE {
+  ?stmt rdf:type      rdf:Statement ;
+        rdf:predicate f1:wonChampionship ;
+        rdf:subject   ?driver ;
+        rdf:object    ?season ;
+        f1:finalPoints ?pts .
+  ?driver rdfs:label ?driverLabel .
+  ?season f1:year    ?yr .
+}
+ORDER BY DESC(?yr)
+\end{lstlisting}
+
+Sample results: Lewis Hamilton 2020 (347 pts), Max Verstappen 2023 (575 pts),
+Michael Schumacher 2004 (148 pts).
+
+\subsection{Veteran World Champions (Class Intersection)}
+
+OWL class intersection of two independently SPIN-inferred classes:
+
+\begin{lstlisting}[style=sparql, caption={Drivers classified as both WorldChampion and Veteran}]
+SELECT ?dLabel WHERE {
+  ?d rdf:type f1:WorldChampion ;
+     rdf:type f1:Veteran ;          -- 100+ race entries, independent SPIN rule
+     rdfs:label ?dLabel .
+}
+ORDER BY ?dLabel
+\end{lstlisting}
+
+\subsection{Two-Hop Teammate Graph Traversal}
+
+The \texttt{owl:SymmetricProperty} on \texttt{wasTeammate} enables arbitrary-length
+path queries. This finds all drivers who were teammates of Hamilton's own teammates:
+
+\begin{lstlisting}[style=sparql, caption={Teammates of Hamilton's teammates (2-hop traversal)}]
+SELECT DISTINCT ?tLabel WHERE {
+  ?h rdfs:label "Lewis Hamilton" .
+  ?h f1:wasTeammate/f1:wasTeammate ?t .   -- path operator
+  ?t rdfs:label ?tLabel .
+  FILTER(?t != ?h)
+}
+\end{lstlisting}
+
+% =============================================================================
+\section{Use and Integration of Wikidata and DBpedia}
+% =============================================================================
+
+External enrichment is fetched via \textbf{SPARQLWrapper} from the SPARQL endpoints
+of Wikidata (\url{https://query.wikidata.org/sparql}) and DBpedia
+(\url{https://dbpedia.org/sparql}). All calls are \textbf{deferred to after page
+render} --- a JavaScript \texttt{fetch()} call triggers the enrichment after the
+page is visible, injecting data into the hero section asynchronously.
+This eliminates the 2--8 second SPARQL timeout from the critical page load path.
+
+\subsection{Driver Enrichment (Wikidata)}
+
+Wikidata is queried for F1 drivers using occupation property
+\texttt{wdt:P106 wd:Q10843402} (Formula One driver), matched by label:
+
+\begin{lstlisting}[style=sparql, caption={Wikidata query for driver enrichment with new fields}]
+SELECT ?item ?birthPlaceLabel ?description ?image
+       ?deathDate ?height ?fatherLabel
+       (GROUP_CONCAT(DISTINCT ?childLabel; separator="|") AS ?childNames)
+WHERE {
+  ?item wdt:P106 wd:Q10843402 ;
+        rdfs:label ?label .
+  OPTIONAL { ?item wdt:P19  ?birthPlace }   -- place of birth
+  OPTIONAL { ?item wdt:P18  ?image }        -- portrait photo
+  OPTIONAL { ?item wdt:P570 ?deathDate }    -- date of death
+  OPTIONAL { ?item wdt:P2048 ?height }      -- height in cm
+  OPTIONAL { ?item wdt:P22  ?father .
+             ?father rdfs:label ?fatherLabel
+             FILTER(LANG(?fatherLabel) = "en") }
+  OPTIONAL { ?item wdt:P40  ?child .
+             ?child rdfs:label ?childLabel
+             FILTER(LANG(?childLabel) = "en") }
+  OPTIONAL { ?item schema:description ?description
+             FILTER(LANG(?description) = "en") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+  FILTER(LANG(?label) = "en")
+  FILTER(LCASE(STR(?label)) = "ayrton senna")
+}
+GROUP BY ?item ?birthPlaceLabel ?description ?image ?deathDate ?height ?fatherLabel
+LIMIT 1
+\end{lstlisting}
+
+New fields added in TP2 (beyond TP1's \texttt{birthPlace} and \texttt{image}):
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Wikidata property} & \textbf{Field} & \textbf{Displayed as} \\
+\midrule
+P570 & \texttt{deathDate} & \texttt{†} suffix on driver name; lifespan chip \\
+P2048 & \texttt{height} & Height chip in hero metadata \\
+P22 & \texttt{fatherName} & ``Father: Graham Hill'' (F1 dynasties) \\
+P40 & \texttt{childNames} & ``Son: Mick Schumacher'' (pipe-separated list) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The death date is particularly significant for historical drivers. Senna (1994),
+Ratzenberger (1994), Rindt (1970), Clark (1968), and others are now distinguished
+visually with the \texttt{†} symbol. The family links reveal well-known F1 dynasties:
+Graham/Damon Hill, Gilles/Jacques Villeneuve, Michael/Mick Schumacher.
+
+\subsection{Constructor Enrichment (Wikidata)}
+
+Constructors are queried as F1 racing teams (\texttt{wdt:P31 wd:Q41298738}):
+
+\begin{lstlisting}[style=sparql, caption={Wikidata query for constructor enrichment}]
+SELECT ?item ?foundingDate ?hqLabel ?logo ?website
+       ?countryLabel ?founderLabel ?dissolved WHERE {
+  ?item wdt:P31 wd:Q41298738 ;
+        rdfs:label ?label .
+  OPTIONAL { ?item wdt:P571 ?foundingDate }   -- inception date
+  OPTIONAL { ?item wdt:P159 ?hq }             -- headquarters
+  OPTIONAL { ?item wdt:P154 ?logo }           -- official logo image
+  OPTIONAL { ?item wdt:P856 ?website }        -- official website
+  OPTIONAL { ?item wdt:P17  ?country }        -- country of origin
+  OPTIONAL { ?item wdt:P112 ?founder }        -- founded by
+  OPTIONAL { ?item wdt:P576 ?dissolved }      -- dissolved date
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+  FILTER(LANG(?label) = "en")
+  FILTER(LCASE(STR(?label)) = "ferrari")
+}
+LIMIT 1
+\end{lstlisting}
+
+The team logo (\texttt{P154}) replaces the generic Wikipedia thumbnail on the
+constructor detail page. The \texttt{dissolved} date displays a ``Dissolved YYYY''
+chip for defunct teams such as Tyrrell, Brabham, and Lotus.
+
+\subsection{Circuit Enrichment (DBpedia)}
+
+DBpedia provides track-specific facts not present in the Ergast dataset.
+A key finding during development was that F1 circuits in DBpedia are \textbf{not}
+classified as \texttt{dbo:RaceTrack} --- they use generic types (\texttt{owl:Thing},
+\texttt{geo:SpatialThing}). Label-matching queries with a type constraint
+consistently returned zero results.
+
+The solution is to \textbf{construct the DBpedia resource URI directly} from the
+circuit name, bypassing the need for any label or type matching:
+
+\begin{lstlisting}[style=python, caption={Direct URI construction for DBpedia circuit lookup (external\_data.py)}]
+resource_uri = "http://dbpedia.org/resource/" + circuit_name.replace(" ", "_")
+# "Circuit de Monaco"  -->  dbr:Circuit_de_Monaco
+\end{lstlisting}
+
+\begin{lstlisting}[style=sparql, caption={DBpedia query using direct resource URI}]
+SELECT ?abstract ?length ?turns ?capacity ?opened ?lapRecord WHERE {
+  OPTIONAL { <dbr:Circuit_de_Monaco>  dbo:abstract  ?abstract
+             FILTER(LANG(?abstract) = "en") }
+  OPTIONAL { <dbr:Circuit_de_Monaco>  dbp:length    ?length    }
+  OPTIONAL { <dbr:Circuit_de_Monaco>  dbp:turns     ?turns     }
+  OPTIONAL { <dbr:Circuit_de_Monaco>  dbp:capacity  ?capacity  }
+  OPTIONAL { <dbr:Circuit_de_Monaco>  dbp:opened    ?opened    }
+  OPTIONAL { <dbr:Circuit_de_Monaco>  dbp:lapRecord ?lapRecord }
+  FILTER(BOUND(?turns) || BOUND(?capacity) || BOUND(?abstract))
+}
+LIMIT 1
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{DBpedia property} & \textbf{Field} & \textbf{Monaco} & \textbf{Silverstone} \\
+\midrule
+\texttt{dbp:turns}    & corners    & 12       & 6 \\
+\texttt{dbp:capacity} & spectators & 37{,}000 & 164{,}000 \\
+\texttt{dbp:opened}   & year built & 1929     & 1948 \\
+\texttt{dbp:lapRecord} & fastest lap text & \textit{(varies)} & \textit{(varies)} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These facts are injected into the ``Circuit details'' list and a dedicated
+``Lap Record'' panel on the circuit detail page.
+
+% =============================================================================
+\section{Publication of Semantic Data (RDFa and Microformats)}
+% =============================================================================
+
+Every detail page in the application simultaneously embeds two semantic markup
+standards. These serve different parsers and different use cases.
+
+\subsection{RDFa 1.1 Lite}
+
+\textbf{RDFa 1.1 Lite} uses the Schema.org vocabulary, declared with the
+\texttt{vocab} attribute. It is consumed by Google's Knowledge Graph, search
+engine rich results, and the W3C pyRDFa distiller.
+
+\begin{lstlisting}[style=html, caption={RDFa on the driver detail page}]
+<article class="driver-hero h-card"
+         vocab="https://schema.org/"
+         typeof="Person"
+         resource="{{ request.build_absolute_uri }}">
+  <div class="driver-hero-name p-name" property="name">
+    Lewis Hamilton
+  </div>
+  <span property="nationality">British</span>
+  <time property="birthDate" datetime="1985-01-07">b. 1985-01-07</time>
+  <link property="sameAs" href="https://en.wikipedia.org/wiki/Lewis_Hamilton" />
+</article>
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Page} & \textbf{typeof} & \textbf{Key properties} \\
+\midrule
+Driver detail & \texttt{Person} & \texttt{name}, \texttt{birthDate}, \texttt{nationality}, \texttt{sameAs} \\
+Constructor detail & \texttt{SportsOrganization} & \texttt{name}, \texttt{nationality}, \texttt{sameAs} \\
+Circuit detail & \texttt{SportsActivityLocation} & \texttt{name}, \texttt{latitude}, \texttt{longitude}, \texttt{addressLocality} \\
+Race detail & \texttt{SportsEvent} & \texttt{name}, \texttt{startDate}, \texttt{sameAs} \\
+Season detail & \texttt{Event} & \texttt{name}, \texttt{startDate} \\
+Champions list & \texttt{ItemList} & \texttt{itemListElement} (each item: \texttt{Person}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The \texttt{resource} attribute is set to \texttt{\{\{\ request.build\_absolute\_uri\ \}\}},
+giving each entity a canonical URI tied to its page URL.
+
+\subsection{Microformats 2}
+
+\textbf{Microformats 2} requires no vocabulary declaration and is parsed by IndieWeb
+tools, social readers, and contact importers. It coexists with RDFa on the same element:
+
+\begin{lstlisting}[style=html, caption={Microformats 2 on the circuit detail page (h-card + h-adr)}]
+<article class="hero h-card h-adr"
+         vocab="https://schema.org/"
+         typeof="SportsActivityLocation"
+         resource="{{ request.build_absolute_uri }}">
+  <span class="p-name" property="name">Circuit de Monaco</span>
+  <span class="p-locality" property="addressLocality">Monte Carlo</span>
+  <span class="p-country-name" property="addressCountry">Monaco</span>
+  <a class="u-url" property="sameAs"
+     href="https://en.wikipedia.org/wiki/Circuit_de_Monaco">Wikipedia</a>
+</article>
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Class} & \textbf{Standard} & \textbf{Used on} \\
+\midrule
+\texttt{h-card}         & hCard  & Driver, Constructor, Circuit pages \\
+\texttt{h-event}        & hEvent & Race, Season pages \\
+\texttt{h-adr}          & hAdr   & Circuit address block \\
+\texttt{p-name}         & hCard/hEvent & Entity name \\
+\texttt{p-nationality}  & hCard  & Driver/Constructor nationality \\
+\texttt{p-country-name} & hAdr   & Circuit country \\
+\texttt{p-locality}     & hAdr   & Circuit city \\
+\texttt{dt-bday}        & hCard  & Driver date of birth \\
+\texttt{dt-start}       & hEvent & Race/Season start date \\
+\texttt{u-url}          & hCard/hEvent & Wikipedia link (\texttt{rdfs:seeAlso}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Why Both Standards?}
+
+RDFa integrates with the OWL ontology namespace and is consumed by SPARQL-aware tools
+and Google's Knowledge Graph. Microformats 2 requires no vocabulary declaration and
+is parsed by IndieWeb tools, social readers, and contact importers without configuration.
+Embedding both on the same HTML element demonstrates mastery of both standards and
+their respective trade-offs.
+
+\subsection{Microformats 2 Parser Demonstration}
+
+The \texttt{/tools/} page includes a live parser powered by \texttt{mf2py} (a Python
+Microformats 2 library). It fetches any page of the site and returns the extracted
+JSON, demonstrating the full round-trip:
+
+\begin{lstlisting}[style=shell, caption={Calling the live MF2 parser endpoint}]
+GET /api/parse-microformats/?url=http://localhost:8000/drivers/1/
+
+# Response (abbreviated):
+{
+  "items": [{
+    "type": ["h-card"],
+    "properties": {
+      "name": ["Lewis Hamilton"],
+      "nationality": ["British"],
+      "bday": ["1985-01-07"],
+      "url": ["https://en.wikipedia.org/wiki/Lewis_Hamilton"]
+    }
+  }]
+}
+\end{lstlisting}
+
+\subsection{RDFa Validation}
+
+The \texttt{/tools/} page provides direct links to three external validators:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{W3C pyRDFa Distiller} --- extracts RDFa as Turtle RDF from any page URL
+  \item \textbf{Google Rich Results Test} --- validates Schema.org structured data
+  \item \textbf{RDFa Play} (\url{https://rdfa.info/play/}) --- paste HTML, visualise the extracted RDF graph
+\end{itemize}
+
+% =============================================================================
+\section{Application Functionalities (UI)}
+% =============================================================================
+
+This section describes the features added in TP2 that were not present in TP1.
+
+\subsection{New Pages Driven by Inferred Knowledge}
+
+Four new pages are \textbf{entirely powered by SPIN-inferred classes}. None of these
+pages could exist without the ontology and inference layer:
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{URL} & \textbf{Page} & \textbf{SPIN class} & \textbf{Count} \\
+\midrule
+\texttt{/champions/}           & World Champions       & \texttt{f1:WorldChampion}        & 34 \\
+\texttt{/champions/multi/}     & Multi-Champions       & \texttt{f1:MultichampionDriver}   & 17 \\
+\texttt{/champions/veterans/}  & Veterans              & \texttt{f1:Veteran}              & 86 \\
+\texttt{/constructors/champions/} & Constructor Champions & \texttt{f1:ConstructorChampion} & 17 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Semantic Tools Page (/tools/)}
+
+A dedicated page demonstrating three semantic web features:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{RDF Reification viewer} --- executes a live SPARQL query over the
+        \texttt{rdf:Statement} nodes, displaying championship points per winner per year.
+  \item \textbf{Microformats 2 parser} --- accepts any page URL and displays the
+        parsed MF2 JSON using the \texttt{mf2py} library.
+  \item \textbf{RDFa extraction links} --- direct links to the W3C pyRDFa Distiller
+        and Google Rich Results Test pre-loaded with the site's pages.
+\end{enumerate}
+
+\subsection{Hero Section Enrichment}
+
+All detail pages (driver, constructor, circuit) now display:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item A \textbf{description paragraph} sourced asynchronously from Wikidata or DBpedia,
+        with a small source attribution link.
+  \item A \textbf{clickable hero photo} that opens a full-size lightbox using the
+        native HTML \texttt{<dialog>} element --- no library required.
+  \item For \textbf{drivers}: death date (\texttt{†}) displayed in the name, height chip,
+        and family dynasty links (father / children who also raced in F1).
+  \item For \textbf{constructors}: Wikidata team logo replaces the Wikipedia thumbnail,
+        founder and official website injected into the stats list.
+  \item For \textbf{circuits}: DBpedia facts (turns, capacity, year opened, lap record)
+        injected into the Circuit details card.
+\end{itemize}
+
+\subsection{Navigation with Dropdown Menus}
+
+The navigation bar was restructured with dropdown menus to organise the new pages:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Drivers} $\triangleright$ All Drivers / World Champions /
+        Multi-Champions / Veterans
+  \item \textbf{Constructors} $\triangleright$ All Constructors / Constructor Champions
+\end{itemize}
+
+\subsection{Card Hover Expansion}
+
+Entity cards (drivers, constructors, circuits, champions) expand on hover using
+\texttt{transform: scale(1.08)} with \texttt{transform-origin: top center}.
+Because CSS transforms do not affect layout flow, adjacent cards are never pushed
+--- the expanded card floats over its neighbours via \texttt{z-index: 10}.
+
+\subsection{Deep Links}
+
+Navigation shortcuts were added throughout the application:
+\begin{itemize}[leftmargin=1.5em]
+  \item Constructor career chips in the driver detail page link to constructor detail pages.
+  \item Constructor names in race results link to constructor detail pages.
+  \item Circuit names in the season detail calendar link to circuit detail pages.
+  \item Race winner constructors in the season calendar link to constructor detail pages.
+\end{itemize}
+
+\subsection{Podium Visibility Control}
+
+The ``all-time wins'' podium at the top of the Drivers, Constructors, and Circuits
+list pages is now hidden when browsing pages 2 and beyond. On page~1 it provides
+a featured highlight; on subsequent pages it would be confusing context, so it is
+suppressed with a \texttt{\{if page == 1\}} condition in the template.
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+TP2 successfully demonstrates the end-to-end lifecycle of a semantic web application,
+extending TP1's data foundation with a full knowledge layer.
+
+\subsection{Key Achievements}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{OWL 2 DL ontology} with 18 classes, 15+ properties, and 7 disjointness
+        axioms. Verified in both GraphDB (OWL-Max ruleset) and Protégé (HermiT 1.4.3, 838~ms).
+  \item \textbf{15 SPIN rules} covering all classification and inference patterns
+        that OWL DL cannot express. All 15 pass with verified real-world counts.
+  \item \textbf{RDF reification} of 75 championship-winning triples with final points
+        annotation --- a canonical demonstration of making statements about statements.
+  \item \textbf{Linked data integration} from two SPARQL endpoints (Wikidata,
+        DBpedia) and the Wikipedia REST API, with each data source contributing
+        distinct information not available from the others.
+  \item \textbf{Dual semantic markup} (RDFa 1.1 Lite + Microformats 2) on all
+        detail pages, serving both schema-aware and schema-agnostic parsers.
+  \item \textbf{Four new application pages} driven entirely by inferred knowledge ---
+        pages that could not exist without the ontology.
+\end{itemize}
+
+\subsection{Challenges and Solutions}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Type guard omission in SPIN rules:} The \texttt{infer\_wonChampionship}
+        rule initially produced 1{,}200 triples instead of 75 because the
+        \texttt{?season} variable matched \texttt{Race} entities (which also carry
+        \texttt{f1:year}). Adding \texttt{?season rdf:type f1:Season} fixed the count.
+  \item \textbf{DBpedia classification:} F1 circuits are not typed as
+        \texttt{dbo:RaceTrack} in DBpedia. The solution was to construct the resource
+        URI directly from the circuit name instead of using label-matching queries.
+  \item \textbf{Reification entity confusion:} Both \texttt{DriverStanding} and
+        \texttt{Result} entities carry \texttt{f1:driver} and \texttt{f1:points},
+        causing duplicate reification nodes. Adding \texttt{?ds rdf:type
+        f1:DriverStanding} restricted the join to the correct entity type.
+\end{itemize}
+
+% =============================================================================
+\section{Configuration to Run the Application}
+% =============================================================================
+
+\subsection{Prerequisites}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item Python 3.12+
+  \item \href{https://www.ontotext.com/products/graphdb/download/}{GraphDB Free}
+        running on \texttt{http://localhost:7200}, with a repository named
+        \textbf{\texttt{ws-formula1}} (OWL-Max with RDFS ruleset enabled)
+  \item Ergast CSV files in \texttt{data/raw/}
+\end{itemize}
+
+\subsection{Step-by-Step Setup}
+
+\begin{lstlisting}[style=shell, caption={Complete setup from a fresh clone}]
+# 1. Virtual environment and dependencies
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Environment configuration
+cp .env.example .env
+# Edit .env:  GRAPHDB_BASE_URL, GRAPHDB_REPOSITORY, DJANGO_SECRET_KEY
+
+# 3. Generate RDF facts from CSV (no rdf:type for base classes)
+python scripts/csv_to_rdf.py
+# Output: data/rdf/formula1.nt  (~798 MB)
+
+# 4. Merge ontology + facts into one file (for GraphDB and Protege)
+python scripts/merge_integrated.py
+# Output: data/rdf/formula1_integrated.nt
+
+# 5. Load into GraphDB
+#    Workbench > ws-formula1 > Import > Upload RDF file
+#    Select: data/rdf/formula1_integrated.nt
+#    (or: bash scripts/load_rdf_to_graphdb.sh)
+
+# 6. Run all 15 SPIN inference rules (~1 min)
+python manage.py run_spin_rules
+# Expected output: 15/15 rules applied successfully.
+
+# 7. Django setup (SQLite for auth only)
+python manage.py migrate
+python manage.py createsuperuser
+
+# 8. Start the development server
+python manage.py runserver
+\end{lstlisting}
+
+Open \url{http://localhost:8000}. Admin panel: \url{http://localhost:8000/admin-panel/login/}.
+
+\subsection{Protégé Validation}
+
+To validate the ontology in Protégé 5.6.9 with HermiT:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Open Protégé and load \texttt{data/rdf/formula1\_integrated.nt}
+        (File $\to$ Open from File, format: N-Triples).
+  \item Select Reasoner $\to$ HermiT 1.4.3.
+  \item Click Start Reasoner. HermiT completes in under 1 second on schema only
+        (0 explicit individuals --- all types are inferred from properties).
+  \item Navigate to the Entities tab $\to$ Classes to verify the inferred
+        class hierarchy matches Section~\ref{sec:hermit}.
+  \item No unsatisfiable classes should appear (red background on any class
+        would indicate a modelling error).
+\end{enumerate}
+
+\begin{infobox}
+\textbf{Note on xsd:date / xsd:gYear:} The ontology intentionally omits
+\texttt{rdfs:range} declarations for \texttt{f1:dob}, \texttt{f1:date}, and
+\texttt{f1:year} because \texttt{xsd:date} and \texttt{xsd:gYear} are not
+in the OWL 2 datatype map (Section~\ref{sec:hermit}). The actual data values
+in GraphDB remain typed as \texttt{xsd:date}/\texttt{xsd:gYear} — only the
+ontology range assertions are omitted to maintain full OWL 2 DL compliance.
+\end{infobox}
+
+\subsection{Re-running Inference}
+
+All SPIN rules are idempotent. To re-run after a data change:
+
+\begin{lstlisting}[style=shell]
+python manage.py run_spin_rules
+\end{lstlisting}
+
+\subsection{Data Files Summary}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{File} & \textbf{Purpose} & \textbf{In git?} \\
+\midrule
+\texttt{data/rdf/formula1\_ontology.ttl} & OWL 2 DL ontology (hand-authored) & Yes \\
+\texttt{data/rdf/formula1.nt}            & Facts only, no rdf:type for base classes & No (generated) \\
+\texttt{data/rdf/formula1\_integrated.nt} & Ontology + facts merged (for Protégé) & No (generated) \\
+\texttt{championship/spin\_rules.py}     & 15 SPIN rules as Python module & Yes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}
