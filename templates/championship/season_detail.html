@@ -212,9 +212,9 @@
   &larr; All Seasons
 </a>
 
-<!-- ── Hero — RDFa 1.1 Lite (Schema.org/Event) + Microformats 2 h-event ── -->
+<!-- ── Hero — RDFa 1.1 Lite (Schema.org/SportsEvent) + Microformats 2 h-event ── -->
 <article class="hero h-event"
-         vocab="https://schema.org/" typeof="Event"
+         vocab="https://schema.org/" typeof="SportsEvent"
          resource="{{ request.build_absolute_uri }}">
   <meta property="name" content="{{ year }} Formula 1 Season" />
   <meta property="startDate" content="{{ year }}-01-01" />
@@ -232,7 +232,25 @@
     </a>
     {% endif %}
   </div>
+  <p id="seasonDesc" style="display:none;font-size:0.88rem;color:var(--grey);line-height:1.55;margin-top:0.75rem;max-width:540px;"></p>
+  <p id="seasonDescSrc" style="display:none;font-size:0.72rem;color:var(--grey);opacity:.65;margin-top:0.2rem;"></p>
 </article>
+{% if wiki_url %}
+<script>
+(function(){
+  fetch('{% url "championship:api_entity_info" %}?type=season&wiki={{ wiki_url|urlencode }}')
+    .then(r=>r.json()).then(d=>{
+      const t = d.extract || d.description || '';
+      if (t) {
+        const de = document.getElementById('seasonDesc'), se = document.getElementById('seasonDescSrc');
+        de.textContent = t; de.style.display = '';
+        se.innerHTML = '<a class="src-badge src-wikipedia" href="{{ wiki_url }}" target="_blank" rel="noopener">WIKIPEDIA</a> <span style="font-size:0.75rem;color:var(--grey);">season summary via Wikipedia REST API</span>';
+        se.style.display = '';
+      }
+    }).catch(()=>{});
+})();
+</script>
+{% endif %}
 
 <!-- ── Stat tiles ─────────────────────────────────────────────────────────── -->
 <div class="stat-tiles">

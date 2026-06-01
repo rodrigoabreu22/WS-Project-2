@@ -453,37 +453,52 @@
   lb.addEventListener('click',function(e){if(e.target===lb)close();});
   fetch('{% url "championship:api_entity_info" %}?type=circuit&name={{ info.label|urlencode }}{% if wiki_url %}&wiki={{ wiki_url|urlencode }}{% endif %}')
     .then(r=>r.json()).then(d=>{
+      const dbpBadge = '<span class="src-badge src-dbpedia" title="Source: DBpedia SPARQL — direct URI construction" style="margin-left:0.35rem;">DBPEDIA</span>';
+      const wpBadge  = '<span class="src-badge src-wikipedia" style="margin-left:0.35rem;">WIKIPEDIA</span>';
+
       // ── Description ────────────────────────────────────────────────
       const t = d.extract || d.abstract || d.description || '';
       if (t) {
         const de = document.getElementById('heroDesc'), se = document.getElementById('heroDescSource');
         de.textContent = t; de.style.display = '';
-        se.innerHTML = 'Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">DBpedia</a>';
+        const srcBadge = d.extract ? wpBadge : dbpBadge;
+        se.innerHTML = srcBadge + ' <span style="font-size:0.75rem;color:var(--grey);">' + (d.extract ? 'biographical extract via Wikipedia REST API' : 'abstract via DBpedia SPARQL') + '</span>';
         se.style.display = '';
       }
 
-      // ── Inject DBpedia facts into the Circuit details list ─────────
+      // ── DBpedia thumbnail as fallback hero image ───────────────────
+      if (d.thumbnail && av && !av.querySelector('.img-fg.loaded')) {
+        const img = document.createElement('img');
+        img.src = d.thumbnail;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+        img.onload = () => { av.innerHTML = ''; av.appendChild(img); };
+      }
+
+      // ── Inject DBpedia facts with source badge into Circuit details list ──
       const statsList = document.getElementById('circuitStatsList');
       if (statsList) {
         const addRow = (key, val) => statsList.insertAdjacentHTML('beforeend',
-          `<li><span class="stat-key">${key}</span><span class="stat-val">${val}</span></li>`);
+          `<li><span class="stat-key">${key}</span><span class="stat-val">${val}${dbpBadge}</span></li>`);
         if (d.opened)   addRow('Year opened', String(d.opened).substring(0,4));
         if (d.turns)    addRow('Corners', d.turns);
         if (d.length)   addRow('Track length', d.length + ' km');
+        if (d.surface)  addRow('Surface', d.surface);
         if (d.capacity) {
           const cap = parseInt(d.capacity);
           addRow('Capacity', isNaN(cap) ? d.capacity : cap.toLocaleString() + ' spectators');
         }
       }
 
-      // ── Lap record card ────────────────────────────────────────────
+      // ── Lap record card with DBpedia badge ────────────────────────────────
       if (d.lapRecord) {
         const lapEl = document.getElementById('lapRecordPanel');
         if (lapEl) {
           lapEl.innerHTML =
-            `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.4rem;">Lap Record</div>
-             <div style="font-size:1.1rem;color:var(--white);line-height:1.4;">${d.lapRecord}</div>
-             <div style="font-size:0.72rem;color:var(--grey);margin-top:0.3rem;">Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">DBpedia</a></div>`;
+            `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+               <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);">Lap Record</div>
+               ${dbpBadge}
+             </div>
+             <div style="font-size:1.1rem;color:var(--white);line-height:1.4;">${d.lapRecord}</div>`;
           lapEl.style.display = '';
         }
       }
@@ -652,5 +667,45 @@
   </table>
 </div>
 
+<!-- Semantic Provenance panel -->
+<details class="section-card" style="margin-top:1.5rem;" open>
+  <summary style="background:var(--dark);border-bottom:2px solid #7c3aed;padding:0.7rem 1.25rem;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+    <span>Semantic Provenance</span>
+    <span style="font-size:0.7rem;font-weight:600;letter-spacing:0;">&#9660;</span>
+  </summary>
+  <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.25rem;">Entity Classification</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-owl" title="GraphDB OWL-Max: rdfs:domain on f1:circuitRef infers rdf:type f1:Circuit at load time">OWL-MAX</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:var(--white);">f1:Circuit</strong> — inferred from rdfs:domain on f1:circuitRef</span>
+    </div>
+    {% if circuit_type == "active" %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN rule: classify_ActiveCircuit — circuit appears in the most recent season (MAX aggregation)">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:#4caf50;">f1:ActiveCircuit</strong> — hosted a race in the latest F1 season</span>
+    </div>
+    {% elif circuit_type == "historic" %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN rule: classify_HistoricCircuit — no race in last 10 years (MAX year − 10, negation-as-failure)">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:#f59e0b;">f1:HistoricCircuit</strong> — no race hosted in the last 10 years</span>
+    </div>
+    {% endif %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN rule: infer_heldAt — materialises f1:heldAt from f1:circuit FK on each Race">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">f1:heldAt — race-to-circuit inverse link materialised by infer_heldAt ({{ total_races }} triples)</span>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-top:0.5rem;margin-bottom:0.25rem;">External Enrichment</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-dbpedia" title="DBpedia SPARQL — direct URI: dbr:{{ info.circuitRef }} — not typed as dbo:RaceTrack">DBPEDIA</span>
+      <span style="font-size:0.82rem;color:var(--grey);">Corners (dbp:turns), capacity (dbp:capacity), opened (dbp:opened), surface (dbp:surface), lap record (dbp:lapRecord)</span>
+    </div>
+    {% if wiki_url %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <a class="src-badge src-wikipedia" href="{{ wiki_url }}" target="_blank" rel="noopener" title="Wikipedia REST API">WIKIPEDIA</a>
+      <span style="font-size:0.82rem;color:var(--grey);">Circuit photo and biographical extract</span>
+    </div>
+    {% endif %}
+  </div>
+</details>
 
 {% endblock %}

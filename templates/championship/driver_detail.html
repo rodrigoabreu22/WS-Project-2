@@ -316,14 +316,13 @@
       {% if info.age %}<span class="meta-chip">{{ info.age }} yrs</span>{% endif %}
       {% if info.number %}<span class="meta-chip"># {{ info.number }}</span>{% endif %}
       {% if is_champion %}
-        <a href="{% url 'championship:champions' %}"
-           style="background:var(--dark);color:#FFD700;border:1px solid rgba(255,215,0,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;">World Champion</a>
+        <a href="{% url 'championship:champions' %}" class="badge-champion" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;">World Champion</a>
       {% endif %}
       {% if is_multichampion %}
-        <span style="background:var(--dark);color:#ff9900;border:1px solid rgba(255,153,0,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">Multi-Champion</span>
+        <span class="badge-multichamp" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">Multi-Champion</span>
       {% endif %}
       {% if is_veteran %}
-        <span style="background:var(--dark);color:#4caf50;border:1px solid rgba(76,175,80,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">Veteran</span>
+        <span class="badge-veteran" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:3px;">Veteran</span>
       {% endif %}
     </div>
     <!-- Description + family injected here by async fetch -->
@@ -345,16 +344,27 @@
     <span class="medal-icon">&#129351;</span>
     <div class="medal-count" style="color:#FFD700;">{{ wins }}</div>
     <div class="medal-label">Victories</div>
+    <div style="margin-top:0.3rem;"><span class="src-badge src-spin" title="SPIN rule: infer_wonRace — positionOrder = 1">SPIN</span></div>
   </div>
   <div class="medal-card">
     <span class="medal-icon">&#129352;</span>
     <div class="medal-count" style="color:#C0C0C0;">{{ seconds }}</div>
     <div class="medal-label">2nd place</div>
+    {% if podium_from_spin %}
+    <div style="margin-top:0.3rem;"><span class="src-badge src-spin" title="SPIN rule: infer_finishedSecond — positionOrder = 2">SPIN</span></div>
+    {% else %}
+    <div style="margin-top:0.3rem;"><span class="src-badge src-rdf" title="Via f1:PodiumResult (run SPIN rules to get f1:finishedSecond)">RDF</span></div>
+    {% endif %}
   </div>
   <div class="medal-card">
     <span class="medal-icon">&#129353;</span>
     <div class="medal-count" style="color:#CD7F32;">{{ thirds }}</div>
     <div class="medal-label">3rd place</div>
+    {% if podium_from_spin %}
+    <div style="margin-top:0.3rem;"><span class="src-badge src-spin" title="SPIN rule: infer_finishedThird — positionOrder = 3">SPIN</span></div>
+    {% else %}
+    <div style="margin-top:0.3rem;"><span class="src-badge src-rdf" title="Via f1:PodiumResult (run SPIN rules to get f1:finishedThird)">RDF</span></div>
+    {% endif %}
   </div>
 </div>
 
@@ -368,39 +378,51 @@
       <li><span class="stat-key">Races entered</span>  <span class="stat-val">{{ total_races }}</span></li>
       <li><span class="stat-key">Victories</span>
           <span class="stat-val">{{ wins }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:wonRace</small>
+            <span class="src-badge src-spin" title="SPIN rule: infer_wonRace — positionOrder = 1 on a Result entity">SPIN</span>
           </span>
       </li>
       <li><span class="stat-key">Podiums</span>
-          <span class="stat-val">{{ wins|add:seconds|add:thirds }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:PodiumResult</small>
+          <span class="stat-val">{{ total_podiums }}
+            <span class="src-badge src-spin" title="SPIN rule: infer_achievedPodium — f1:achievedPodium driver→race links">SPIN</span>
           </span>
       </li>
-      <li><span class="stat-key">Total points</span>   <span class="stat-val">{{ total_points }}</span></li>
+      {% if podium_from_spin %}
+      <li><span class="stat-key" style="padding-left:0.75rem;color:var(--grey);">of which 2nd</span>
+          <span class="stat-val">{{ seconds }}
+            <span class="src-badge src-spin" title="SPIN rule: infer_finishedSecond — positionOrder = 2">SPIN</span>
+          </span>
+      </li>
+      <li><span class="stat-key" style="padding-left:0.75rem;color:var(--grey);">of which 3rd</span>
+          <span class="stat-val">{{ thirds }}
+            <span class="src-badge src-spin" title="SPIN rule: infer_finishedThird — positionOrder = 3">SPIN</span>
+          </span>
+      </li>
+      {% endif %}
+      <li><span class="stat-key">Total points</span>   <span class="stat-val">{{ total_points }} <span class="src-badge src-rdf">RDF</span></span></li>
       <li><span class="stat-key">P1 starts</span>
           <span class="stat-val">{{ p1_starts }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:startedFromP1</small>
+            <span class="src-badge src-spin" title="SPIN rule: infer_startedFromP1 — grid = 1 on a Result entity">SPIN</span>
           </span>
       </li>
       <li><span class="stat-key">P1 to wins</span>
           <span class="stat-val">{{ p1_wins }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:convertedP1ToWin</small>
+            <span class="src-badge src-spin" title="SPIN rule: infer_convertedP1ToWin — startedFromP1 ∧ wonRace for same race">SPIN</span>
           </span>
       </li>
       <li><span class="stat-key">Fastest laps</span>
           <span class="stat-val">{{ fastest_laps }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:setFastestLap</small>
+            <span class="src-badge src-spin" title="SPIN rule: infer_setFastestLap — rank = 1 on a Result entity">SPIN</span>
           </span>
       </li>
       <li><span class="stat-key">Hat tricks</span>
           <span class="stat-val">{{ hat_tricks }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:achievedHatTrick</small>
+            <span class="src-badge src-spin" title="SPIN rule: infer_achievedHatTrick — wonRace ∧ startedFromP1 ∧ setFastestLap">SPIN</span>
           </span>
       </li>
       {% if championship_count > 0 %}
       <li><span class="stat-key">Championships</span>
           <span class="stat-val" style="color:#FFD700;">{{ championship_count }}
-            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:wonChampionship</small>
+            <span class="src-badge src-spin" title="SPIN rules: infer_wonChampionship + classify_WorldChampion">SPIN</span>
           </span>
       </li>
       {% endif %}
@@ -474,14 +496,62 @@
 
 </div>
 
+<!-- Semantic Sources panel — shows all inference + enrichment sources for this entity -->
+<details class="section-card" style="margin-top:1.5rem;" open>
+  <summary style="background:var(--dark);border-bottom:2px solid #7c3aed;padding:0.7rem 1.25rem;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+    <span>Semantic Provenance</span>
+    <span style="font-size:0.7rem;font-weight:600;letter-spacing:0;">&#9660;</span>
+  </summary>
+  <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.25rem;">Entity Classification</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-owl" title="GraphDB OWL-Max: rdfs:domain on f1:driverRef infers rdf:type f1:Driver at load time">OWL-MAX</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:var(--white);">f1:Driver</strong> — inferred from rdfs:domain on f1:driverRef</span>
+    </div>
+    {% if is_champion %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN: infer_wonChampionship + classify_WorldChampion">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:#FFD700;">f1:WorldChampion</strong> — {{ championship_count }} championship{{ championship_count|pluralize }} via infer_wonChampionship</span>
+    </div>
+    {% endif %}
+    {% if is_multichampion %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN: classify_MultichampionDriver — COUNT(wonChampionship) ≥ 2">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:#ff9900;">f1:MultichampionDriver</strong> — COUNT(f1:wonChampionship) ≥ 2</span>
+    </div>
+    {% endif %}
+    {% if is_veteran %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN: classify_Veteran — COUNT(results) ≥ 100">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:#4caf50;">f1:Veteran</strong> — {{ total_races }} race entries ≥ 100</span>
+    </div>
+    {% endif %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN: infer_achievedPodium, infer_finishedSecond, infer_finishedThird">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">f1:achievedPodium ({{ total_podiums }} races) — broken down via f1:finishedSecond ({{ seconds }}) and f1:finishedThird ({{ thirds }})</span>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-top:0.5rem;margin-bottom:0.25rem;">External Enrichment</div>
+    {% if wiki_url %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <a class="src-badge src-wikipedia" href="{{ wiki_url }}" target="_blank" rel="noopener" title="Wikipedia REST API — /api/rest_v1/page/summary">WIKIPEDIA</a>
+      <span style="font-size:0.82rem;color:var(--grey);">Portrait photo and biographical extract</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-wikidata" title="Wikidata SPARQL endpoint — wdt:P106 = Q10843402 (racing driver)">WIKIDATA</span>
+      <span style="font-size:0.82rem;color:var(--grey);">Height (P2048), birth place (P19), death date (P570), father (P22), children (P40)</span>
+    </div>
+    {% else %}
+    <div style="font-size:0.82rem;color:var(--grey);">No Wikipedia/Wikidata URL available for this driver.</div>
+    {% endif %}
+  </div>
+</details>
+
 <!-- Teammates panel (inferred from f1:wasTeammate SPIN rule) -->
 {% if teammates %}
 <div class="section-card" style="margin-top:1.5rem;">
   <div class="section-card-head">
     Teammates
-    <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--grey);margin-left:0.5rem;font-size:0.72rem;">
-      (inferred via f1:wasTeammate SPIN rule)
-    </span>
+    <span class="src-badge src-spin" style="margin-left:0.5rem;" title="SPIN rule: infer_wasTeammate — two drivers in same race for same constructor">SPIN</span>
   </div>
   <style>.teammate-chip{background:var(--dark);border:1px solid var(--line);border-radius:5px;padding:0.35rem 0.75rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;color:var(--white);text-decoration:none;transition:border-color 0.15s}.teammate-chip:hover,.teammate-chip:focus{border-color:var(--red)}</style>
   <div style="padding:1rem 1.25rem;display:flex;flex-wrap:wrap;gap:0.5rem;">
@@ -570,7 +640,7 @@
         const sourceEl = document.getElementById('heroDescSource');
         descEl.textContent   = text;
         descEl.style.display = '';
-        sourceEl.innerHTML   = 'Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">Wikidata</a>';
+        sourceEl.innerHTML   = '<a class="src-badge src-wikidata" href="{{ wiki_url }}" target="_blank" rel="noopener" title="Wikidata SPARQL endpoint">WIKIDATA</a> <span style="font-size:0.75rem;color:var(--grey);">biographical extract via Wikipedia REST API</span>';
         sourceEl.style.display = '';
       }
 

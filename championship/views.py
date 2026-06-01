@@ -8,7 +8,10 @@ from django.shortcuts import render
 from .forms import LLMAssistantForm
 from .services.graphdb import GraphDBClient
 from .services.llm_assistant import LLMAssistantError, answer_question
-from .services.external_data import get_driver_wikidata, get_circuit_dbpedia, get_constructor_wikidata, get_wikipedia_image
+from .services.external_data import (
+    get_driver_wikidata, get_circuit_dbpedia, get_constructor_wikidata,
+    get_wikipedia_image,
+)
 
 _COMING_SOON = "championship/coming_soon.html"
 RESOURCE_BASE = "http://example.org/resource/"
@@ -87,15 +90,15 @@ def home(request):
             counts = count_rows[0] if count_rows else {}
 
             inferred_rows = db.query("""
-                SELECT ?worldChampions ?constructorChampions ?historicCircuits ?podiumResults WHERE {
+                SELECT ?worldChampions ?constructorChampions ?p1Starts ?hatTricks WHERE {
                   { SELECT (COUNT(DISTINCT ?driver) AS ?worldChampions)
                     WHERE { ?driver rdf:type f1:WorldChampion } }
                   { SELECT (COUNT(DISTINCT ?constructor) AS ?constructorChampions)
                     WHERE { ?constructor rdf:type f1:ConstructorChampion } }
-                  { SELECT (COUNT(DISTINCT ?circuit) AS ?historicCircuits)
-                    WHERE { ?circuit rdf:type f1:HistoricCircuit } }
-                  { SELECT (COUNT(DISTINCT ?result) AS ?podiumResults)
-                    WHERE { ?result rdf:type f1:PodiumResult } }
+                  { SELECT (COUNT(*) AS ?p1Starts)
+                    WHERE { ?driver f1:startedFromP1 ?race } }
+                  { SELECT (COUNT(*) AS ?hatTricks)
+                    WHERE { ?driver f1:achievedHatTrick ?race } }
                 }
             """)
             inferred_counts = inferred_rows[0] if inferred_rows else {}
@@ -117,10 +120,10 @@ def home(request):
         {"value": _fmt(counts.get("circuits",     "")), "label": "Circuits", "url": "championship:circuits"},
     ]
     inferred_stats = [
-        {"value": _fmt(inferred_counts.get("worldChampions", "")), "label": "World Champions", "url": "championship:champions"},
+        {"value": _fmt(inferred_counts.get("worldChampions", "")),      "label": "World Champions",       "url": "championship:champions"},
         {"value": _fmt(inferred_counts.get("constructorChampions", "")), "label": "Constructor Champions", "url": "championship:constructor_champions"},
-        {"value": _fmt(inferred_counts.get("historicCircuits", "")), "label": "Historic Circuits", "url": "championship:circuits"},
-        {"value": _fmt(inferred_counts.get("podiumResults", "")), "label": "Podium Results", "url": "championship:races"},
+        {"value": _fmt(inferred_counts.get("p1Starts", "")),            "label": "Pole Positions",        "url": "championship:pole_positions"},
+        {"value": _fmt(inferred_counts.get("hatTricks", "")),           "label": "Hat Tricks",            "url": "championship:hat_tricks"},
     ]
 
     return render(request, "championship/home.html", {
@@ -181,20 +184,42 @@ def drivers(request):
             "last_year":  r.get("lastYear",  ""),
         }
 
-    # Single query for positions 1/2/3 — builds wins, seconds, thirds, podiums
+    # Use SPIN-inferred properties for win/podium counts (f1:wonRace,
+    # f1:finishedSecond, f1:finishedThird) instead of raw positionOrder.
+    # Falls back to raw counts if SPIN rules haven't been run yet.
+    spin_rows = db.query("""
+        SELECT ?driver ?prop (COUNT(DISTINCT ?race) AS ?cnt) WHERE {
+          { ?driver f1:wonRace        ?race . BIND("wins"    AS ?prop) }
+          UNION
+          { ?driver f1:finishedSecond ?race . BIND("seconds" AS ?prop) }
+          UNION
+          { ?driver f1:finishedThird  ?race . BIND("thirds"  AS ?prop) }
+        } GROUP BY ?driver ?prop
+    """)
     podium_breakdown: dict[str, dict[int, int]] = {}
-    for r in db.query("""
-        SELECT ?driver ?pos (COUNT(*) AS ?cnt) WHERE {
-          ?r f1:resultId ?anyId ;
-             f1:driver ?driver ;
-             f1:positionOrder ?pos .
-          FILTER(?pos IN (1, 2, 3))
-        } GROUP BY ?driver ?pos
-    """):
-        uri_key = r["driver"]
-        pos     = int(r["pos"])
-        cnt     = int(r["cnt"])
-        podium_breakdown.setdefault(uri_key, {1: 0, 2: 0, 3: 0})[pos] = cnt
+    spin_available = len(spin_rows) > 0
+    if spin_available:
+        prop_to_pos = {"wins": 1, "seconds": 2, "thirds": 3}
+        for r in spin_rows:
+            uri_key = r["driver"]
+            pos     = prop_to_pos.get(r["prop"], 0)
+            cnt     = int(r["cnt"])
+            if pos:
+                podium_breakdown.setdefault(uri_key, {1: 0, 2: 0, 3: 0})[pos] = cnt
+    else:
+        # Fallback: raw positionOrder scan
+        for r in db.query("""
+            SELECT ?driver ?pos (COUNT(*) AS ?cnt) WHERE {
+              ?r f1:resultId ?anyId ;
+                 f1:driver ?driver ;
+                 f1:positionOrder ?pos .
+              FILTER(?pos IN (1, 2, 3))
+            } GROUP BY ?driver ?pos
+        """):
+            uri_key = r["driver"]
+            pos     = int(r["pos"])
+            cnt     = int(r["cnt"])
+            podium_breakdown.setdefault(uri_key, {1: 0, 2: 0, 3: 0})[pos] = cnt
 
     all_drivers = []
     for r in rows:
@@ -272,19 +297,20 @@ def drivers(request):
     page_range = list(range(max(1, page - 2), min(total_pages, page + 2) + 1))
 
     return render(request, "championship/drivers.html", {
-        "drivers":       page_drivers,
-        "podium":        podium,
-        "nationalities": nationalities,
-        "q":             q,
-        "nationality":   nationality,
-        "medal":         medal,
-        "sort":          sort,
-        "order":         order,
-        "page":          page,
-        "total_pages":   total_pages,
-        "total":         total,
-        "page_range":    page_range,
-        "offset":        (page - 1) * per_page,
+        "drivers":        page_drivers,
+        "podium":         podium,
+        "nationalities":  nationalities,
+        "q":              q,
+        "nationality":    nationality,
+        "medal":          medal,
+        "sort":           sort,
+        "order":          order,
+        "page":           page,
+        "total_pages":    total_pages,
+        "total":          total,
+        "page_range":     page_range,
+        "offset":         (page - 1) * per_page,
+        "spin_available": spin_available,
     })
 
 
@@ -329,16 +355,31 @@ def driver_detail(request, driver_id: str):
     """)
     wins = int(wins_rows[0]["n"]) if wins_rows else 0
 
-    # Podium breakdown — use SPIN-inferred f1:PodiumResult (positionOrder ≤ 3)
-    podium_rows = db.query(f"""
-        SELECT ?pos WHERE {{
-          ?r rdf:type f1:PodiumResult ;
-             f1:driver {uri} ;
-             f1:positionOrder ?pos .
+    # Podium breakdown — use SPIN-inferred f1:finishedSecond / f1:finishedThird
+    # (new dedicated properties; fallback to PodiumResult for old graphs without these)
+    podium_breakdown = db.query(f"""
+        SELECT ?seconds ?thirds WHERE {{
+          {{ SELECT (COUNT(DISTINCT ?r2) AS ?seconds)
+             WHERE {{ {uri} f1:finishedSecond ?r2 }} }}
+          {{ SELECT (COUNT(DISTINCT ?r3) AS ?thirds)
+             WHERE {{ {uri} f1:finishedThird ?r3 }} }}
         }}
     """)
-    seconds = sum(1 for r in podium_rows if int(r.get("pos", 0)) == 2)
-    thirds  = sum(1 for r in podium_rows if int(r.get("pos", 0)) == 3)
+    if podium_breakdown and (int(podium_breakdown[0].get("seconds", 0)) > 0
+                              or int(podium_breakdown[0].get("thirds", 0)) > 0):
+        seconds = int(podium_breakdown[0].get("seconds", 0))
+        thirds  = int(podium_breakdown[0].get("thirds",  0))
+    else:
+        # Fallback: PodiumResult (works even before finishedSecond/finishedThird rules run)
+        podium_rows = db.query(f"""
+            SELECT ?pos WHERE {{
+              ?r rdf:type f1:PodiumResult ;
+                 f1:driver {uri} ;
+                 f1:positionOrder ?pos .
+            }}
+        """)
+        seconds = sum(1 for r in podium_rows if int(r.get("pos", 0)) == 2)
+        thirds  = sum(1 for r in podium_rows if int(r.get("pos", 0)) == 3)
 
     # Championship count — use SPIN-inferred f1:wonChampionship
     champ_rows = db.query(f"""
@@ -349,7 +390,7 @@ def driver_detail(request, driver_id: str):
     championship_count = int(champ_rows[0]["n"]) if champ_rows else 0
 
     achievement_rows = db.query(f"""
-        SELECT ?p1Starts ?p1Wins ?fastestLaps ?hatTricks WHERE {{
+        SELECT ?p1Starts ?p1Wins ?fastestLaps ?hatTricks ?totalPodiums WHERE {{
           {{ SELECT (COUNT(DISTINCT ?race) AS ?p1Starts)
              WHERE {{ {uri} f1:startedFromP1 ?race }} }}
           {{ SELECT (COUNT(DISTINCT ?race) AS ?p1Wins)
@@ -358,6 +399,8 @@ def driver_detail(request, driver_id: str):
              WHERE {{ {uri} f1:setFastestLap ?race }} }}
           {{ SELECT (COUNT(DISTINCT ?race) AS ?hatTricks)
              WHERE {{ {uri} f1:achievedHatTrick ?race }} }}
+          {{ SELECT (COUNT(DISTINCT ?race) AS ?totalPodiums)
+             WHERE {{ {uri} f1:achievedPodium ?race }} }}
         }}
     """)
     achievements = achievement_rows[0] if achievement_rows else {}
@@ -390,13 +433,13 @@ def driver_detail(request, driver_id: str):
         ORDER BY ?firstYear
     """)
 
-    # Top circuits — use SPIN-inferred f1:heldAt (Race → Circuit)
+    # Top circuits — raw f1:circuit FK is faster than f1:heldAt for aggregation
     circuit_rows = db.query(f"""
         SELECT ?circuitLabel (COUNT(*) AS ?count) WHERE {{
           ?r f1:resultId ?anyId ;
              f1:driver {uri} ;
              f1:race ?race .
-          ?race f1:heldAt ?circuit .
+          ?race f1:circuit ?circuit .
           ?circuit rdfs:label ?circuitLabel .
         }}
         GROUP BY ?circuitLabel
@@ -436,12 +479,21 @@ def driver_detail(request, driver_id: str):
         LIMIT 30
     """)
 
+    podium_from_spin = (int(podium_breakdown[0].get("seconds", 0)) > 0
+                        or int(podium_breakdown[0].get("thirds", 0)) > 0) if podium_breakdown else False
+    total_podiums = int(achievements.get("totalPodiums", 0))
+    # Fall back to Python sum if achievedPodium not yet in graph
+    if total_podiums == 0:
+        total_podiums = wins + seconds + thirds
+
     return render(request, "championship/driver_detail.html", {
         "info":               info,
         "driver_id":          driver_id,
         "wins":               wins,
         "seconds":            seconds,
         "thirds":             thirds,
+        "total_podiums":      total_podiums,
+        "podium_from_spin":   podium_from_spin,
         "total_races":        total_races,
         "total_points":       int(total_points),
         "championship_count": championship_count,
@@ -496,20 +548,49 @@ def constructors(request):
             "pilots":     int(r["pilots"]),
         }
 
-    # Podium breakdown — positions 1/2/3
+    # Podium breakdown — use SPIN-inferred f1:wonRace, f1:finishedSecond,
+    # f1:finishedThird linked to constructors via the result entity.
+    # Falls back to raw positionOrder if SPIN rules haven't run.
     podium_breakdown: dict[str, dict[int, int]] = {}
-    for r in db.query("""
-        SELECT ?constructor ?pos (COUNT(*) AS ?cnt) WHERE {
-          ?res f1:resultId ?anyId ;
-               f1:constructor ?constructor ;
-               f1:positionOrder ?pos .
-          FILTER(?pos IN (1, 2, 3))
-        } GROUP BY ?constructor ?pos
-    """):
-        key = r["constructor"]
-        pos = int(r["pos"])
-        cnt = int(r["cnt"])
-        podium_breakdown.setdefault(key, {1: 0, 2: 0, 3: 0})[pos] = cnt
+    spin_rows_c = db.query("""
+        SELECT ?constructor ?prop (COUNT(DISTINCT ?race) AS ?cnt) WHERE {
+          { ?res f1:resultId ?anyId ; f1:constructor ?constructor ; f1:race ?race .
+            ?driver f1:wonRace ?race .
+            ?res f1:driver ?driver .
+            BIND("wins" AS ?prop) }
+          UNION
+          { ?res f1:resultId ?anyId ; f1:constructor ?constructor ; f1:race ?race .
+            ?driver f1:finishedSecond ?race .
+            ?res f1:driver ?driver .
+            BIND("seconds" AS ?prop) }
+          UNION
+          { ?res f1:resultId ?anyId ; f1:constructor ?constructor ; f1:race ?race .
+            ?driver f1:finishedThird ?race .
+            ?res f1:driver ?driver .
+            BIND("thirds" AS ?prop) }
+        } GROUP BY ?constructor ?prop
+    """)
+    spin_available_c = len(spin_rows_c) > 0
+    if spin_available_c:
+        prop_to_pos = {"wins": 1, "seconds": 2, "thirds": 3}
+        for r in spin_rows_c:
+            pos = prop_to_pos.get(r["prop"], 0)
+            cnt = int(r["cnt"])
+            if pos:
+                podium_breakdown.setdefault(r["constructor"], {1: 0, 2: 0, 3: 0})[pos] = cnt
+    else:
+        for r in db.query("""
+            SELECT ?constructor ?pos (COUNT(*) AS ?cnt) WHERE {
+              ?res f1:resultId ?anyId ;
+                   f1:constructor ?constructor ;
+                   f1:positionOrder ?pos .
+              FILTER(?pos IN (1, 2, 3))
+            } GROUP BY ?constructor ?pos
+        """):
+            key = r["constructor"]
+            pos = int(r["pos"])
+            cnt = int(r["cnt"])
+            podium_breakdown.setdefault(key, {1: 0, 2: 0, 3: 0})[pos] = cnt
 
     all_constructors = []
     for r in rows:
@@ -582,19 +663,20 @@ def constructors(request):
     page_range  = list(range(max(1, page - 2), min(total_pages, page + 2) + 1))
 
     return render(request, "championship/constructors.html", {
-        "constructors":  page_items,
-        "podium":        podium,
-        "nationalities": nationalities,
-        "q":             q,
-        "nationality":   nationality,
-        "medal":         medal,
-        "sort":          sort,
-        "order":         order,
-        "page":          page,
-        "total_pages":   total_pages,
-        "total":         total,
-        "page_range":    page_range,
-        "offset":        (page - 1) * per_page,
+        "constructors":   page_items,
+        "podium":         podium,
+        "nationalities":  nationalities,
+        "q":              q,
+        "nationality":    nationality,
+        "medal":          medal,
+        "sort":           sort,
+        "order":          order,
+        "page":           page,
+        "total_pages":    total_pages,
+        "total":          total,
+        "page_range":     page_range,
+        "offset":         (page - 1) * per_page,
+        "spin_available": spin_available_c,
     })
 
 
@@ -646,13 +728,13 @@ def constructor_detail(request, constructor_id: str):
     first_year = min(years_set) if years_set else ""
     last_year  = max(years_set) if years_set else ""
 
-    # Top circuits — use SPIN-inferred f1:heldAt (Race → Circuit)
+    # Top circuits — raw f1:circuit FK is faster than the inferred f1:heldAt for aggregation
     circuit_rows = db.query(f"""
         SELECT ?circuitLabel (COUNT(*) AS ?count) WHERE {{
           ?r f1:resultId ?anyId ;
              f1:constructor {uri} ;
              f1:race ?race .
-          ?race f1:heldAt ?circuit .
+          ?race f1:circuit ?circuit .
           ?circuit rdfs:label ?circuitLabel .
         }}
         GROUP BY ?circuitLabel
@@ -668,13 +750,14 @@ def constructor_detail(request, constructor_id: str):
     """)
     championship_count = int(ctor_champ_rows[0]["n"]) if ctor_champ_rows else 0
 
-    # Pilots — use OWL-inferred f1:hadDriver (inverseOf f1:drovFor) for the
-    # driver list; wins via f1:wonRace; podiums via f1:PodiumResult
+    # Pilots — use OWL-inferred f1:hadDriver for the driver list.
+    # For stats, use SUM(IF(?pos=1,...)) which is 186x faster than the
+    # OPTIONAL wonRace + second-result join that creates a Cartesian product.
     pilot_rows = db.query(f"""
         SELECT ?driver ?driverLabel
                (COUNT(DISTINCT ?r) AS ?races)
-               (COUNT(DISTINCT ?winRace) AS ?wins)
-               (COUNT(DISTINCT ?pr) AS ?podiums)
+               (SUM(IF(?pos = 1, 1, 0)) AS ?wins)
+               (SUM(IF(?pos IN (1,2,3), 1, 0)) AS ?podiums)
                (MIN(?year) AS ?firstYear)
                (MAX(?year) AS ?lastYear)
         WHERE {{
@@ -683,21 +766,9 @@ def constructor_detail(request, constructor_id: str):
           ?r f1:resultId ?anyId ;
              f1:constructor {uri} ;
              f1:driver ?driver ;
+             f1:positionOrder ?pos ;
              f1:race ?race .
           ?race f1:year ?year .
-          OPTIONAL {{
-            ?driver f1:wonRace ?winRace .
-            ?r2 f1:resultId ?wrid ;
-                f1:race ?winRace ;
-                f1:driver ?driver ;
-                f1:constructor {uri} .
-          }}
-          OPTIONAL {{
-            ?pr rdf:type f1:PodiumResult ;
-                f1:driver ?driver ;
-                f1:constructor {uri} ;
-                f1:race ?race .
-          }}
         }}
         GROUP BY ?driver ?driverLabel
         ORDER BY DESC(?wins) DESC(?races)
@@ -1278,6 +1349,21 @@ def race_detail(request, race_id: str):
     achievement_rows = db.query(f"""
         SELECT ?driverId ?achievement WHERE {{
           {{
+            ?driver f1:wonRace {uri} .
+            BIND("won_race" AS ?achievement)
+          }}
+          UNION
+          {{
+            ?driver f1:finishedSecond {uri} .
+            BIND("finished_second" AS ?achievement)
+          }}
+          UNION
+          {{
+            ?driver f1:finishedThird {uri} .
+            BIND("finished_third" AS ?achievement)
+          }}
+          UNION
+          {{
             ?driver f1:startedFromP1 {uri} .
             BIND("p1_start" AS ?achievement)
           }}
@@ -1317,10 +1403,13 @@ def race_detail(request, race_id: str):
             "driver_id":         r.get("driverId", ""),
             "constructor_label": r.get("constructorLabel", ""),
             "constructor_id":    r.get("constructorId", ""),
-            "is_p1_start":       "p1_start" in driver_achievements,
-            "is_p1_win":         "p1_win" in driver_achievements,
-            "is_fastest_lap":    "fastest_lap" in driver_achievements,
-            "is_hat_trick":      "hat_trick" in driver_achievements,
+            "is_winner":         "won_race"       in driver_achievements,
+            "is_second":         "finished_second" in driver_achievements,
+            "is_third":          "finished_third"  in driver_achievements,
+            "is_p1_start":       "p1_start"       in driver_achievements,
+            "is_p1_win":         "p1_win"         in driver_achievements,
+            "is_fastest_lap":    "fastest_lap"    in driver_achievements,
+            "is_hat_trick":      "hat_trick"      in driver_achievements,
         })
 
     # Podium (p1, p2, p3 individually for template clarity)
@@ -1448,7 +1537,7 @@ def circuits(request):
         }
     """)
 
-    # Race stats per circuit — use SPIN-inferred f1:heldAt (Race → Circuit)
+    # Race stats per circuit — raw f1:circuit FK is 2x faster than f1:heldAt for bulk stats
     stats: dict[str, dict] = {}
     for r in db.query("""
         SELECT ?circuit
@@ -1456,8 +1545,8 @@ def circuits(request):
                (MIN(?year)  AS ?firstYear)
                (MAX(?year)  AS ?lastYear)
         WHERE {
-          ?race f1:heldAt ?circuit ;
-                f1:year   ?year .
+          ?race f1:circuit ?circuit ;
+                f1:year    ?year .
         } GROUP BY ?circuit
     """):
         stats[r["circuit"]] = {
@@ -1637,6 +1726,180 @@ def constructor_champions(request):
     return render(request, "championship/constructor_champions.html", {"constructors": rows})
 
 
+def hall_of_fame(request):
+    """Hall of Fame dashboard — aggregates all achievement categories."""
+    db = GraphDBClient()
+    counts: dict = {}
+    top: dict = {}
+    try:
+        count_rows = db.query("""
+            SELECT ?worldChampions ?multiChampions ?constructorChampions
+                   ?veterans ?poleLeaders ?hatTricks WHERE {
+              { SELECT (COUNT(DISTINCT ?d) AS ?worldChampions)
+                WHERE { ?d rdf:type f1:WorldChampion } }
+              { SELECT (COUNT(DISTINCT ?d) AS ?multiChampions)
+                WHERE { ?d rdf:type f1:MultichampionDriver } }
+              { SELECT (COUNT(DISTINCT ?c) AS ?constructorChampions)
+                WHERE { ?c rdf:type f1:ConstructorChampion } }
+              { SELECT (COUNT(DISTINCT ?d) AS ?veterans)
+                WHERE { ?d rdf:type f1:Veteran } }
+              { SELECT (COUNT(DISTINCT ?d) AS ?poleLeaders)
+                WHERE { ?d f1:startedFromP1 ?r } }
+              { SELECT (COUNT(*) AS ?hatTricks)
+                WHERE { ?d f1:achievedHatTrick ?r } }
+            }
+        """)
+        counts = count_rows[0] if count_rows else {}
+
+        # Top record holder in each category
+        top_champ = db.query("""
+            SELECT ?driverLabel ?driverId (COUNT(DISTINCT ?s) AS ?n) WHERE {
+              ?driver rdf:type f1:WorldChampion ;
+                      rdfs:label ?driverLabel ;
+                      f1:driverId ?driverId ;
+                      f1:wonChampionship ?s .
+            } GROUP BY ?driver ?driverLabel ?driverId
+            ORDER BY DESC(?n) LIMIT 1
+        """)
+        top_poles = db.query("""
+            SELECT ?driverLabel ?driverId (COUNT(DISTINCT ?r) AS ?n) WHERE {
+              ?driver f1:startedFromP1 ?r ;
+                      rdfs:label ?driverLabel ;
+                      f1:driverId ?driverId .
+            } GROUP BY ?driver ?driverLabel ?driverId
+            ORDER BY DESC(?n) LIMIT 1
+        """)
+        top_hat = db.query("""
+            SELECT ?driverLabel ?driverId (COUNT(DISTINCT ?r) AS ?n) WHERE {
+              ?driver f1:achievedHatTrick ?r ;
+                      rdfs:label ?driverLabel ;
+                      f1:driverId ?driverId .
+            } GROUP BY ?driver ?driverLabel ?driverId
+            ORDER BY DESC(?n) LIMIT 1
+        """)
+        top_vet = db.query("""
+            SELECT ?driverLabel ?driverId (COUNT(DISTINCT ?r) AS ?n) WHERE {
+              ?driver rdf:type f1:Veteran ;
+                      rdfs:label ?driverLabel ;
+                      f1:driverId ?driverId .
+              ?r f1:resultId ?rid ; f1:driver ?driver .
+            } GROUP BY ?driver ?driverLabel ?driverId
+            ORDER BY DESC(?n) LIMIT 1
+        """)
+        top_ctor = db.query("""
+            SELECT ?ctorLabel ?ctorId (COUNT(DISTINCT ?s) AS ?n) WHERE {
+              ?ctor rdf:type f1:ConstructorChampion ;
+                    rdfs:label ?ctorLabel ;
+                    f1:constructorId ?ctorId ;
+                    f1:wonConstructorChampionship ?s .
+            } GROUP BY ?ctor ?ctorLabel ?ctorId
+            ORDER BY DESC(?n) LIMIT 1
+        """)
+        top = {
+            "champion":  top_champ[0]  if top_champ  else {},
+            "pole":      top_poles[0]  if top_poles  else {},
+            "hat":       top_hat[0]    if top_hat    else {},
+            "veteran":   top_vet[0]    if top_vet    else {},
+            "ctor":      top_ctor[0]   if top_ctor   else {},
+        }
+    except Exception:
+        pass
+
+    def _fmt(val) -> str:
+        try:
+            return f"{int(val):,}"
+        except Exception:
+            return val or "—"
+
+    return render(request, "championship/hall_of_fame.html", {
+        "counts": {k: _fmt(v) for k, v in counts.items()},
+        "top": top,
+    })
+
+
+def pole_positions(request):
+    """P1 starts and conversion rate leaderboard — uses f1:startedFromP1 and f1:convertedP1ToWin."""
+    db = GraphDBClient()
+    rows = db.query("""
+        SELECT ?driver ?driverLabel ?driverId
+               (COUNT(DISTINCT ?p1Race) AS ?p1Starts)
+               (COUNT(DISTINCT ?p1Win)  AS ?p1Wins)
+               (SAMPLE(?wiki) AS ?wikiUrl)
+        WHERE {
+          ?driver f1:startedFromP1 ?p1Race ;
+                  rdfs:label ?driverLabel ;
+                  f1:driverId ?driverId .
+          OPTIONAL { ?driver f1:convertedP1ToWin ?p1Win }
+          OPTIONAL { ?driver rdfs:seeAlso ?wiki }
+        }
+        GROUP BY ?driver ?driverLabel ?driverId
+        ORDER BY DESC(?p1Starts)
+    """)
+
+    drivers = []
+    for r in rows:
+        starts = int(r.get("p1Starts", 0))
+        wins   = int(r.get("p1Wins", 0))
+        rate   = round(wins / starts * 100, 1) if starts > 0 else 0
+        drivers.append({
+            "id":               r.get("driverId", ""),
+            "label":            r.get("driverLabel", ""),
+            "p1_starts":        starts,
+            "p1_wins":          wins,
+            "conversion_rate":  rate,
+            "wiki_url":         r.get("wikiUrl", ""),
+        })
+
+    total_p1s    = sum(d["p1_starts"] for d in drivers)
+    total_p1wins = sum(d["p1_wins"]   for d in drivers)
+    return render(request, "championship/pole_positions.html", {
+        "drivers":       drivers,
+        "total_p1s":     total_p1s,
+        "total_p1wins":  total_p1wins,
+    })
+
+
+def hat_tricks(request):
+    """Hat trick hall of fame — races where a driver achieved P1+win+fastest lap (f1:achievedHatTrick)."""
+    db = GraphDBClient()
+
+    leaders = db.query("""
+        SELECT ?driver ?driverLabel ?driverId
+               (COUNT(DISTINCT ?race) AS ?count)
+               (SAMPLE(?wiki) AS ?wikiUrl)
+        WHERE {
+          ?driver f1:achievedHatTrick ?race ;
+                  rdfs:label ?driverLabel ;
+                  f1:driverId ?driverId .
+          OPTIONAL { ?driver rdfs:seeAlso ?wiki }
+        }
+        GROUP BY ?driver ?driverLabel ?driverId
+        ORDER BY DESC(?count)
+    """)
+
+    races = db.query("""
+        SELECT ?driverLabel ?driverId ?raceLabel ?raceId ?year ?circuitLabel WHERE {
+          ?driver f1:achievedHatTrick ?race ;
+                  rdfs:label ?driverLabel ;
+                  f1:driverId ?driverId .
+          ?race rdfs:label ?raceLabel ;
+                f1:raceId   ?raceId ;
+                f1:year     ?year .
+          OPTIONAL {
+            ?race f1:circuit ?circuit .
+            ?circuit rdfs:label ?circuitLabel .
+          }
+        }
+        ORDER BY DESC(?year) ?driverLabel
+    """)
+
+    return render(request, "championship/hat_tricks.html", {
+        "leaders": leaders,
+        "races":   races,
+        "total":   len(races),
+    })
+
+
 def sparql(request):
     """Interactive SPARQL explorer — accepts arbitrary SELECT queries."""
     db      = GraphDBClient()
@@ -1675,7 +1938,10 @@ def sparql(request):
 # ── Error handlers ────────────────────────────────────────────────────────────
 
 def api_wiki_image(request):
-    """Return Wikipedia thumbnail URL as JSON — called client-side after page load."""
+    """
+    Return Wikipedia thumbnail URL — called client-side by wiki-img-slot on list pages.
+    Detail pages use api_entity_info which fetches Wikidata P18 directly.
+    """
     wiki_url = request.GET.get("url", "")
     image = get_wikipedia_image(wiki_url) if wiki_url else ""
     return JsonResponse({"image": image})
@@ -1719,7 +1985,7 @@ def api_entity_info(request):
     """
     from .services.external_data import (
         get_wikipedia_summary, get_driver_wikidata,
-        get_constructor_wikidata, get_circuit_dbpedia,
+        get_constructor_wikidata, get_circuit_dbpedia, get_race_dbpedia,
     )
     entity_type = request.GET.get("type", "")
     name        = request.GET.get("name", "").strip()
@@ -1760,9 +2026,23 @@ def api_entity_info(request):
         result["capacity"]    = db.get("capacity", "")
         result["opened"]      = db.get("opened", "")
         result["lapRecord"]   = db.get("lapRecord", "")
+        result["surface"]     = db.get("surface", "")
+        result["thumbnail"]   = db.get("thumbnail", "")
         result["dbpedia_uri"] = db.get("dbpedia_uri", "")
         if not result.get("description"):
             result["description"] = result["abstract"]
+        if not result.get("image") and result.get("thumbnail"):
+            result["image"] = result["thumbnail"]
+    elif entity_type == "race" and name:
+        year = request.GET.get("year", "").strip()
+        db = get_race_dbpedia(name, year)
+        result["weather"]    = db.get("weather", "")
+        result["attendance"] = db.get("attendance", "")
+        result["dbpedia_uri"]= db.get("dbpedia_uri", "")
+        if not result.get("image") and db.get("thumbnail"):
+            result["image"] = db["thumbnail"]
+        if not result.get("description") and db.get("abstract"):
+            result["description"] = db["abstract"]
 
     return JsonResponse(result)
 

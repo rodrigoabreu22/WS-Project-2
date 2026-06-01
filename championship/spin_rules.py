@@ -50,11 +50,49 @@ WHERE {
 """,
     },
     {
+        "name": "infer_finishedSecond",
+        # WHY SPIN: arithmetic equality filter (positionOrder = 2).
+        # Materialises f1:finishedSecond as a first-class driver→race property,
+        # allowing direct SPARQL queries without table joins.
+        # f1:finishedSecond ⊑ f1:achievedPodium ⊑ f1:competedIn (ontology).
+        "description": "Driver who finished positionOrder=2 gets f1:finishedSecond link.",
+        "query": """
+INSERT { ?driver f1:finishedSecond ?race . }
+WHERE {
+  ?result f1:resultId ?id ;
+          f1:positionOrder 2 ;
+          f1:driver ?driver ;
+          f1:race ?race .
+  FILTER(!CONTAINS(STR(?result), "/sprint-result/"))
+  FILTER NOT EXISTS { ?driver f1:finishedSecond ?race }
+}
+""",
+    },
+    {
+        "name": "infer_finishedThird",
+        # WHY SPIN: arithmetic equality filter (positionOrder = 3).
+        # f1:finishedThird ⊑ f1:achievedPodium ⊑ f1:competedIn (ontology).
+        "description": "Driver who finished positionOrder=3 gets f1:finishedThird link.",
+        "query": """
+INSERT { ?driver f1:finishedThird ?race . }
+WHERE {
+  ?result f1:resultId ?id ;
+          f1:positionOrder 3 ;
+          f1:driver ?driver ;
+          f1:race ?race .
+  FILTER(!CONTAINS(STR(?result), "/sprint-result/"))
+  FILTER NOT EXISTS { ?driver f1:finishedThird ?race }
+}
+""",
+    },
+    {
         "name": "infer_achievedPodium",
         # WHY SPIN: uses FILTER(?pos <= 3), an arithmetic inequality.
-        # OWL restrictions (owl:someValuesFrom, owl:maxInclusive via data ranges)
-        # cannot be combined with the cross-entity join pattern required here.
-        "description": "Driver with positionOrder <= 3 gets f1:achievedPodium link.",
+        # Also ensures backward compatibility — achievedPodium covers all three
+        # positions explicitly (OWL subPropertyOf entailment would derive this
+        # from finishedSecond/finishedThird/wonRace, but materialization makes
+        # queries faster).
+        "description": "Driver with positionOrder <= 3 gets f1:achievedPodium link (explicit materialisation).",
         "query": """
 INSERT { ?driver f1:achievedPodium ?race . }
 WHERE {

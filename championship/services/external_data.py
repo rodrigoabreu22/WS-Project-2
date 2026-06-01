@@ -55,6 +55,55 @@ def get_wikipedia_image(wiki_url: str) -> str:
     return get_wikipedia_summary(wiki_url).get("image", "")
 
 
+def get_wikidata_image_from_wiki_url(wiki_url: str) -> str:
+    """
+    Given a Wikipedia URL, return the Wikidata P18 image for that entity.
+
+    Two-step approach (reliable across all entity types):
+      1. Wikipedia REST summary API → extract wikibase_item (QID)
+      2. Wikidata SPARQL → fetch wdt:P18 image for that QID
+
+    Returns empty string on any failure or if no P18 image exists.
+    """
+    if not wiki_url or _WIKI_PATH not in wiki_url:
+        return ""
+    cache_key = f"wd:img:{wiki_url}"
+    if cache_key in _cache:
+        return _cache[cache_key]
+
+    try:
+        # Step 1: Wikipedia REST summary → get wikibase_item QID
+        title   = wiki_url.rstrip("/").split(_WIKI_PATH)[-1]
+        api_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
+        req     = urllib.request.Request(api_url, headers={"User-Agent": _USER_AGENT})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode())
+        qid = data.get("wikibase_item", "")
+        if not qid:
+            _cache[cache_key] = ""
+            return ""
+
+        # Step 2: Wikidata SPARQL → wdt:P18 for that QID
+        sparql = SPARQLWrapper2(WIKIDATA_ENDPOINT)
+        sparql.setTimeout(_TIMEOUT)
+        sparql.addCustomHttpHeader("User-Agent", _USER_AGENT)
+        sparql.setQuery(f"""
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX wd:  <http://www.wikidata.org/entity/>
+            SELECT ?image WHERE {{
+              wd:{qid} wdt:P18 ?image .
+            }}
+            LIMIT 1
+        """)
+        results = sparql.query().bindings
+        image = results[0]["image"].value if results and "image" in results[0] else ""
+        _cache[cache_key] = image
+        return image
+    except Exception:
+        _cache[cache_key] = ""
+        return ""
+
+
 # ── Wikidata — Drivers ────────────────────────────────────────────────────────
 
 def get_driver_wikidata(driver_name: str) -> dict:
@@ -199,6 +248,73 @@ def get_constructor_wikidata(constructor_name: str) -> dict:
         return {}
 
 
+# ── DBpedia — Races ──────────────────────────────────────────────────────────
+
+def get_race_dbpedia(race_label: str, year: str) -> dict:
+    """
+    Return DBpedia enrichment for a Formula 1 race.
+
+    URI construction: "{year} {race_label}" → dbr:{year}_{race_label_underscored}
+    Example: year=2024, label="Monaco Grand Prix" → dbr:2024_Monaco_Grand_Prix
+
+    Fields fetched:
+      weather    (dbp:weather)    — race-day conditions (e.g. "dry", "wet")
+      attendance (dbp:attendance) — spectator count
+      thumbnail  (dbo:thumbnail)  — race photo
+      abstract   (dbo:abstract)   — short text description
+    """
+    if not race_label or not year:
+        return {}
+    cache_key = f"dbp:race:{year}:{race_label}"
+    if cache_key in _cache:
+        return _cache[cache_key]
+
+    # Race labels in the graph include the year ("2024 Monaco Grand Prix").
+    # DBpedia URIs are "{year}_{name_without_year}" → dbr:2024_Monaco_Grand_Prix.
+    # Strip the leading year from the label if already present.
+    label_core = race_label
+    if label_core.startswith(str(year)):
+        label_core = label_core[len(str(year)):].strip()
+    resource_name = f"{year}_{label_core.replace(' ', '_')}"
+    resource_uri  = f"http://dbpedia.org/resource/{resource_name}"
+
+    sparql = SPARQLWrapper2(DBPEDIA_ENDPOINT)
+    sparql.setTimeout(_TIMEOUT)
+    sparql.addCustomHttpHeader("User-Agent", _USER_AGENT)
+    sparql.setQuery(f"""
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX dbp: <http://dbpedia.org/property/>
+        SELECT ?abstract ?weather ?attendance ?thumbnail WHERE {{
+          OPTIONAL {{ <{resource_uri}> dbo:abstract   ?abstract
+                     FILTER(LANG(?abstract) = "en") }}
+          OPTIONAL {{ <{resource_uri}> dbp:weather    ?weather    }}
+          OPTIONAL {{ <{resource_uri}> dbp:attendance ?attendance }}
+          OPTIONAL {{ <{resource_uri}> dbo:thumbnail  ?thumbnail  }}
+          FILTER(BOUND(?weather) || BOUND(?attendance) ||
+                 BOUND(?abstract) || BOUND(?thumbnail))
+        }}
+        LIMIT 1
+    """)
+    try:
+        results = sparql.query().bindings
+        if not results:
+            _cache[cache_key] = {}
+            return {}
+        r = results[0]
+        data = {
+            "abstract":    r["abstract"].value[:400]   if "abstract"   in r else "",
+            "weather":     r["weather"].value           if "weather"    in r else "",
+            "attendance":  r["attendance"].value        if "attendance" in r else "",
+            "thumbnail":   r["thumbnail"].value         if "thumbnail"  in r else "",
+            "dbpedia_uri": resource_uri,
+        }
+        _cache[cache_key] = data
+        return data
+    except Exception:
+        _cache[cache_key] = {}
+        return {}
+
+
 # ── DBpedia — Circuits ────────────────────────────────────────────────────────
 
 def get_circuit_dbpedia(circuit_name: str) -> dict:
@@ -226,13 +342,15 @@ def get_circuit_dbpedia(circuit_name: str) -> dict:
     sparql.setQuery(f"""
         PREFIX dbo: <http://dbpedia.org/ontology/>
         PREFIX dbp: <http://dbpedia.org/property/>
-        SELECT ?abstract ?length ?turns ?capacity ?opened ?lapRecord WHERE {{
-          OPTIONAL {{ <{resource_uri}> dbo:abstract  ?abstract  FILTER(LANG(?abstract) = "en") }}
-          OPTIONAL {{ <{resource_uri}> dbp:length    ?length    }}
-          OPTIONAL {{ <{resource_uri}> dbp:turns     ?turns     }}
-          OPTIONAL {{ <{resource_uri}> dbp:capacity  ?capacity  }}
-          OPTIONAL {{ <{resource_uri}> dbp:opened    ?opened    }}
-          OPTIONAL {{ <{resource_uri}> dbp:lapRecord ?lapRecord }}
+        SELECT ?abstract ?length ?turns ?capacity ?opened ?lapRecord ?surface ?thumbnail WHERE {{
+          OPTIONAL {{ <{resource_uri}> dbo:abstract   ?abstract   FILTER(LANG(?abstract) = "en") }}
+          OPTIONAL {{ <{resource_uri}> dbp:length     ?length     }}
+          OPTIONAL {{ <{resource_uri}> dbp:turns      ?turns      }}
+          OPTIONAL {{ <{resource_uri}> dbp:capacity   ?capacity   }}
+          OPTIONAL {{ <{resource_uri}> dbp:opened     ?opened     }}
+          OPTIONAL {{ <{resource_uri}> dbp:lapRecord  ?lapRecord  }}
+          OPTIONAL {{ <{resource_uri}> dbp:surface    ?surface    }}
+          OPTIONAL {{ <{resource_uri}> dbo:thumbnail  ?thumbnail  }}
           FILTER(BOUND(?turns) || BOUND(?capacity) || BOUND(?abstract) || BOUND(?length))
         }}
         LIMIT 1
@@ -245,12 +363,14 @@ def get_circuit_dbpedia(circuit_name: str) -> dict:
         r       = results[0]
         lap_raw = r["lapRecord"].value if "lapRecord" in r else ""
         data = {
-            "abstract":    r["abstract"].value  if "abstract" in r else "",
-            "length":      r["length"].value    if "length"   in r else "",
-            "turns":       r["turns"].value     if "turns"    in r else "",
-            "capacity":    r["capacity"].value  if "capacity" in r else "",
-            "opened":      r["opened"].value    if "opened"   in r else "",
-            "lapRecord":   lap_raw[:120]        if lap_raw    else "",
+            "abstract":    r["abstract"].value   if "abstract"   in r else "",
+            "length":      r["length"].value     if "length"     in r else "",
+            "turns":       r["turns"].value      if "turns"      in r else "",
+            "capacity":    r["capacity"].value   if "capacity"   in r else "",
+            "opened":      r["opened"].value     if "opened"     in r else "",
+            "lapRecord":   lap_raw[:120]         if lap_raw      else "",
+            "surface":     r["surface"].value    if "surface"    in r else "",
+            "thumbnail":   r["thumbnail"].value  if "thumbnail"  in r else "",
             "dbpedia_uri": resource_uri,
         }
         _cache[cache_key] = data

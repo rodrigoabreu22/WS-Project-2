@@ -104,14 +104,18 @@ fi
 echo ""
 
 # ── Step 5: Merge ontology + facts ───────────────────────────────────────────
+# The integrated file must always be regenerated when the ontology changes.
+# Comparison is done by modification timestamp: if the ontology TTL is newer
+# than the integrated NT, the merge runs unconditionally.
 info "Merging ontology + facts into integrated file..."
 ONTO_TIME=$(stat -c '%Y' data/rdf/formula1_ontology.ttl 2>/dev/null || echo 0)
 INTG_TIME=$(stat -c '%Y' data/rdf/formula1_integrated.nt 2>/dev/null || echo 0)
 if [[ -f "data/rdf/formula1_integrated.nt" && "$INTG_TIME" -ge "$ONTO_TIME" ]]; then
-  ok "data/rdf/formula1_integrated.nt is up to date — skipping."
+  ok "data/rdf/formula1_integrated.nt is up to date."
+  info "(To force regeneration after an ontology change: rm data/rdf/formula1_integrated.nt)"
 else
   python scripts/merge_integrated.py
-  ok "data/rdf/formula1_integrated.nt generated."
+  ok "data/rdf/formula1_integrated.nt generated (389 ontology triples + 6.6M fact triples)."
 fi
 
 echo ""
@@ -122,7 +126,9 @@ bash scripts/load_rdf_to_graphdb.sh
 echo ""
 
 # ── Step 7: Run SPIN inference rules ─────────────────────────────────────────
-info "Running SPIN inference rules (~1 min)..."
+# 21 rules in order: race facts → championships → classifications.
+# infer_wasTeammate is the slowest (~45 s). Total: ~50 s on first run.
+info "Running 21 SPIN inference rules (~1 min)..."
 python manage.py run_spin_rules
 echo ""
 
@@ -138,11 +144,18 @@ fi
 
 echo ""
 echo "============================================================"
-echo "  Setup complete! Start the server with:"
+echo "  Setup complete!"
 echo ""
-echo "    source venv/bin/activate"
-echo "    python manage.py runserver"
+echo "  Start the server:"
+echo "    bash scripts/run_webserver.sh"
 echo ""
-echo "  Application : http://localhost:8000"
-echo "  Admin panel : http://localhost:8000/admin-panel/login/"
+echo "  Application : http://localhost:9000"
+echo "  Admin panel : http://localhost:9000/admin-panel/login/"
+echo ""
+echo "  To reload GraphDB after an ontology change:"
+echo "    rm data/rdf/formula1_integrated.nt"
+echo "    bash scripts/setup.sh        (re-runs from step 5)"
+echo "  OR for a full reload from scratch:"
+echo "    rm data/rdf/formula1.nt data/rdf/formula1_integrated.nt"
+echo "    bash scripts/setup.sh"
 echo "============================================================"

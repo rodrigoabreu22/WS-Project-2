@@ -7,12 +7,12 @@
   .page-title { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1;margin-bottom:0.4rem; }
   .page-sub { font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey); }
 
+  /* ── Cards ─────────────────────────────────────────────── */
   .cc-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;align-items:start; }
-  .cc-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;position:relative;z-index:0;isolation:isolate;transform-origin:top center;transition:transform .28s ease,box-shadow .28s,border-color .2s; }
+  .cc-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;position:relative;z-index:0;isolation:isolate;transform-origin:top center;transition:transform .28s ease,box-shadow .28s,border-color .2s,z-index 0s; }
   .cc-card:hover { border-color:var(--red);transform:scale(1.08);box-shadow:0 18px 48px rgba(0,0,0,.65);z-index:10; }
   .cc-card::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);border-radius:8px 0 0 8px; }
   .cc-photo { width:100%;height:190px;background:var(--dark);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);flex-shrink:0; }
-
   .cc-photo .photo-fallback { font-size:3.5rem;opacity:0.25; }
   .titles-badge { position:absolute;top:0.5rem;right:0.5rem;background:var(--panel);border:1px solid rgba(255,215,0,0.4);border-radius:4px;padding:0.2rem 0.55rem;display:flex;flex-direction:column;align-items:center;z-index:3;backdrop-filter:blur(4px); }
   .titles-count { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;color:#FFD700;line-height:1; }
@@ -20,35 +20,97 @@
   .cc-body { padding:0.75rem 1rem 0.9rem;flex:1;display:flex;flex-direction:column;gap:0.4rem; }
   .cc-name { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;color:var(--white);line-height:1.15; }
   .cc-meta { font-size:0.78rem;color:var(--grey); }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  .cc-table { width:100%;border-collapse:collapse;font-size:0.9rem; }
+  .cc-table thead tr { border-bottom:2px solid var(--red);background:var(--dark); }
+  .cc-table th { padding:0.65rem 1rem;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);white-space:nowrap; }
+  .cc-table td { padding:0.65rem 1rem;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--white); }
+  .cc-table tr:last-child td { border-bottom:none; }
+  .cc-table tbody tr { cursor:pointer; }
+  .cc-table tbody tr:hover td { background:var(--panel-l); }
 </style>
 {% endblock %}
 
 {% block content %}
 <div>
   <div class="page-header">
-    <div class="page-title">Constructor Champions</div>
-    <div class="page-sub">Teams that won the Constructors&rsquo; Championship &mdash; {{ constructors|length }} constructor{{ constructors|length|pluralize }}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+      <div>
+        <div class="page-title">Constructor Champions</div>
+        <div class="page-sub">{{ constructors|length }} team{{ constructors|length|pluralize }}</div>
+      </div>
+      {% if constructors %}
+      <div style="display:flex;gap:0.4rem;">
+        <button class="view-toggle-btn" data-view="cards">Cards</button>
+        <button class="view-toggle-btn" data-view="table">Table</button>
+      </div>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="cc-grid">
-    {% for c in constructors %}
-    <a class="cc-card" href="{% url 'championship:constructor_detail' c.ctorId %}">
-      <div class="cc-photo wiki-img-slot landscape cover-mode"
-           {% if c.wikiUrl %}data-wiki-url="{{ c.wikiUrl }}" data-label="{{ c.ctorLabel }}"{% endif %}>
-        <span class="photo-fallback">&#127950;</span>
-        <div class="titles-badge">
-          <span class="titles-count">{{ c.titles }}</span>
-          <span class="titles-word">title{{ c.titles|pluralize }}</span>
-        </div>
-      </div>
-      <div class="cc-body">
-        <div class="cc-name">{{ c.ctorLabel }}</div>
-        <div class="cc-meta">{{ c.titles }} Constructors&rsquo; Championship{{ c.titles|pluralize }}</div>
-      </div>
-    </a>
-    {% empty %}
-    <p style="color:var(--grey);">No constructor champions found. Run SPIN rules first.</p>
-    {% endfor %}
+  <!-- Semantic provenance strip -->
+  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:3px solid #7c3aed;border-radius:6px;padding:0.75rem 1.1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--grey);">
+    <span class="src-badge src-spin">SPIN</span>
+    <span>Every team here has <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">rdf:type f1:ConstructorChampion</code>, inferred by <strong style="color:var(--white);">infer_wonConstructorChampionship</strong> (GROUP BY + MAX round on ConstructorStanding, position=1) then <strong style="color:var(--white);">classify_ConstructorChampion</strong>. The Constructors' Championship is not present in the raw data as a single fact.</span>
   </div>
+
+  {% if constructors %}
+  <div id="viewContainer">
+
+    <!-- Cards -->
+    <div class="cards-view cc-grid">
+      {% for c in constructors %}
+      <a class="cc-card" href="{% url 'championship:constructor_detail' c.ctorId %}">
+        <div class="cc-photo wiki-img-slot cover-mode"
+             {% if c.wikiUrl %}data-wiki-url="{{ c.wikiUrl }}" data-label="{{ c.ctorLabel }}"{% endif %}>
+          <span class="photo-fallback">&#127950;</span>
+          <div class="titles-badge">
+            <span class="titles-count">{{ c.titles }}</span>
+            <span class="titles-word">title{{ c.titles|pluralize }}</span>
+          </div>
+        </div>
+        <div class="cc-body">
+          <div class="cc-name">{{ c.ctorLabel }}</div>
+          <div class="cc-meta">{{ c.titles }} Constructors&rsquo; Championship{{ c.titles|pluralize }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Table -->
+    <div class="table-view" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+      <table class="cc-table">
+        <thead><tr><th>#</th><th>Constructor</th><th>Titles</th></tr></thead>
+        <tbody>
+          {% for c in constructors %}
+          <tr onclick="location.href='{% url 'championship:constructor_detail' c.ctorId %}'"
+              onkeydown="if(event.key==='Enter')location.href='{% url 'championship:constructor_detail' c.ctorId %}'" tabindex="0">
+            <td style="color:var(--grey);font-size:0.8rem;">{{ forloop.counter }}</td>
+            <td>
+              <a href="{% url 'championship:constructor_detail' c.ctorId %}"
+                 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);text-decoration:none;"
+                 onclick="event.stopPropagation()">{{ c.ctorLabel }}</a>
+            </td>
+            <td>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:#FFD700;">{{ c.titles }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+  <script>initViewToggle('constructor_champions', 'cards');</script>
+
+  {% else %}
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3rem 2rem;text-align:center;color:var(--grey);">
+    <p style="font-size:1.5rem;">&#9888;</p>
+    <p>No constructor champions found. Run SPIN inference rules first:</p>
+    <p style="margin-top:0.5rem;"><code style="background:var(--dark);padding:0.2rem 0.5rem;border-radius:4px;">python manage.py run_spin_rules</code></p>
+    <p>or use the <a href="{% url 'championship:admin_dashboard' %}" style="color:var(--red);">admin dashboard</a> &rarr; Run Inference.</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

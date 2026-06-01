@@ -342,21 +342,30 @@
       if (t) {
         const de = document.getElementById('heroDesc'), se = document.getElementById('heroDescSource');
         de.textContent = t; de.style.display = '';
-        se.innerHTML = 'Source: <a href="{{ wiki_url }}" target="_blank" rel="noopener" style="color:var(--grey);">Wikidata</a>';
+        se.innerHTML = '<a class="src-badge src-wikidata" href="{{ wiki_url }}" target="_blank" rel="noopener" title="Wikidata SPARQL endpoint — wdt:P31 = Q41298738">WIKIDATA</a> <span style="font-size:0.75rem;color:var(--grey);">biographical extract via Wikipedia REST API</span>';
         se.style.display = '';
       }
 
-      // ── Extra facts (founder, website) in stats list ──────────────
+      // ── Extra facts (founder, website) in stats list — with Wikidata badge ──
       const statsList = document.querySelector('.stats-list');
       if (statsList) {
+        const wdBadge = '<span class="src-badge src-wikidata" title="Source: Wikidata SPARQL" style="margin-left:0.35rem;">WIKIDATA</span>';
         if (d.founder) {
           statsList.insertAdjacentHTML('beforeend',
-            `<li><span class="stat-key">Founded by</span><span class="stat-val">${d.founder}</span></li>`);
+            `<li><span class="stat-key">Founded by</span><span class="stat-val">${d.founder}${wdBadge}</span></li>`);
+        }
+        if (d.country && !document.querySelector('[property="nationality"]')) {
+          statsList.insertAdjacentHTML('beforeend',
+            `<li><span class="stat-key">Country</span><span class="stat-val">${d.country}${wdBadge}</span></li>`);
+        }
+        if (d.dissolved) {
+          statsList.insertAdjacentHTML('beforeend',
+            `<li><span class="stat-key">Dissolved</span><span class="stat-val">${d.dissolved.substring(0,4)}${wdBadge}</span></li>`);
         }
         if (d.website) {
           const domain = d.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
           statsList.insertAdjacentHTML('beforeend',
-            `<li><span class="stat-key">Website</span><span class="stat-val"><a href="${d.website}" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">${domain}</a></span></li>`);
+            `<li><span class="stat-key">Website</span><span class="stat-val"><a href="${d.website}" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">${domain}</a>${wdBadge}</span></li>`);
         }
       }
     }).catch(()=>{});
@@ -477,5 +486,42 @@
   </table>
 </div>
 
+<!-- Semantic Provenance panel -->
+<details class="section-card" style="margin-top:1.5rem;" open>
+  <summary style="background:var(--dark);border-bottom:2px solid #7c3aed;padding:0.7rem 1.25rem;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+    <span>Semantic Provenance</span>
+    <span style="font-size:0.7rem;font-weight:600;letter-spacing:0;">&#9660;</span>
+  </summary>
+  <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.25rem;">Entity Classification</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-owl" title="GraphDB OWL-Max: rdfs:domain on f1:constructorRef infers rdf:type f1:Constructor at load time">OWL-MAX</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:var(--white);">f1:Constructor</strong> — inferred from rdfs:domain on f1:constructorRef</span>
+    </div>
+    {% if championship_count > 0 %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN: infer_wonConstructorChampionship + classify_ConstructorChampion">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">rdf:type <strong style="color:#FFD700;">f1:ConstructorChampion</strong> — {{ championship_count }} title{{ championship_count|pluralize }}</span>
+    </div>
+    {% endif %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-owl" title="OWL: owl:inverseOf — f1:hadDriver materialised from f1:drovFor via OWL-Max">OWL</span>
+      <span style="font-size:0.82rem;color:var(--grey);">f1:hadDriver → {{ pilots|length }} driver{{ pilots|length|pluralize }} via owl:inverseOf on f1:drovFor</span>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-top:0.5rem;margin-bottom:0.25rem;">External Enrichment</div>
+    {% if wiki_url %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <a class="src-badge src-wikipedia" href="{{ wiki_url }}" target="_blank" rel="noopener" title="Wikipedia REST API">WIKIPEDIA</a>
+      <span style="font-size:0.82rem;color:var(--grey);">Team photo and description</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-wikidata" title="Wikidata SPARQL — wdt:P31 = Q41298738 (F1 constructor)">WIKIDATA</span>
+      <span style="font-size:0.82rem;color:var(--grey);">Logo (P154), founder (P112), website (P856), country (P17), dissolved (P576)</span>
+    </div>
+    {% else %}
+    <span style="font-size:0.82rem;color:var(--grey);">No Wikipedia/Wikidata URL available for this constructor.</span>
+    {% endif %}
+  </div>
+</details>
 
 {% endblock %}

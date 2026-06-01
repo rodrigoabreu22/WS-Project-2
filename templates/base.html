@@ -33,6 +33,58 @@
       --line:     #DEDEDE;
     }
 
+    /* ── Semantic badge tokens — readable in both dark and light mode ── */
+    .badge-champion   { background:var(--dark); color:#FFD700; border:1px solid rgba(255,215,0,.4); }
+    .badge-multichamp { background:var(--dark); color:#ff9900; border:1px solid rgba(255,153,0,.4); }
+    .badge-veteran    { background:var(--dark); color:#4caf50; border:1px solid rgba(76,175,80,.4); }
+    .badge-p1        { background:var(--dark); color:#60a5fa; border:1px solid rgba(96,165,250,.4); }
+    .badge-fastlap   { background:var(--dark); color:#f472b6; border:1px solid rgba(244,114,182,.4); }
+    .badge-hattrick  { background:var(--dark); color:#e879f9; border:1px solid rgba(232,121,249,.4); }
+
+    [data-theme="light"] .badge-champion   { background:#fef3c7; color:#92400e; border-color:#d97706; }
+    [data-theme="light"] .badge-multichamp { background:#ffedd5; color:#9a3412; border-color:#ea580c; }
+    [data-theme="light"] .badge-veteran    { background:#dcfce7; color:#166534; border-color:#16a34a; }
+    [data-theme="light"] .badge-p1        { background:#dbeafe; color:#1e3a8a; border-color:#2563eb; }
+    [data-theme="light"] .badge-fastlap   { background:#fce7f3; color:#9d174d; border-color:#db2777; }
+    [data-theme="light"] .badge-hattrick  { background:#fae8ff; color:#6b21a8; border-color:#9333ea; }
+
+    /* ── Semantic provenance source badges ──────────────────────────── */
+    /* Used on all detail pages to show where facts come from            */
+    .src-badge {
+      display: inline-flex;
+      align-items: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      vertical-align: middle;
+      white-space: nowrap;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    /* SPIN rule (purple) */
+    .src-spin     { background:#3b0764; color:#c084fc; border:1px solid rgba(192,132,252,.4); }
+    /* OWL-Max reasoner (blue) */
+    .src-owl      { background:#082f49; color:#7dd3fc; border:1px solid rgba(125,211,252,.4); }
+    /* Wikidata (teal) */
+    .src-wikidata { background:#042f2e; color:#34d399; border:1px solid rgba(52,211,153,.4); }
+    /* DBpedia (orange) */
+    .src-dbpedia  { background:#431407; color:#fb923c; border:1px solid rgba(251,146,60,.4); }
+    /* Wikipedia (grey) */
+    .src-wikipedia{ background:#1c1917; color:#a8a29e; border:1px solid rgba(168,162,158,.4); }
+    /* RDF assertion (dark with grey) */
+    .src-rdf      { background:var(--dark); color:var(--grey); border:1px solid var(--line); }
+
+    [data-theme="light"] .src-spin      { background:#faf5ff; color:#7c3aed; border-color:#7c3aed; }
+    [data-theme="light"] .src-owl       { background:#eff6ff; color:#1d4ed8; border-color:#3b82f6; }
+    [data-theme="light"] .src-wikidata  { background:#ecfdf5; color:#065f46; border-color:#059669; }
+    [data-theme="light"] .src-dbpedia   { background:#fff7ed; color:#9a3412; border-color:#ea580c; }
+    [data-theme="light"] .src-wikipedia { background:#f9fafb; color:#374151; border-color:#9ca3af; }
+    [data-theme="light"] .src-rdf       { background:#f9fafb; color:#6b7280; border-color:#d1d5db; }
+
     /* Extra depth for cards/panels in light mode */
     [data-theme="light"] .panel,
     [data-theme="light"] .section-card,
@@ -817,17 +869,26 @@
     <a href="{% url 'championship:circuits' %}" {% if request.resolver_match.url_name == 'circuits' or request.resolver_match.url_name == 'circuit_detail' %}class="active"{% endif %}>
       <span class="drawer-icon">TRK</span>Circuits
     </a>
+    <a href="{% url 'championship:hall_of_fame' %}" {% if request.resolver_match.url_name in 'hall_of_fame champions multichampions veterans constructor_champions pole_positions hat_tricks' %}class="active"{% endif %}>
+      <span class="drawer-icon" style="background:#b45309;">HOF</span>Hall of Fame
+    </a>
     <a href="{% url 'championship:champions' %}" {% if request.resolver_match.url_name == 'champions' %}class="active"{% endif %}>
-      <span class="drawer-icon">CHM</span>Champions
+      <span class="drawer-icon grey">CHM</span>World Champions
     </a>
     <a href="{% url 'championship:multichampions' %}" {% if request.resolver_match.url_name == 'multichampions' %}class="active"{% endif %}>
-      <span class="drawer-icon">★★</span>Multi-Champions
-    </a>
-    <a href="{% url 'championship:veterans' %}" {% if request.resolver_match.url_name == 'veterans' %}class="active"{% endif %}>
-      <span class="drawer-icon">VET</span>Veterans
+      <span class="drawer-icon grey">★★</span>Multi-Champions
     </a>
     <a href="{% url 'championship:constructor_champions' %}" {% if request.resolver_match.url_name == 'constructor_champions' %}class="active"{% endif %}>
-      <span class="drawer-icon">CCH</span>Ctor. Champions
+      <span class="drawer-icon grey">CCH</span>Ctor. Champions
+    </a>
+    <a href="{% url 'championship:veterans' %}" {% if request.resolver_match.url_name == 'veterans' %}class="active"{% endif %}>
+      <span class="drawer-icon grey">VET</span>Veterans
+    </a>
+    <a href="{% url 'championship:pole_positions' %}" {% if request.resolver_match.url_name == 'pole_positions' %}class="active"{% endif %}>
+      <span class="drawer-icon grey">P1</span>Pole Leaders
+    </a>
+    <a href="{% url 'championship:hat_tricks' %}" {% if request.resolver_match.url_name == 'hat_tricks' %}class="active"{% endif %}>
+      <span class="drawer-icon grey">HAT</span>Hat Tricks
     </a>
     <a href="{% url 'championship:llm_assistant' %}" {% if request.resolver_match.url_name == 'llm_assistant' %}class="active"{% endif %}>
       <span class="drawer-icon">AI</span>F1 Assistant
@@ -840,26 +901,25 @@
     <span class="nav-brand-f1">F<span>1</span></span>
   </a>
   <div class="nav-links" id="navLinks">
-    <div class="nav-dropdown">
-      <a href="{% url 'championship:drivers' %}" {% if request.resolver_match.url_name == 'drivers' or request.resolver_match.url_name == 'driver_detail' or request.resolver_match.url_name == 'champions' or request.resolver_match.url_name == 'multichampions' or request.resolver_match.url_name == 'veterans' %}class="active"{% endif %}>Drivers</a>
-      <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-        <a href="{% url 'championship:drivers' %}"        {% if request.resolver_match.url_name == 'drivers'       %}class="active"{% endif %}>All Drivers</a>
-        <div class="menu-divider"></div>
-        <a href="{% url 'championship:champions' %}"      {% if request.resolver_match.url_name == 'champions'     %}class="active"{% endif %}>World Champions</a>
-        <a href="{% url 'championship:multichampions' %}" {% if request.resolver_match.url_name == 'multichampions' %}class="active"{% endif %}>Multi-Champions</a>
-        <a href="{% url 'championship:veterans' %}"       {% if request.resolver_match.url_name == 'veterans'       %}class="active"{% endif %}>Veterans</a>
-      </div></div>
-    </div>
-    <div class="nav-dropdown">
-      <a href="{% url 'championship:constructors' %}" {% if request.resolver_match.url_name == 'constructors' or request.resolver_match.url_name == 'constructor_detail' or request.resolver_match.url_name == 'constructor_champions' %}class="active"{% endif %}>Constructors</a>
-      <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-        <a href="{% url 'championship:constructors' %}"          {% if request.resolver_match.url_name == 'constructors'         %}class="active"{% endif %}>All Constructors</a>
-        <a href="{% url 'championship:constructor_champions' %}" {% if request.resolver_match.url_name == 'constructor_champions' %}class="active"{% endif %}>Constructor Champions</a>
-      </div></div>
-    </div>
+    <a href="{% url 'championship:drivers' %}"   {% if request.resolver_match.url_name == 'drivers' or request.resolver_match.url_name == 'driver_detail' %}class="active"{% endif %}>Drivers</a>
+    <a href="{% url 'championship:constructors' %}" {% if request.resolver_match.url_name == 'constructors' or request.resolver_match.url_name == 'constructor_detail' %}class="active"{% endif %}>Constructors</a>
     <a href="{% url 'championship:seasons' %}"   {% if request.resolver_match.url_name == 'seasons'  or request.resolver_match.url_name == 'season_detail'  %}class="active"{% endif %}>Seasons</a>
     <a href="{% url 'championship:races' %}"     {% if request.resolver_match.url_name == 'races'    or request.resolver_match.url_name == 'race_detail'    %}class="active"{% endif %}>Races</a>
     <a href="{% url 'championship:circuits' %}"  {% if request.resolver_match.url_name == 'circuits' or request.resolver_match.url_name == 'circuit_detail' %}class="active"{% endif %}>Circuits</a>
+    <div class="nav-dropdown">
+      <a href="{% url 'championship:hall_of_fame' %}" {% if request.resolver_match.url_name in 'hall_of_fame champions multichampions veterans constructor_champions pole_positions hat_tricks' %}class="active"{% endif %}>Hall of Fame</a>
+      <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+        <a href="{% url 'championship:hall_of_fame' %}"          {% if request.resolver_match.url_name == 'hall_of_fame'         %}class="active"{% endif %}>Overview</a>
+        <div class="menu-divider"></div>
+        <a href="{% url 'championship:champions' %}"             {% if request.resolver_match.url_name == 'champions'            %}class="active"{% endif %}>World Champions</a>
+        <a href="{% url 'championship:multichampions' %}"        {% if request.resolver_match.url_name == 'multichampions'       %}class="active"{% endif %}>Multi-Champions</a>
+        <a href="{% url 'championship:constructor_champions' %}" {% if request.resolver_match.url_name == 'constructor_champions' %}class="active"{% endif %}>Constructor Champions</a>
+        <a href="{% url 'championship:veterans' %}"              {% if request.resolver_match.url_name == 'veterans'             %}class="active"{% endif %}>Veterans</a>
+        <div class="menu-divider"></div>
+        <a href="{% url 'championship:pole_positions' %}"        {% if request.resolver_match.url_name == 'pole_positions'       %}class="active"{% endif %}>Pole Leaders</a>
+        <a href="{% url 'championship:hat_tricks' %}"            {% if request.resolver_match.url_name == 'hat_tricks'           %}class="active"{% endif %}>Hat Tricks</a>
+      </div></div>
+    </div>
     <a href="{% url 'championship:llm_assistant' %}" {% if request.resolver_match.url_name == 'llm_assistant' %}class="active"{% endif %}>F1 Assistant</a>
   </div>
   {% if user.is_authenticated %}

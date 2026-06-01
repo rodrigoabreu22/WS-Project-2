@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% block title %}Hall of Fame{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Hero ───────────────────────────────────────────────── */
+  .hof-hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 3rem 2.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .hof-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--red), #ff6b35, #FFD700, #ff6b35, var(--red));
+  }
+
+  .hof-hero-bg {
+    position: absolute;
+    inset: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 18rem;
+    color: var(--red);
+    opacity: 0.04;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.05em;
+  }
+
+  .hof-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.75rem;
+  }
+
+  .hof-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    color: var(--white);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .hof-title span { color: var(--red); }
+
+  .hof-sub {
+    color: var(--grey);
+    font-size: 1rem;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Record holders strip ───────────────────────────────── */
+  .hof-records {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .hof-record {
+    background: var(--panel);
+    padding: 1.1rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: background .15s;
+  }
+
+  .hof-record:hover { background: var(--panel-l); }
+
+  .hof-record-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 0.35rem;
+  }
+
+  .hof-record-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 0.2rem;
+  }
+
+  .hof-record-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.7rem;
+    color: var(--red);
+    line-height: 1;
+  }
+
+  /* ── Category grid ──────────────────────────────────────── */
+  .hof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .hof-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+    position: relative;
+  }
+
+  .hof-card:hover {
+    border-color: var(--red);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,.5);
+  }
+
+  .hof-card-accent {
+    height: 4px;
+  }
+
+  .hof-card-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .hof-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .hof-card-icon {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--grey-d);
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .hof-card-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 2.8rem;
+    line-height: 1;
+    text-align: right;
+  }
+
+  .hof-card-count-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grey);
+    text-align: right;
+  }
+
+  .hof-card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.45rem;
+    color: var(--white);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .hof-card-desc {
+    color: var(--grey);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .hof-card-footer {
+    border-top: 1px solid var(--line);
+    padding: 0.75rem 1.5rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: color .15s;
+  }
+
+  .hof-card:hover .hof-card-footer { color: var(--white); }
+
+  @media (max-width: 640px) {
+    .hof-hero { padding: 2rem 1.25rem; }
+    .hof-hero-bg { font-size: 9rem; }
+    .hof-grid { grid-template-columns: 1fr; }
+    .hof-records { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="hof-hero">
+  <div class="hof-hero-bg">★</div>
+  <div class="hof-eyebrow">Formula 1 &bull; 1950 &ndash; 2024</div>
+  <h1 class="hof-title">Hall of<br><span>Fame</span></h1>
+  <p class="hof-sub">The greatest drivers and teams across 75 years of Formula 1, classified by achievements and records.</p>
+</div>
+
+<!-- Semantic provenance strip -->
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:3px solid #7c3aed;border-radius:6px;padding:0.75rem 1.1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--grey);">
+  <span class="src-badge src-spin">SPIN</span>
+  <span>All counts and record holders on this page are queried live from SPIN-inferred graph data — no Python computation. Each category queries a different inferred class or property: <strong style="color:var(--white);">f1:WorldChampion</strong>, <strong style="color:var(--white);">f1:ConstructorChampion</strong>, <strong style="color:var(--white);">f1:Veteran</strong>, <strong style="color:var(--white);">f1:startedFromP1</strong>, <strong style="color:var(--white);">f1:achievedHatTrick</strong>.</span>
+</div>
+
+<!-- Record holders strip -->
+{% if top.champion or top.pole or top.hat or top.ctor %}
+<div class="hof-records">
+  {% if top.champion %}
+  <a class="hof-record" href="{% url 'championship:driver_detail' top.champion.driverId %}">
+    <div class="hof-record-label">Most titles</div>
+    <div class="hof-record-name">{{ top.champion.driverLabel }}</div>
+    <div class="hof-record-value">{{ top.champion.n }}</div>
+  </a>
+  {% endif %}
+  {% if top.pole %}
+  <a class="hof-record" href="{% url 'championship:driver_detail' top.pole.driverId %}">
+    <div class="hof-record-label">Most pole positions</div>
+    <div class="hof-record-name">{{ top.pole.driverLabel }}</div>
+    <div class="hof-record-value">{{ top.pole.n }}</div>
+  </a>
+  {% endif %}
+  {% if top.hat %}
+  <a class="hof-record" href="{% url 'championship:driver_detail' top.hat.driverId %}">
+    <div class="hof-record-label">Most hat tricks</div>
+    <div class="hof-record-name">{{ top.hat.driverLabel }}</div>
+    <div class="hof-record-value">{{ top.hat.n }}</div>
+  </a>
+  {% endif %}
+  {% if top.veteran %}
+  <a class="hof-record" href="{% url 'championship:driver_detail' top.veteran.driverId %}">
+    <div class="hof-record-label">Most races</div>
+    <div class="hof-record-name">{{ top.veteran.driverLabel }}</div>
+    <div class="hof-record-value">{{ top.veteran.n }}</div>
+  </a>
+  {% endif %}
+  {% if top.ctor %}
+  <a class="hof-record" href="{% url 'championship:constructor_detail' top.ctor.ctorId %}">
+    <div class="hof-record-label">Most ctor. titles</div>
+    <div class="hof-record-name">{{ top.ctor.ctorLabel }}</div>
+    <div class="hof-record-value">{{ top.ctor.n }}</div>
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Category cards -->
+<div class="hof-grid">
+
+  <a class="hof-card" href="{% url 'championship:champions' %}">
+    <div class="hof-card-accent" style="background:#FFD700;"></div>
+    <div class="hof-card-body">
+      <div class="hof-card-top">
+        <div class="hof-card-icon" style="background:#7a5c00;">CHM</div>
+        <div>
+          <div class="hof-card-count" style="color:#FFD700;">{{ counts.worldChampions|default:"—" }}</div>
+          <div class="hof-card-count-label">champions</div>
+        </div>
+      </div>
+      <div class="hof-card-title">World Champions</div>
+      <div class="hof-card-desc">Every driver who won the Formula 1 World Drivers' Championship.</div>
+    </div>
+    <div class="hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+
+  <a class="hof-card" href="{% url 'championship:multichampions' %}">
+    <div class="hof-card-accent" style="background:#ff9900;"></div>
+    <div class="hof-card-body">
+      <div class="hof-card-top">
+        <div class="hof-card-icon" style="background:#7a3800;">2x+</div>
+        <div>
+          <div class="hof-card-count" style="color:#ff9900;">{{ counts.multiChampions|default:"—" }}</div>
+          <div class="hof-card-count-label">drivers</div>
+        </div>
+      </div>
+      <div class="hof-card-title">Multi-Champions</div>
+      <div class="hof-card-desc">Drivers who won the championship two or more times.</div>
+    </div>
+    <div class="hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+
+  <a class="hof-card" href="{% url 'championship:constructor_champions' %}">
+    <div class="hof-card-accent" style="background:var(--red);"></div>
+    <div class="hof-card-body">
+      <div class="hof-card-top">
+        <div class="hof-card-icon" style="background:#7a0000;">CCH</div>
+        <div>
+          <div class="hof-card-count" style="color:var(--red);">{{ counts.constructorChampions|default:"—" }}</div>
+          <div class="hof-card-count-label">teams</div>
+        </div>
+      </div>
+      <div class="hof-card-title">Constructor Champions</div>
+      <div class="hof-card-desc">Teams that won the Formula 1 Constructors' Championship.</div>
+    </div>
+    <div class="hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+
+  <a class="hof-card" href="{% url 'championship:veterans' %}">
+    <div class="hof-card-accent" style="background:#4caf50;"></div>
+    <div class="hof-card-body">
+      <div class="hof-card-top">
+        <div class="hof-card-icon" style="background:#1a4a1a;">VET</div>
+        <div>
+          <div class="hof-card-count" style="color:#4caf50;">{{ counts.veterans|default:"—" }}</div>
+          <div class="hof-card-count-label">veterans</div>
+        </div>
+      </div>
+      <div class="hof-card-title">Veterans</div>
+      <div class="hof-card-desc">Drivers who competed in 100 or more Formula 1 Grands Prix.</div>
+    </div>
+    <div class="hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+
+  <a class="hof-card" href="{% url 'championship:pole_positions' %}">
+    <div class="hof-card-accent" style="background:#60a5fa;"></div>
+    <div class="hof-card-body">
+      <div class="hof-card-top">
+        <div class="hof-card-icon" style="background:#1a2a4a;">P1</div>
+        <div>
+          <div class="hof-card-count" style="color:#60a5fa;">{{ counts.poleLeaders|default:"—" }}</div>
+          <div class="hof-card-count-label">drivers</div>
+        </div>
+      </div>
+      <div class="hof-card-title">Pole Position Leaders</div>
+      <div class="hof-card-desc">Drivers ranked by pole positions, wins from pole and conversion rate.</div>
+    </div>
+    <div class="hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+
+  <a class="hof-card" href="{% url 'championship:hat_tricks' %}">
+    <div class="hof-card-accent" style="background:#e879f9;"></div>
+    <div class="hof-card-body">
+      <div class="hof-card-top">
+        <div class="hof-card-icon" style="background:#3a0a3a;">HAT</div>
+        <div>
+          <div class="hof-card-count" style="color:#e879f9;">{{ counts.hatTricks|default:"—" }}</div>
+          <div class="hof-card-count-label">perfect races</div>
+        </div>
+      </div>
+      <div class="hof-card-title">Hat Tricks</div>
+      <div class="hof-card-desc">The rare Grand Prix where one driver took pole, the win, and the fastest lap.</div>
+    </div>
+    <div class="hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+
+</div>
+
+{% endblock %}

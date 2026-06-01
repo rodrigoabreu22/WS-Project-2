@@ -4,322 +4,622 @@
 
 {% block extra_head %}
 <style>
+  /* ── Hero ───────────────────────────────────────────────── */
   .kg-hero {
+    position: relative;
+    overflow: hidden;
     background: var(--dark);
     border: 1px solid var(--line);
     border-radius: 8px;
     display: grid;
-    gap: 2rem;
-    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
-    margin-bottom: 1.25rem;
-    overflow: hidden;
-    padding: 2.5rem;
-    position: relative;
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.6fr);
+    gap: 0;
+    margin-bottom: 1.5rem;
+    min-height: 320px;
   }
-  .kg-hero::after {
-    background: var(--red);
-    bottom: 0;
-    content: "";
-    opacity: 0.18;
+
+  /* diagonal red accent stripe */
+  .kg-hero::before {
+    content: '';
     position: absolute;
+    top: 0; bottom: 0;
     right: 0;
-    top: 0;
-    width: 8px;
+    width: 6px;
+    background: var(--red);
   }
-  .kg-eyebrow {
-    color: var(--red);
+
+  /* large decorative number in background */
+  .kg-hero-bg {
+    position: absolute;
+    right: 320px;
+    bottom: -1.5rem;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 0.16em;
-    margin-bottom: 0.8rem;
-    text-transform: uppercase;
-  }
-  .kg-title {
-    color: var(--white);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: clamp(3rem, 7vw, 5.8rem);
     font-weight: 900;
-    letter-spacing: 0;
-    line-height: 0.95;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
+    font-size: 22rem;
+    line-height: 1;
+    color: var(--red);
+    opacity: 0.045;
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.05em;
   }
+
+  .kg-hero-left {
+    padding: 2.8rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .kg-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.9rem;
+  }
+
+  .kg-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(3rem, 6.5vw, 6rem);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 1.1rem;
+  }
+
+  .kg-title-accent { color: var(--red); }
+
   .kg-lead {
     color: var(--grey);
     font-size: 1rem;
-    line-height: 1.65;
-    max-width: 48rem;
+    line-height: 1.6;
+    max-width: 460px;
+    margin-bottom: 1.6rem;
   }
+
   .kg-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
-    margin-top: 1.5rem;
+    gap: 0.6rem;
   }
+
   .kg-action {
+    display: inline-flex;
     align-items: center;
     border: 1px solid var(--line);
     border-radius: 6px;
     color: var(--white);
-    display: inline-flex;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     font-weight: 800;
     letter-spacing: 0.1em;
-    min-height: 2.55rem;
-    padding: 0.65rem 0.9rem;
+    min-height: 2.4rem;
+    padding: 0.55rem 0.9rem;
     text-decoration: none;
     text-transform: uppercase;
+    transition: border-color .15s, background .15s;
   }
-  .kg-action.primary {
-    background: var(--red);
-    border-color: var(--red);
-  }
-  .kg-action:hover,
-  .kg-action:focus-visible {
-    border-color: var(--red);
-    outline: none;
-  }
+
+  .kg-action.primary { background: var(--red); border-color: var(--red); }
+  .kg-action:not(.primary):hover { border-color: var(--red); }
+
+  /* ── Status panel (right column) ───────────────────────── */
   .kg-status-panel {
-    align-self: stretch;
     background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
+    border-left: 1px solid var(--line);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 13rem;
-    padding: 1.25rem;
+    padding: 1.8rem 1.5rem;
+    gap: 1.2rem;
+    position: relative;
+    z-index: 1;
   }
+
   .kg-status-row {
-    align-items: center;
     display: flex;
-    gap: 0.65rem;
+    align-items: center;
+    gap: 0.6rem;
   }
+
   .kg-status-dot {
     border-radius: 999px;
-    flex: 0 0 auto;
-    height: 0.6rem;
-    width: 0.6rem;
+    flex-shrink: 0;
+    height: 0.55rem;
+    width: 0.55rem;
   }
-  .kg-status-dot.ok { background: #10b981; box-shadow: 0 0 8px #10b981; }
-  .kg-status-dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+  .kg-status-dot.ok    { background: #10b981; box-shadow: 0 0 6px #10b981; }
+  .kg-status-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
   .kg-status-label {
-    color: var(--white);
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    color: var(--white);
   }
+
   .kg-status-meta {
+    font-size: 0.8rem;
     color: var(--grey);
-    font-size: 0.86rem;
     line-height: 1.5;
-    margin-top: 0.8rem;
     overflow-wrap: anywhere;
   }
-  .kg-section-title {
-    color: var(--white);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    margin: 1.5rem 0 0.8rem;
-    text-transform: uppercase;
-  }
-  .kg-stat-grid,
-  .kg-insight-grid {
+
+  /* mini stats inside the right panel */
+  .kg-mini-stats {
     display: grid;
-    gap: 0.8rem;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    margin-bottom: 1rem;
-  }
-  .kg-stat,
-  .kg-insight,
-  .kg-use-case {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    color: inherit;
-    display: block;
-    min-width: 0;
-    padding: 1rem;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s;
-  }
-  .kg-stat:hover,
-  .kg-insight:hover,
-  .kg-use-case:hover {
-    border-color: var(--red);
-    transform: translateY(-2px);
-  }
-  .kg-stat-value,
-  .kg-insight-value {
-    color: var(--white);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2rem;
-    font-weight: 900;
-    line-height: 1;
-  }
-  .kg-stat-label,
-  .kg-insight-label {
-    color: var(--grey);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    margin-top: 0.35rem;
-    text-transform: uppercase;
-  }
-  .kg-use-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    margin-bottom: 1.4rem;
-  }
-  .kg-use-kicker {
-    color: var(--red);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    margin-bottom: 0.55rem;
-    text-transform: uppercase;
-  }
-  .kg-use-title {
-    color: var(--white);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.55rem;
-    text-transform: uppercase;
-  }
-  .kg-use-text {
-    color: var(--grey);
-    font-size: 0.9rem;
-    line-height: 1.5;
-  }
-  .kg-pipeline {
-    align-items: center;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    color: var(--grey);
-    display: grid;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 800;
-    gap: 0.65rem;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    letter-spacing: 0.08em;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    text-align: center;
-    text-transform: uppercase;
-  }
-  .kg-pipeline-step {
-    background: var(--dark);
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
     border: 1px solid var(--line);
     border-radius: 6px;
-    padding: 0.75rem 0.5rem;
+    overflow: hidden;
+    margin-top: auto;
   }
-  @media (max-width: 880px) {
-    .kg-hero { grid-template-columns: 1fr; padding: 1.6rem; }
-    .kg-pipeline { grid-template-columns: 1fr; text-align: left; }
+
+  .kg-mini-stat {
+    background: var(--dark);
+    padding: 0.7rem 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: background .15s;
   }
+
+  .kg-mini-stat:hover { background: var(--panel-l); }
+
+  .kg-mini-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.6rem;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .kg-mini-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 0.15rem;
+  }
+
+  /* ── Stats banner ───────────────────────────────────────── */
+  .kg-stats-banner {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .kg-stat-tile {
+    background: var(--panel);
+    padding: 1.4rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: background .15s;
+  }
+
+  .kg-stat-tile:hover { background: var(--panel-l); }
+
+  .kg-stat-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 2.4rem;
+    color: var(--red);
+    line-height: 1;
+  }
+
+  .kg-stat-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 0.3rem;
+  }
+
+  /* ── Section title ──────────────────────────────────────── */
+  .kg-section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin: 1.75rem 0 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .kg-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* ── Hall of Fame spotlight ─────────────────────────────── */
+  .kg-hof-spotlight {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .kg-hof-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+  }
+
+  .kg-hof-card:hover {
+    border-color: var(--red);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.45);
+  }
+
+  .kg-hof-card-top {
+    padding: 1.25rem 1.25rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .kg-hof-card-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 0.4rem;
+  }
+
+  .kg-hof-card-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--white);
+    line-height: 1.1;
+  }
+
+  .kg-hof-card-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .kg-hof-card-footer {
+    padding: 0.6rem 1.25rem;
+    border-top: 1px solid var(--line);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .kg-hof-card:hover .kg-hof-card-footer { color: var(--white); }
+
+  /* ── Explore grid ───────────────────────────────────────── */
+  .kg-explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .kg-explore-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s, transform .15s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .kg-explore-card:hover { border-color: var(--red); transform: translateY(-2px); }
+
+  .kg-explore-kicker {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  .kg-explore-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .kg-explore-text {
+    font-size: 0.85rem;
+    color: var(--grey);
+    line-height: 1.5;
+  }
+
+  /* ── Pipeline ───────────────────────────────────────────── */
+  .kg-pipeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .kg-pipeline-step {
+    background: var(--dark);
+    border-right: none;
+    padding: 1rem 0.75rem;
+    text-align: center;
+  }
+
+  .kg-pipeline-step-num {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    margin-bottom: 0.2rem;
+  }
+
+  .kg-pipeline-step-label {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: var(--white);
+  }
+
+  .kg-pipeline-step-sub {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--grey);
+    margin-top: 0.2rem;
+  }
+
+  @media (max-width: 900px) {
+    .kg-hero { grid-template-columns: 1fr; }
+    .kg-status-panel { border-left: none; border-top: 1px solid var(--line); }
+    .kg-hero-bg { display: none; }
+    .kg-stats-banner { grid-template-columns: repeat(3, 1fr); }
+    .kg-pipeline { grid-template-columns: 1fr; }
+  }
+
   @media (max-width: 520px) {
+    .kg-hero-left { padding: 1.8rem 1.25rem; }
     .kg-title { font-size: 2.8rem; }
+    .kg-stats-banner { grid-template-columns: repeat(2, 1fr); }
     .kg-actions { flex-direction: column; }
-    .kg-action { justify-content: center; width: 100%; }
+    .kg-action { justify-content: center; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- schema:Dataset description of the knowledge graph (machine-readable) -->
+<div vocab="https://schema.org/" typeof="Dataset" resource="{{ request.build_absolute_uri }}">
+  <meta property="name" content="Formula 1 Knowledge Graph" />
+  <meta property="description" content="1950–2024 Formula 1 results, standings, drivers and circuits modelled as RDF with OWL 2 DL inference and enriched from Wikidata and DBpedia." />
+  <meta property="license" content="https://creativecommons.org/licenses/by/4.0/" />
+  <meta property="temporalCoverage" content="1950/2024" />
+  <meta property="keywords" content="Formula 1, F1, RDF, OWL, knowledge graph, SPARQL, semantic web" />
+</div>
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
 <section class="kg-hero">
-  <div>
-    <div class="kg-eyebrow">GraphDB semantic explorer</div>
-    <h1 class="kg-title">Formula 1 Knowledge Graph</h1>
+  <div class="kg-hero-bg">F1</div>
+
+  <div class="kg-hero-left">
+    <div class="kg-eyebrow">1950 &mdash; 2024 &bull; 75 Seasons</div>
+    <h1 class="kg-title">
+      Formula<br>
+      <span class="kg-title-accent">One</span><br>
+      Knowledge
+    </h1>
     <p class="kg-lead">
-      1950-2024 Formula 1 results, standings, constructors, circuits and derived achievements
-      modelled as RDF, classified with OWL/RDFS, and extended with SPIN inference.
+      Every race, driver, and constructor across 75 years of Formula 1 — connected, searchable, and enriched with Wikidata and DBpedia.
     </p>
     <div class="kg-actions">
-      <a class="kg-action primary" href="{% url 'championship:champions' %}">Explore Champions</a>
-      <a class="kg-action" href="{% url 'championship:semantic_tools' %}">Semantic Tools</a>
-      <a class="kg-action" href="{% url 'championship:sparql' %}">SPARQL Console</a>
+      <a class="kg-action primary" href="{% url 'championship:hall_of_fame' %}">Hall of Fame</a>
+      <a class="kg-action" href="{% url 'championship:drivers' %}">Drivers</a>
+      <a class="kg-action" href="{% url 'championship:circuits' %}">Circuits</a>
+      <a class="kg-action" href="{% url 'championship:seasons' %}">Seasons</a>
     </div>
   </div>
+
   <aside class="kg-status-panel">
     <div>
       <div class="kg-status-row">
         <span class="kg-status-dot {% if graphdb.ok %}ok{% else %}error{% endif %}"></span>
-        <span class="kg-status-label">GraphDB {% if graphdb.ok %}Connected{% else %}Unavailable{% endif %}</span>
+        <span class="kg-status-label">{% if graphdb.ok %}Live{% else %}Offline{% endif %}</span>
       </div>
       <div class="kg-status-meta">
         {% if graphdb.ok %}
-          {{ graphdb.triple_count }} triples available at {{ graphdb.endpoint }}.
+          {{ graphdb.triple_count }} triples &mdash; {{ graphdb.endpoint }}
         {% else %}
-          {{ graphdb.error|default:"The repository is not reachable. The interface will recover when GraphDB is available." }}
+          {{ graphdb.error|default:"GraphDB not reachable." }}
         {% endif %}
       </div>
+    </div>
+
+    <div class="kg-mini-stats">
+      {% for stat in inferred_stats %}
+      <a class="kg-mini-stat" href="{% url stat.url %}">
+        <div class="kg-mini-val">{{ stat.value }}</div>
+        <div class="kg-mini-lbl">{{ stat.label }}</div>
+      </a>
+      {% endfor %}
     </div>
   </aside>
 </section>
 
-<h2 class="kg-section-title">Live Graph Counts</h2>
-<div class="kg-stat-grid">
+<!-- ── Data at a glance ─────────────────────────────────── -->
+<div class="kg-stats-banner">
   {% for stat in stats %}
-  <a class="kg-stat" href="{% url stat.url %}">
-    <div class="kg-stat-value">{{ stat.value }}</div>
-    <div class="kg-stat-label">{{ stat.label }}</div>
+  <a class="kg-stat-tile" href="{% url stat.url %}">
+    <div class="kg-stat-val">{{ stat.value }}</div>
+    <div class="kg-stat-lbl">{{ stat.label }}</div>
   </a>
   {% endfor %}
 </div>
 
-<h2 class="kg-section-title">Inferred Knowledge</h2>
-<div class="kg-insight-grid">
-  {% for stat in inferred_stats %}
-  <a class="kg-insight" href="{% url stat.url %}">
-    <div class="kg-insight-value">{{ stat.value }}</div>
-    <div class="kg-insight-label">{{ stat.label }}</div>
+<!-- ── Hall of Fame spotlight ────────────────────────────── -->
+{% if graphdb.ok %}
+<div class="kg-section-title">Hall of Fame</div>
+<div class="kg-hof-spotlight">
+  <a class="kg-hof-card" href="{% url 'championship:champions' %}">
+    <div class="kg-hof-card-top">
+      <div>
+        <div class="kg-hof-card-label">World Champions</div>
+        <div class="kg-hof-card-name">{{ inferred_stats.0.value }} drivers</div>
+      </div>
+      <div class="kg-hof-card-num" style="color:#FFD700;">CHM</div>
+    </div>
+    <div class="kg-hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
   </a>
-  {% endfor %}
+  <a class="kg-hof-card" href="{% url 'championship:constructor_champions' %}">
+    <div class="kg-hof-card-top">
+      <div>
+        <div class="kg-hof-card-label">Constructor Champions</div>
+        <div class="kg-hof-card-name">{{ inferred_stats.1.value }} teams</div>
+      </div>
+      <div class="kg-hof-card-num" style="color:var(--red);">CCH</div>
+    </div>
+    <div class="kg-hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+  <a class="kg-hof-card" href="{% url 'championship:pole_positions' %}">
+    <div class="kg-hof-card-top">
+      <div>
+        <div class="kg-hof-card-label">Pole Positions</div>
+        <div class="kg-hof-card-name">{{ inferred_stats.2.value }} total</div>
+      </div>
+      <div class="kg-hof-card-num" style="color:#60a5fa;">P1</div>
+    </div>
+    <div class="kg-hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+  <a class="kg-hof-card" href="{% url 'championship:hat_tricks' %}">
+    <div class="kg-hof-card-top">
+      <div>
+        <div class="kg-hof-card-label">Hat Tricks</div>
+        <div class="kg-hof-card-name">{{ inferred_stats.3.value }} perfect races</div>
+      </div>
+      <div class="kg-hof-card-num" style="color:#e879f9;">HAT</div>
+    </div>
+    <div class="kg-hof-card-footer"><span>Explore</span><span>&rarr;</span></div>
+  </a>
+</div>
+{% endif %}
+
+<!-- ── Explore ───────────────────────────────────────────── -->
+<div class="kg-section-title">Explore</div>
+<div class="kg-explore-grid">
+  <a class="kg-explore-card" href="{% url 'championship:drivers' %}">
+    <div class="kg-explore-kicker">Careers</div>
+    <div class="kg-explore-title">Drivers</div>
+    <div class="kg-explore-text">Race histories, wins, podiums and Wikidata profiles.</div>
+  </a>
+  <a class="kg-explore-card" href="{% url 'championship:constructors' %}">
+    <div class="kg-explore-kicker">Teams</div>
+    <div class="kg-explore-title">Constructors</div>
+    <div class="kg-explore-text">Team records, founder info, win rates and championship titles.</div>
+  </a>
+  <a class="kg-explore-card" href="{% url 'championship:seasons' %}">
+    <div class="kg-explore-kicker">History</div>
+    <div class="kg-explore-title">Seasons</div>
+    <div class="kg-explore-text">Season-by-season standings from 1950 to 2024.</div>
+  </a>
+  <a class="kg-explore-card" href="{% url 'championship:races' %}">
+    <div class="kg-explore-kicker">Events</div>
+    <div class="kg-explore-title">Races</div>
+    <div class="kg-explore-text">Full results, qualifying, pit stops and fastest laps.</div>
+  </a>
+  <a class="kg-explore-card" href="{% url 'championship:circuits' %}">
+    <div class="kg-explore-kicker">Venues</div>
+    <div class="kg-explore-title">Circuits</div>
+    <div class="kg-explore-text">Race history, active/historic status and DBpedia details.</div>
+  </a>
+  <a class="kg-explore-card" href="{% url 'championship:hall_of_fame' %}">
+    <div class="kg-explore-kicker">Achievements</div>
+    <div class="kg-explore-title">Hall of Fame</div>
+    <div class="kg-explore-text">Champions, veterans, pole leaders and hat trick holders.</div>
+  </a>
 </div>
 
-<h2 class="kg-section-title">Primary Workflows</h2>
-<div class="kg-use-grid">
-  <a class="kg-use-case" href="{% url 'championship:drivers' %}">
-    <div class="kg-use-kicker">Careers</div>
-    <div class="kg-use-title">Driver histories</div>
-    <p class="kg-use-text">Wins, podiums, teammates, constructor timelines and external Wikidata enrichment.</p>
-  </a>
-  <a class="kg-use-case" href="{% url 'championship:circuits' %}">
-    <div class="kg-use-kicker">Venues</div>
-    <div class="kg-use-title">Circuit context</div>
-    <p class="kg-use-text">Race history, active/historic classification, DBpedia details and fastest-lap context.</p>
-  </a>
-  <a class="kg-use-case" href="{% url 'championship:admin_dashboard' %}">
-    <div class="kg-use-kicker">Operations</div>
-    <div class="kg-use-title">Admin knowledge ops</div>
-    <p class="kg-use-text">SPARQL updates, import preview, rollback, data-quality checks and inference execution.</p>
-  </a>
-  <a class="kg-use-case" href="{% url 'championship:semantic_tools' %}">
-    <div class="kg-use-kicker">Semantics</div>
-    <div class="kg-use-title">RDF tooling</div>
-    <p class="kg-use-text">Reification viewer, Microformats parser, RDFa validation links and SPARQL exploration.</p>
-  </a>
+<!-- ── Pipeline ─────────────────────────────────────────── -->
+<div class="kg-section-title">How It Works</div>
+<div class="kg-pipeline">
+  <div class="kg-pipeline-step">
+    <span class="kg-pipeline-step-num">01</span>
+    <span class="kg-pipeline-step-label">CSV Data</span>
+    <span class="kg-pipeline-step-sub">Ergast F1 dataset</span>
+  </div>
+  <div class="kg-pipeline-step">
+    <span class="kg-pipeline-step-num">02</span>
+    <span class="kg-pipeline-step-label">N-Triples</span>
+    <span class="kg-pipeline-step-sub">RDF conversion</span>
+  </div>
+  <div class="kg-pipeline-step">
+    <span class="kg-pipeline-step-num">03</span>
+    <span class="kg-pipeline-step-label">OWL Ontology</span>
+    <span class="kg-pipeline-step-sub">GraphDB reasoning</span>
+  </div>
+  <div class="kg-pipeline-step">
+    <span class="kg-pipeline-step-num">04</span>
+    <span class="kg-pipeline-step-label">19 Rules</span>
+    <span class="kg-pipeline-step-sub">Achievement inference</span>
+  </div>
+  <div class="kg-pipeline-step">
+    <span class="kg-pipeline-step-num">05</span>
+    <span class="kg-pipeline-step-label">Live App</span>
+    <span class="kg-pipeline-step-sub">SPARQL &rarr; Django</span>
+  </div>
 </div>
 
-<h2 class="kg-section-title">Semantic Pipeline</h2>
-<div class="kg-pipeline" aria-label="Semantic data pipeline">
-  <div class="kg-pipeline-step">CSV</div>
-  <div class="kg-pipeline-step">N-Triples</div>
-  <div class="kg-pipeline-step">OWL/RDFS</div>
-  <div class="kg-pipeline-step">SPIN Rules</div>
-  <div class="kg-pipeline-step">Django UI</div>
-</div>
 {% endblock %}

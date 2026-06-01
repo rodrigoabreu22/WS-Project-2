@@ -4,214 +4,122 @@
 {% block extra_head %}
 <style>
   .page-header { margin-bottom: 1.5rem; }
-  .page-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    color: var(--white);
-    line-height: 1;
-    margin-bottom: 0.4rem;
-  }
-  .page-sub {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--grey);
-  }
+  .page-title { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1;margin-bottom:0.4rem; }
+  .page-sub { font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey); }
 
-  /* ── Grid ───────────────────────────────────────────────── */
-  .champion-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1rem;
-    align-items: start;
-  }
+  /* ── Cards ─────────────────────────────────────────────── */
+  .champion-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;align-items:start; }
+  .champion-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;position:relative;z-index:0;isolation:isolate;transform-origin:top center;transition:transform .28s ease,box-shadow .28s,border-color .2s,z-index 0s; }
+  .champion-card:hover { border-color:var(--red);transform:scale(1.08);box-shadow:0 18px 48px rgba(0,0,0,.65);z-index:10; }
+  .champion-card::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);border-radius:8px 0 0 8px; }
+  .champion-photo { width:100%;height:210px;background:var(--dark);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);flex-shrink:0; }
+  .champion-photo .photo-fallback { font-size:4rem;opacity:0.25; }
+  .titles-badge { position:absolute;top:0.5rem;right:0.5rem;background:var(--panel);border:1px solid rgba(255,215,0,0.4);border-radius:4px;padding:0.2rem 0.55rem;display:flex;flex-direction:column;align-items:center;z-index:3;backdrop-filter:blur(4px); }
+  .titles-count { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;color:#FFD700;line-height:1; }
+  .titles-word { font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey); }
+  .champion-body { padding:0.75rem 1rem 0.9rem;flex:1;display:flex;flex-direction:column;gap:0.5rem; }
+  .champion-name { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;color:var(--white);line-height:1.15; }
+  .champion-badges { display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:auto; }
+  .badge { font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.18rem 0.5rem;border-radius:3px; }
 
-  /* ── Card ───────────────────────────────────────────────── */
-  .champion-grid { align-items: start; }
-  .champion-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 0;
-    isolation: isolate;
-    transform-origin: top center;
-    transition: transform .28s ease, box-shadow .28s, border-color .2s, z-index 0s;
-  }
-  .champion-card:hover {
-    border-color: var(--red);
-    transform: scale(1.08);
-    box-shadow: 0 18px 48px rgba(0,0,0,.65);
-    z-index: 10;
-  }
+  /* ── Table ─────────────────────────────────────────────── */
+  .champ-table { width:100%;border-collapse:collapse;font-size:0.9rem; }
+  .champ-table thead tr { border-bottom:2px solid var(--red);background:var(--dark); }
+  .champ-table th { padding:0.65rem 1rem;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);white-space:nowrap; }
+  .champ-table td { padding:0.65rem 1rem;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--white); }
+  .champ-table tr:last-child td { border-bottom:none; }
+  .champ-table tbody tr { cursor:pointer; }
+  .champ-table tbody tr:hover td { background:var(--panel-l); }
 
-  /* ── Photo area ─────────────────────────────────────────── */
-  .champion-photo {
-    width: 100%;
-    height: 210px;
-    background: var(--dark);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--line);
-    flex-shrink: 0;
-  }
-  .champion-photo .photo-fallback {
-    font-size: 4rem;
-    line-height: 1;
-    opacity: 0.25;
-  }
-
-  /* Titles badge — top-right corner */
-  .titles-badge {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: var(--panel);
-    border: 1px solid rgba(255,215,0,0.4);
-    border-radius: 4px;
-    padding: 0.2rem 0.55rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 3;
-    backdrop-filter: blur(4px);
-  }
-  .titles-count {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1.5rem;
-    color: #FFD700;
-    line-height: 1;
-  }
-  .titles-word {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 600;
-    font-size: 0.58rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--grey);
-  }
-
-  /* ── Card body ──────────────────────────────────────────── */
-  .champion-body {
-    padding: 0.75rem 1rem 0.9rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .champion-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--white);
-    line-height: 1.15;
-  }
-  .champion-badges {
-    display: flex;
-    gap: 0.35rem;
-    flex-wrap: wrap;
-    margin-top: auto;
-  }
-  .badge {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.18rem 0.5rem;
-    border-radius: 3px;
-  }
-  .badge-champion   { background: var(--dark); color: #FFD700; border: 1px solid rgba(255,215,0,0.35); }
-  .badge-multichamp { background: var(--dark); color: #ff9900; border: 1px solid rgba(255,153,0,0.35); }
-
-  /* ── Red accent strip on card left edge ─────────────────── */
-  .champion-card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--red);
-    border-radius: 8px 0 0 8px;
-  }
-
-  /* ── No-data box ────────────────────────────────────────── */
-  {% if not champions %}
-  .no-data-box {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 3rem 2rem;
-    text-align: center;
-    color: var(--grey);
-  }
-  .no-data-box p { margin: 0.5rem 0; }
-  .no-data-box code {
-    background: var(--dark);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.85rem;
-    color: var(--white);
-  }
-  {% endif %}
+  /* ── No-data ────────────────────────────────────────────── */
+  .no-data-box { background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3rem 2rem;text-align:center;color:var(--grey); }
+  .no-data-box code { background:var(--dark);border:1px solid var(--line);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.85rem;color:var(--white); }
 </style>
 {% endblock %}
 
 {% block content %}
-
 <div vocab="https://schema.org/" typeof="ItemList">
   <meta property="name" content="Formula 1 World Champions" />
-
   <div class="page-header">
-    <div class="page-title">World Champions</div>
-    <div class="page-sub">Inferred by SPIN rules from driver standings &mdash; {{ champions|length }} champion{{ champions|length|pluralize }}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+      <div>
+        <div class="page-title">World Champions</div>
+        <div class="page-sub">{{ champions|length }} champion{{ champions|length|pluralize }}</div>
+      </div>
+      {% if champions %}
+      <div style="display:flex;gap:0.4rem;">
+        <button class="view-toggle-btn" data-view="cards">Cards</button>
+        <button class="view-toggle-btn" data-view="table">Table</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Semantic provenance strip -->
+  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:3px solid #7c3aed;border-radius:6px;padding:0.75rem 1.1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--grey);">
+    <span class="src-badge src-spin">SPIN</span>
+    <span>Every driver on this page carries <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">rdf:type f1:WorldChampion</code>, inferred by SPIN rules <strong style="color:var(--white);">infer_wonChampionship</strong> (GROUP BY + MAX round on DriverStanding) followed by <strong style="color:var(--white);">classify_WorldChampion</strong>. This class does not exist in the raw CSV data.</span>
   </div>
 
   {% if champions %}
-  <div class="champion-grid">
-    {% for c in champions %}
-    <a class="champion-card" href="{% url 'championship:driver_detail' c.driverId %}"
-       property="itemListElement" typeof="Person">
+  <div id="viewContainer">
 
-      <div class="champion-photo wiki-img-slot cover-mode"
-           {% if c.wikiUrl %}data-wiki-url="{{ c.wikiUrl }}" data-label="{{ c.driverLabel }}"{% endif %}>
-        <span class="photo-fallback">&#128100;</span>
-        <div class="titles-badge">
-          <span class="titles-count">{{ c.titles }}</span>
-          <span class="titles-word">title{{ c.titles|pluralize }}</span>
+    <!-- Cards -->
+    <div class="cards-view champion-grid">
+      {% for c in champions %}
+      <a class="champion-card" href="{% url 'championship:driver_detail' c.driverId %}" property="itemListElement" typeof="Person">
+        <div class="champion-photo wiki-img-slot cover-mode"
+             {% if c.wikiUrl %}data-wiki-url="{{ c.wikiUrl }}" data-label="{{ c.driverLabel }}"{% endif %}>
+          <span class="photo-fallback">&#128100;</span>
+          <div class="titles-badge">
+            <span class="titles-count">{{ c.titles }}</span>
+            <span class="titles-word">title{{ c.titles|pluralize }}</span>
+          </div>
         </div>
-      </div>
-
-      <div class="champion-body">
-        <div class="champion-name" property="name">{{ c.driverLabel }}</div>
-        <div class="champion-badges">
-          <span class="badge badge-champion">World Champion</span>
-          {% if c.multi == "true" %}
-          <span class="badge badge-multichamp">Multi-Champion</span>
-          {% endif %}
+        <div class="champion-body">
+          <div class="champion-name" property="name">{{ c.driverLabel }}</div>
+          <div class="champion-badges">
+            <span class="badge badge-champion">World Champion</span>
+            {% if c.multi == "true" %}<span class="badge badge-multichamp">Multi-Champion</span>{% endif %}
+          </div>
         </div>
-      </div>
+      </a>
+      {% endfor %}
+    </div>
 
-    </a>
-    {% endfor %}
+    <!-- Table -->
+    <div class="table-view" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+      <table class="champ-table">
+        <thead><tr><th>#</th><th>Driver</th><th>Titles</th><th>Multi?</th></tr></thead>
+        <tbody>
+          {% for c in champions %}
+          <tr onclick="location.href='{% url 'championship:driver_detail' c.driverId %}'"
+              onkeydown="if(event.key==='Enter')location.href='{% url 'championship:driver_detail' c.driverId %}'" tabindex="0">
+            <td style="color:var(--grey);font-size:0.8rem;">{{ forloop.counter }}</td>
+            <td>
+              <a href="{% url 'championship:driver_detail' c.driverId %}"
+                 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);text-decoration:none;"
+                 onclick="event.stopPropagation()">{{ c.driverLabel }}</a>
+            </td>
+            <td>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:#FFD700;">{{ c.titles }}</span>
+            </td>
+            <td>
+              {% if c.multi == "true" %}<span class="badge badge-multichamp">Yes</span>{% else %}<span style="color:var(--grey);">—</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
   </div>
+  <script>initViewToggle('champions', 'cards');</script>
 
   {% else %}
   <div class="no-data-box">
     <p style="font-size:1.5rem;">&#9888;</p>
-    <p>No world champions found in the knowledge graph.</p>
-    <p>Run the SPIN inference rules first:</p>
+    <p>No world champions found. Run SPIN inference rules first:</p>
     <p><code>python manage.py run_spin_rules</code></p>
     <p>or use the <a href="{% url 'championship:admin_dashboard' %}" style="color:var(--red);">admin dashboard</a> &rarr; Run Inference.</p>
   </div>

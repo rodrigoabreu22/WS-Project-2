@@ -3,15 +3,16 @@
 
 {% block extra_head %}
 <style>
-  .page-header { margin-bottom: 1.5rem; }
+  .page-header { margin-bottom:1.5rem; }
   .page-title { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1;margin-bottom:0.4rem; }
   .page-sub { font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey); }
+
+  /* ── Cards ─────────────────────────────────────────────── */
   .champ-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;align-items:start; }
-  .champ-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;position:relative;z-index:0;isolation:isolate;transform-origin:top center;transition:transform .28s ease,box-shadow .28s,border-color .2s; }
+  .champ-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;position:relative;z-index:0;isolation:isolate;transform-origin:top center;transition:transform .28s ease,box-shadow .28s,border-color .2s,z-index 0s; }
   .champ-card:hover { border-color:var(--red);transform:scale(1.08);box-shadow:0 18px 48px rgba(0,0,0,.65);z-index:10; }
   .champ-card::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);border-radius:8px 0 0 8px; }
   .champ-photo { width:100%;height:210px;background:var(--dark);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);flex-shrink:0; }
-
   .champ-photo .photo-fallback { font-size:4rem;opacity:0.25; }
   .titles-badge { position:absolute;top:0.5rem;right:0.5rem;background:var(--panel);border:1px solid rgba(255,153,0,0.4);border-radius:4px;padding:0.2rem 0.55rem;display:flex;flex-direction:column;align-items:center;z-index:3;backdrop-filter:blur(4px); }
   .titles-count { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;color:#ff9900;line-height:1; }
@@ -19,35 +20,94 @@
   .champ-body { padding:0.75rem 1rem 0.9rem;flex:1;display:flex;flex-direction:column;gap:0.4rem; }
   .champ-name { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;color:var(--white);line-height:1.15; }
   .champ-meta { font-size:0.78rem;color:var(--grey); }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  .mc-table { width:100%;border-collapse:collapse;font-size:0.9rem; }
+  .mc-table thead tr { border-bottom:2px solid var(--red);background:var(--dark); }
+  .mc-table th { padding:0.65rem 1rem;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);white-space:nowrap; }
+  .mc-table td { padding:0.65rem 1rem;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--white); }
+  .mc-table tr:last-child td { border-bottom:none; }
+  .mc-table tbody tr { cursor:pointer; }
+  .mc-table tbody tr:hover td { background:var(--panel-l); }
 </style>
 {% endblock %}
 
 {% block content %}
 <div>
   <div class="page-header">
-    <div class="page-title">Multi-Champions</div>
-    <div class="page-sub">Drivers with 2 or more Drivers&rsquo; Championships &mdash; {{ drivers|length }} driver{{ drivers|length|pluralize }}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+      <div>
+        <div class="page-title">Multi-Champions</div>
+        <div class="page-sub">2+ Drivers&rsquo; Championships &mdash; {{ drivers|length }} driver{{ drivers|length|pluralize }}</div>
+      </div>
+      {% if drivers %}
+      <div style="display:flex;gap:0.4rem;">
+        <button class="view-toggle-btn" data-view="cards">Cards</button>
+        <button class="view-toggle-btn" data-view="table">Table</button>
+      </div>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="champ-grid">
-    {% for d in drivers %}
-    <a class="champ-card" href="{% url 'championship:driver_detail' d.driverId %}">
-      <div class="champ-photo wiki-img-slot cover-mode"
-           {% if d.wikiUrl %}data-wiki-url="{{ d.wikiUrl }}" data-label="{{ d.driverLabel }}"{% endif %}>
-        <span class="photo-fallback">&#128100;</span>
-        <div class="titles-badge">
-          <span class="titles-count">{{ d.titles }}</span>
-          <span class="titles-word">title{{ d.titles|pluralize }}</span>
-        </div>
-      </div>
-      <div class="champ-body">
-        <div class="champ-name">{{ d.driverLabel }}</div>
-        <div class="champ-meta">{{ d.titles }} championship{{ d.titles|pluralize }}</div>
-      </div>
-    </a>
-    {% empty %}
-    <p style="color:var(--grey);">No multi-champions found. Run SPIN rules first.</p>
-    {% endfor %}
+  <!-- Semantic provenance strip -->
+  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:3px solid #7c3aed;border-radius:6px;padding:0.75rem 1.1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--grey);">
+    <span class="src-badge src-spin">SPIN</span>
+    <span>Every driver here has <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">rdf:type f1:MultichampionDriver</code>, inferred by SPIN rule <strong style="color:var(--white);">classify_MultichampionDriver</strong> — a subclass of WorldChampion requiring <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">COUNT(f1:wonChampionship) ≥ 2</code>. OWL DL cannot express COUNT-based subclass restrictions.</span>
   </div>
+
+  {% if drivers %}
+  <div id="viewContainer">
+
+    <!-- Cards -->
+    <div class="cards-view champ-grid">
+      {% for d in drivers %}
+      <a class="champ-card" href="{% url 'championship:driver_detail' d.driverId %}">
+        <div class="champ-photo wiki-img-slot cover-mode"
+             {% if d.wikiUrl %}data-wiki-url="{{ d.wikiUrl }}" data-label="{{ d.driverLabel }}"{% endif %}>
+          <span class="photo-fallback">&#128100;</span>
+          <div class="titles-badge">
+            <span class="titles-count">{{ d.titles }}</span>
+            <span class="titles-word">title{{ d.titles|pluralize }}</span>
+          </div>
+        </div>
+        <div class="champ-body">
+          <div class="champ-name">{{ d.driverLabel }}</div>
+          <div class="champ-meta">{{ d.titles }} championship{{ d.titles|pluralize }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Table -->
+    <div class="table-view" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+      <table class="mc-table">
+        <thead><tr><th>#</th><th>Driver</th><th>Titles</th></tr></thead>
+        <tbody>
+          {% for d in drivers %}
+          <tr onclick="location.href='{% url 'championship:driver_detail' d.driverId %}'"
+              onkeydown="if(event.key==='Enter')location.href='{% url 'championship:driver_detail' d.driverId %}'" tabindex="0">
+            <td style="color:var(--grey);font-size:0.8rem;">{{ forloop.counter }}</td>
+            <td>
+              <a href="{% url 'championship:driver_detail' d.driverId %}"
+                 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);text-decoration:none;"
+                 onclick="event.stopPropagation()">{{ d.driverLabel }}</a>
+            </td>
+            <td>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:#ff9900;">{{ d.titles }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+  <script>initViewToggle('multichampions', 'cards');</script>
+
+  {% else %}
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3rem 2rem;text-align:center;color:var(--grey);">
+    No multi-champions found. Run SPIN rules first.
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

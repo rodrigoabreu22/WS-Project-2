@@ -331,6 +331,18 @@
 <h1 class="page-title">Drivers</h1>
 <p class="page-subtitle">{{ total }} driver{{ total|pluralize }} &mdash; page {{ page }} of {{ total_pages }}</p>
 
+{% if spin_available %}
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:3px solid #7c3aed;border-radius:6px;padding:0.6rem 1rem;margin-bottom:1rem;font-size:0.82rem;color:var(--grey);">
+  <span class="src-badge src-spin">SPIN</span>
+  <span>Wins and podium counts on this page come from SPIN-inferred graph properties:
+    <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:wonRace</code>
+    <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:finishedSecond</code>
+    <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:finishedThird</code>
+    &mdash; not from raw CSV position values.
+  </span>
+</div>
+{% endif %}
+
 <!-- ── Podium (page 1 only) ──────────────────────────────────── -->
 {% if podium|length >= 3 and page == 1 %}
 <section class="podium-section">
@@ -467,13 +479,15 @@
         </th>
         <th class="{% if sort == 'podiums' %}active-sort{% endif %}">
           <a href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort=podiums&order={% if sort == 'podiums' and order == 'asc' %}desc{% else %}asc{% endif %}&page=1">
-            Podiums {% if medal == 'gold' %}&#129351;{% elif medal == 'silver' %}&#129352;{% elif medal == 'bronze' %}&#129353;{% endif %}
+            Podiums {% if spin_available %}<span class="src-badge src-spin" style="vertical-align:middle;" title="f1:wonRace + f1:finishedSecond + f1:finishedThird">SPIN</span>{% endif %}
+            {% if medal == 'gold' %}&#129351;{% elif medal == 'silver' %}&#129352;{% elif medal == 'bronze' %}&#129353;{% endif %}
             {% if sort == 'podiums' %}{% if order == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
           </a>
         </th>
         <th class="{% if sort == 'wins' %}active-sort{% endif %}">
           <a href="?q={{ q }}&nationality={{ nationality }}{% if medal %}&medal={{ medal }}{% endif %}&sort=wins&order={% if sort == 'wins' and order == 'asc' %}desc{% else %}asc{% endif %}&page=1">
-            Wins {% if sort == 'wins' %}{% if order == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+            Wins {% if spin_available %}<span class="src-badge src-spin" style="vertical-align:middle;" title="f1:wonRace (SPIN: infer_wonRace)">SPIN</span>{% endif %}
+            {% if sort == 'wins' %}{% if order == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
           </a>
         </th>
       </tr>

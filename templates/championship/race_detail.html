@@ -8,20 +8,63 @@
     background: var(--dark);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 2rem;
     margin-bottom: 1.5rem;
     position: relative;
     overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    min-height: 200px;
   }
 
   .hero::after {
     content: '';
     position: absolute;
-    top: 0; right: -30px; bottom: 0;
+    top: 0; right: 0; bottom: 0;
     width: 5px;
     background: var(--red);
-    transform: skewX(-12deg);
   }
+
+  .hero-content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Race photo panel — circuit/race diagram from DBpedia */
+  .race-hero-photo {
+    width: 300px;
+    background: #f0f0f0;  /* light bg — circuit diagrams are usually on white */
+    border-left: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+    display: none;          /* shown as flex by JS when image loads */
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  /* Use contain so circuit maps are never cropped */
+  .race-hero-photo img {
+    max-width: 100%;
+    max-height: 240px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    border-radius: 4px;
+  }
+
+  /* Source badge — bottom right corner over image */
+  .race-hero-photo-badge {
+    position: absolute;
+    bottom: 0.4rem;
+    right: 0.4rem;
+    z-index: 2;
+  }
+
+  [data-theme="light"] .race-hero-photo { background: #e8e8e8; }
 
   .hero-name {
     font-family: 'Barlow Condensed', sans-serif;
@@ -53,6 +96,11 @@
   }
 
   .hero-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+
+  @media (max-width: 700px) {
+    .hero { grid-template-columns: 1fr; }
+    .race-hero-photo { width: 100%; height: 180px; border-left: none; border-top: 1px solid var(--line); }
+  }
 
   /* ── Stat tiles ──────────────────────────────────────── */
   .stat-tiles {
@@ -164,6 +212,19 @@
     padding: 0.15rem 0.55rem;
     border-radius: 3px;
     color: var(--white);
+  }
+
+  /* Inference provenance strip — sits between info-card and podium step */
+  .podium-inference {
+    width: 100%;
+    background: var(--dark);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 0.35rem 0.5rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .podium-step {
@@ -369,24 +430,93 @@
 <article class="hero h-event"
          vocab="https://schema.org/" typeof="SportsEvent"
          resource="{{ request.build_absolute_uri }}">
-  <div class="hero-name p-name" property="name">{{ info.label }}</div>
-  <div class="hero-meta">
-    {% if info.circuitLabel %}<span class="meta-chip p-location" property="locationCreated">{{ info.circuitLabel }}</span>{% endif %}
-    {% if info.circuitCountry %}<span class="meta-chip">{{ info.circuitCountry }}</span>{% endif %}
-    {% if info.date %}<time class="meta-chip dt-start" property="startDate" datetime="{{ info.date }}">{{ info.date }}</time>{% endif %}
-    {% if info.round %}<span class="meta-chip">Round {{ info.round }}</span>{% endif %}
-    {% if info.year %}<span class="meta-chip">{{ info.year }} Season</span>{% endif %}
+
+  <div class="hero-content">
+    <div class="hero-name p-name" property="name">{{ info.label }}</div>
+    <div class="hero-meta">
+      {% if info.circuitLabel %}<span class="meta-chip p-location" property="location">{{ info.circuitLabel }}</span>{% endif %}
+      {% if info.circuitCountry %}<span class="meta-chip">{{ info.circuitCountry }}</span>{% endif %}
+      {% if info.date %}<time class="meta-chip dt-start" property="startDate" datetime="{{ info.date }}">{{ info.date }}</time>{% endif %}
+      {% if info.round %}<span class="meta-chip">Round {{ info.round }}</span>{% endif %}
+      {% if info.year %}<span class="meta-chip">{{ info.year }} Season</span>{% endif %}
+    </div>
+    <p id="raceDesc" style="display:none;font-size:0.88rem;color:var(--grey);line-height:1.55;margin-top:0.75rem;max-width:480px;"></p>
+    <p id="raceDescSource" style="display:none;font-size:0.72rem;color:var(--grey);opacity:.65;margin-top:0.2rem;"></p>
+    <div class="hero-actions">
+      {% if wiki_url %}
+      <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
+      <a href="{{ wiki_url }}" target="_blank" rel="noopener" class="btn btn-secondary">Wikipedia &rarr;</a>
+      {% endif %}
+      {% if info.circuitId %}
+      <a href="{% url 'championship:circuit_detail' info.circuitId %}" class="btn btn-secondary">Circuit Page &rarr;</a>
+      {% endif %}
+    </div>
   </div>
-  <div class="hero-actions">
-    {% if wiki_url %}
-    <link property="sameAs" class="u-url" href="{{ wiki_url }}" />
-    <a href="{{ wiki_url }}" target="_blank" rel="noopener" class="btn btn-secondary">Wikipedia &rarr;</a>
-    {% endif %}
-    {% if info.circuitId %}
-    <a href="{% url 'championship:circuit_detail' info.circuitId %}" class="btn btn-secondary">Circuit Page &rarr;</a>
-    {% endif %}
+
+  <!-- Race photo — populated by JS from DBpedia dbo:thumbnail -->
+  <div class="race-hero-photo" id="raceHeroPhoto">
+    <div class="race-hero-photo-badge">
+      <span class="src-badge src-dbpedia" title="Source: DBpedia dbo:thumbnail">DBPEDIA</span>
+    </div>
   </div>
+
 </article>
+{% if wiki_url or info.label %}
+<script>
+(function(){
+  const apiUrl = '{% url "championship:api_entity_info" %}?type=race'
+    + '&name={{ info.label|urlencode }}'
+    + '&year={{ info.year|default:"" }}'
+    + '{% if wiki_url %}&wiki={{ wiki_url|urlencode }}{% endif %}';
+
+  fetch(apiUrl).then(r=>r.json()).then(d=>{
+    // ── Wikipedia description ────────────────────────────────────────
+    const t = d.extract || d.description || '';
+    if (t) {
+      const de = document.getElementById('raceDesc'), se = document.getElementById('raceDescSource');
+      de.textContent = t; de.style.display = '';
+      const srcBadge = d.extract
+        ? '<a class="src-badge src-wikipedia" href="{{ wiki_url }}" target="_blank" rel="noopener">WIKIPEDIA</a>'
+        : '<span class="src-badge src-dbpedia" title="Source: DBpedia SPARQL">DBPEDIA</span>';
+      se.innerHTML = srcBadge + ' <span style="font-size:0.75rem;color:var(--grey);">race summary</span>';
+      se.style.display = '';
+    }
+
+    // ── DBpedia race photo — populate the dedicated photo panel ─────
+    const photoPanel = document.getElementById('raceHeroPhoto');
+    if (d.image && photoPanel) {
+      const img = document.createElement('img');
+      img.src = d.image;
+      img.alt = '{{ info.label|escapejs }}';
+      img.onload = function() {
+        photoPanel.insertBefore(img, photoPanel.firstChild);
+        photoPanel.style.display = 'flex';  /* flex for contain+center layout */
+      };
+    }
+
+    // ── DBpedia weather + attendance chips ───────────────────────────
+    const meta = document.querySelector('.hero-meta');
+    if (meta) {
+      if (d.weather) {
+        const chip = document.createElement('span');
+        chip.className = 'meta-chip';
+        chip.innerHTML = '&#127780; ' + d.weather
+          + ' <span class="src-badge src-dbpedia" style="vertical-align:middle;" title="Source: DBpedia">DBPEDIA</span>';
+        meta.insertBefore(chip, meta.firstChild);
+      }
+      if (d.attendance) {
+        const att = parseInt(d.attendance);
+        const chip2 = document.createElement('span');
+        chip2.className = 'meta-chip';
+        chip2.innerHTML = '&#128101; ' + (isNaN(att) ? d.attendance : att.toLocaleString() + ' spectators')
+          + ' <span class="src-badge src-dbpedia" style="vertical-align:middle;" title="Source: DBpedia">DBPEDIA</span>';
+        meta.appendChild(chip2);
+      }
+    }
+  }).catch(()=>{});
+})();
+</script>
+{% endif %}
 
 <!-- ── Stat Tiles ─────────────────────────────────────────────────────────── -->
 <div class="stat-tiles">
@@ -408,6 +538,62 @@
   </div>
 </div>
 
+<!-- ── Semantic Provenance ─────────────────────────────────────────────────── -->
+<details class="section-card" style="margin-bottom:1.5rem;" open>
+  <summary style="background:var(--dark);border-bottom:2px solid #7c3aed;padding:0.7rem 1.25rem;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+    <span>Semantic Provenance</span>
+    <span style="font-size:0.7rem;font-weight:600;letter-spacing:0;">&#9660;</span>
+  </summary>
+  <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:0.15rem;">Podium Classification</div>
+    {% if p1 %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN rule: infer_wonRace — positionOrder = 1 on a Result entity, inserted as f1:wonRace driver→race link">SPIN</span>
+      <span style="font-size:0.85rem;color:var(--white);font-weight:600;">1st — {{ p1.driver_label }}</span>
+      <span style="font-size:0.82rem;color:var(--grey);">&#8594; <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:wonRace</code></span>
+    </div>
+    {% endif %}
+    {% if p2 %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN rule: infer_finishedSecond — positionOrder = 2, inserted as f1:finishedSecond driver→race link">SPIN</span>
+      <span style="font-size:0.85rem;color:var(--white);font-weight:600;">2nd — {{ p2.driver_label }}</span>
+      <span style="font-size:0.82rem;color:var(--grey);">&#8594; <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:finishedSecond</code> &#8838; <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:achievedPodium</code></span>
+    </div>
+    {% endif %}
+    {% if p3 %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin" title="SPIN rule: infer_finishedThird — positionOrder = 3, inserted as f1:finishedThird driver→race link">SPIN</span>
+      <span style="font-size:0.85rem;color:var(--white);font-weight:600;">3rd — {{ p3.driver_label }}</span>
+      <span style="font-size:0.82rem;color:var(--grey);">&#8594; <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:finishedThird</code> &#8838; <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:achievedPodium</code></span>
+    </div>
+    {% endif %}
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-top:0.4rem;margin-bottom:0.15rem;">Race Achievements (Results Table)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-spin">SPIN</span>
+      <span style="font-size:0.82rem;color:var(--grey);">
+        <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:startedFromP1</code>
+        <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:convertedP1ToWin</code>
+        <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:setFastestLap</code>
+        <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:achievedHatTrick</code>
+        shown in the Inferred column below
+      </span>
+    </div>
+    {% if wiki_url or info.label %}
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-top:0.4rem;margin-bottom:0.15rem;">External Enrichment</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span class="src-badge src-dbpedia">DBPEDIA</span>
+      <span style="font-size:0.82rem;color:var(--grey);">Weather, attendance, race photo — direct URI: <code style="font-size:0.75rem;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">dbr:{{ info.year|default:"" }}_{{ info.label|cut:" "|default:"" }}</code></span>
+    </div>
+    {% if wiki_url %}
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <a class="src-badge src-wikipedia" href="{{ wiki_url }}" target="_blank" rel="noopener">WIKIPEDIA</a>
+      <span style="font-size:0.82rem;color:var(--grey);">Race summary via REST API: <code style="font-size:0.75rem;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">/api/rest_v1/page/summary/</code></span>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</details>
+
 <!-- ── Podium ─────────────────────────────────────────────────────────────── -->
 {% if p1 or p2 or p3 %}
 <div class="podium">
@@ -421,6 +607,10 @@
       <div class="podium-team">{% if p2.constructor_id %}<a href="{% url 'championship:constructor_detail' p2.constructor_id %}" class="grey-link">{{ p2.constructor_label }}</a>{% else %}{{ p2.constructor_label }}{% endif %}</div>
       {% if p2.time %}<div class="podium-time">{{ p2.time }}</div>{% endif %}
       {% if p2.points %}<div class="podium-pts">{{ p2.points }} pts</div>{% endif %}
+    </div>
+    <!-- SPIN provenance — outside info-card to avoid parent overflow:hidden clipping -->
+    <div class="podium-inference">
+      <span class="src-badge src-spin" title="SPIN rule: infer_finishedSecond — positionOrder = 2 on a Result entity">SPIN &bull; f1:finishedSecond</span>
     </div>
     <div class="podium-step step-2">2<sup style="font-size:0.6em">nd</sup></div>
   </div>
@@ -436,6 +626,10 @@
       {% if p1.time %}<div class="podium-time">{{ p1.time }}</div>{% endif %}
       {% if p1.points %}<div class="podium-pts">{{ p1.points }} pts</div>{% endif %}
     </div>
+    <!-- SPIN provenance -->
+    <div class="podium-inference">
+      <span class="src-badge src-spin" title="SPIN rule: infer_wonRace — positionOrder = 1 on a Result entity">SPIN &bull; f1:wonRace</span>
+    </div>
     <div class="podium-step step-1">1<sup style="font-size:0.6em">st</sup></div>
   </div>
   {% endif %}
@@ -449,6 +643,10 @@
       <div class="podium-team">{% if p3.constructor_id %}<a href="{% url 'championship:constructor_detail' p3.constructor_id %}" class="grey-link">{{ p3.constructor_label }}</a>{% else %}{{ p3.constructor_label }}{% endif %}</div>
       {% if p3.time %}<div class="podium-time">{{ p3.time }}</div>{% endif %}
       {% if p3.points %}<div class="podium-pts">{{ p3.points }} pts</div>{% endif %}
+    </div>
+    <!-- SPIN provenance -->
+    <div class="podium-inference">
+      <span class="src-badge src-spin" title="SPIN rule: infer_finishedThird — positionOrder = 3 on a Result entity">SPIN &bull; f1:finishedThird</span>
     </div>
     <div class="podium-step step-3">3<sup style="font-size:0.6em">rd</sup></div>
   </div>
@@ -468,7 +666,7 @@
         <th>Constructor</th>
         <th>Grid</th>
         <th>Laps</th>
-        <th>Inferred</th>
+        <th>Inferred <span class="src-badge src-spin" style="vertical-align:middle;" title="SPIN rules: infer_achievedHatTrick, infer_startedFromP1, infer_convertedP1ToWin, infer_setFastestLap">SPIN</span></th>
         <th>Time</th>
         <th>Status</th>
         <th>Pts</th>
@@ -497,10 +695,13 @@
         <td>
           <div class="achievement-badges">
             {% if r.is_hat_trick %}<span class="achievement-badge gold">Hat trick</span>{% endif %}
+            {% if r.is_winner %}<span class="achievement-badge gold" title="f1:wonRace — SPIN: infer_wonRace">Win</span>{% endif %}
+            {% if r.is_second %}<span class="achievement-badge" style="background:#1a2a3a;color:#C0C0C0;border:1px solid #C0C0C0;" title="f1:finishedSecond — SPIN: infer_finishedSecond">2nd</span>{% endif %}
+            {% if r.is_third %}<span class="achievement-badge" style="background:#1a1a0a;color:#CD7F32;border:1px solid #CD7F32;" title="f1:finishedThird — SPIN: infer_finishedThird">3rd</span>{% endif %}
             {% if r.is_p1_start %}<span class="achievement-badge">P1 start</span>{% endif %}
             {% if r.is_p1_win %}<span class="achievement-badge">P1 win</span>{% endif %}
             {% if r.is_fastest_lap %}<span class="achievement-badge red">Fastest lap</span>{% endif %}
-            {% if not r.is_hat_trick and not r.is_p1_start and not r.is_p1_win and not r.is_fastest_lap %}
+            {% if not r.is_hat_trick and not r.is_winner and not r.is_second and not r.is_third and not r.is_p1_start and not r.is_p1_win and not r.is_fastest_lap %}
             <span style="color:var(--grey);">—</span>
             {% endif %}
           </div>

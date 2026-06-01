@@ -17,4 +17,4 @@ elif [[ -f .venv/bin/activate ]]; then
 fi
 
 python manage.py migrate --run-syncdb 2>/dev/null || python manage.py migrate
-python manage.py runserver "${1:-127.0.0.1:8000}"
+python manage.py runserver "${1:-127.0.0.1:9000}"

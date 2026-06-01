@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Pole Position Leaders{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-header { margin-bottom:1.5rem; }
+  .page-title { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1;margin-bottom:0.4rem; }
+  .page-sub { font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey); }
+
+  /* ── Hero stats ─────────────────────────────────────────── */
+  .hero-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:1.5rem; }
+  .hero-stat { background:var(--panel);padding:1.25rem 1rem;text-align:center; }
+  .hero-stat-value { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:2.6rem;color:var(--red);line-height:1; }
+  .hero-stat-label { font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-top:0.3rem; }
+
+  /* ── Cards ─────────────────────────────────────────────── */
+  .p1-card-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;align-items:start; }
+  .p1-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;position:relative;z-index:0;isolation:isolate;transform-origin:top center;transition:transform .28s ease,box-shadow .28s,border-color .2s,z-index 0s; }
+  .p1-card:hover { border-color:var(--red);transform:scale(1.08);box-shadow:0 18px 48px rgba(0,0,0,.65);z-index:10; }
+  .p1-card::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#60a5fa;border-radius:8px 0 0 8px; }
+  .p1-card-photo { width:100%;height:180px;background:var(--dark);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);flex-shrink:0; }
+  .p1-card-photo .photo-fallback { font-size:3.5rem;opacity:0.25; }
+  .p1-badge { position:absolute;top:0.5rem;right:0.5rem;background:var(--panel);border:1px solid rgba(96,165,250,0.4);border-radius:4px;padding:0.2rem 0.55rem;display:flex;flex-direction:column;align-items:center;z-index:3;backdrop-filter:blur(4px); }
+  .p1-badge-num { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:#60a5fa;line-height:1; }
+  .p1-badge-lbl { font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey); }
+  .p1-card-body { padding:0.75rem 1rem 0.9rem;flex:1;display:flex;flex-direction:column;gap:0.35rem; }
+  .p1-card-name { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.05rem;color:var(--white);line-height:1.15; }
+  .p1-card-meta { font-size:0.78rem;color:var(--grey); }
+  .p1-card-conv { font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.82rem;color:#60a5fa; }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  .p1-table { width:100%;border-collapse:collapse;font-size:0.92rem; }
+  .p1-table thead tr { border-bottom:2px solid var(--red);background:var(--dark); }
+  .p1-table th { padding:0.7rem 1rem;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);white-space:nowrap; }
+  .p1-table th.right { text-align:right; }
+  .p1-table td { padding:0.7rem 1rem;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--white); }
+  .p1-table td.right { text-align:right; }
+  .p1-table tr:last-child td { border-bottom:none; }
+  .p1-table tbody tr { cursor:pointer; }
+  .p1-table tbody tr:hover td { background:var(--panel-l); }
+  .rank-num { font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;min-width:1.6rem;display:inline-block;text-align:center; }
+  .rank-num.r1 { color:#FFD700; } .rank-num.r2 { color:#C0C0C0; } .rank-num.r3 { color:#CD7F32; }
+  .conv-wrap { display:flex;align-items:center;gap:0.6rem;justify-content:flex-end; }
+  .conv-bar-bg { flex:1;max-width:80px;height:6px;background:var(--line);border-radius:3px;overflow:hidden; }
+  .conv-bar { height:100%;background:#60a5fa;border-radius:3px; }
+  .conv-pct { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.9rem;color:#60a5fa;min-width:3.5rem;text-align:right; }
+
+  .section-card { background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden; }
+  .section-head-bar { background:var(--dark);border-bottom:2px solid var(--red);padding:0.7rem 1.25rem;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey); }
+
+  @media (max-width:640px) {
+    .hero-stats { grid-template-columns:1fr; }
+    .p1-table th:nth-child(5), .p1-table td:nth-child(5) { display:none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+    <div>
+      <div class="page-title">Pole Position Leaders</div>
+      <div class="page-sub">{{ drivers|length }} driver{{ drivers|length|pluralize }} with at least one pole position</div>
+    </div>
+    {% if drivers %}
+    <div style="display:flex;gap:0.4rem;">
+      <button class="view-toggle-btn" data-view="table">Table</button>
+      <button class="view-toggle-btn" data-view="cards">Cards</button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="hero-stats">
+  <div class="hero-stat">
+    <div class="hero-stat-value">{{ total_p1s }}</div>
+    <div class="hero-stat-label">Total Pole Positions</div>
+  </div>
+  <div class="hero-stat">
+    <div class="hero-stat-value">{{ total_p1wins }}</div>
+    <div class="hero-stat-label">Converted to Wins</div>
+  </div>
+  <div class="hero-stat">
+    <div class="hero-stat-value">{{ drivers|length }}</div>
+    <div class="hero-stat-label">Drivers Who Qualified P1</div>
+  </div>
+</div>
+
+<!-- Semantic provenance strip -->
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:3px solid #7c3aed;border-radius:6px;padding:0.75rem 1.1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--grey);">
+  <span class="src-badge src-spin">SPIN</span>
+  <span>Pole counts use <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:startedFromP1</code> (1,135 triples — SPIN rule <strong style="color:var(--white);">infer_startedFromP1</strong>, grid=1). Conversion counts use <code style="font-size:0.78rem;color:#c084fc;background:var(--dark);padding:0.1rem 0.3rem;border-radius:3px;">f1:convertedP1ToWin</code> (486 triples — <strong style="color:var(--white);">infer_convertedP1ToWin</strong>, layered over wonRace + startedFromP1). Conversion rate is computed by the SPARQL query, not Python.</span>
+</div>
+
+{% if drivers %}
+<div id="viewContainer">
+
+  <!-- Table (default) -->
+  <div class="table-view section-card">
+    <div class="section-head-bar">Pole Position Leaderboard</div>
+    <table class="p1-table">
+      <thead>
+        <tr>
+          <th style="width:2.5rem;">#</th>
+          <th>Driver</th>
+          <th class="right">Poles</th>
+          <th class="right">P1 Wins</th>
+          <th class="right">Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in drivers %}
+        <tr onclick="location.href='{% url 'championship:driver_detail' d.id %}'"
+            onkeydown="if(event.key==='Enter')location.href='{% url 'championship:driver_detail' d.id %}'" tabindex="0">
+          <td>
+            <span class="rank-num {% if forloop.counter == 1 %}r1{% elif forloop.counter == 2 %}r2{% elif forloop.counter == 3 %}r3{% endif %}">
+              {{ forloop.counter }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'championship:driver_detail' d.id %}"
+               style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:var(--white);text-decoration:none;"
+               onclick="event.stopPropagation()">{{ d.label }}</a>
+          </td>
+          <td class="right">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;color:var(--white);">{{ d.p1_starts }}</span>
+          </td>
+          <td class="right">
+            {% if d.p1_wins > 0 %}
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;color:var(--red);">{{ d.p1_wins }}</span>
+            {% else %}<span style="color:var(--grey);">—</span>{% endif %}
+          </td>
+          <td class="right">
+            {% if d.p1_starts > 0 %}
+            <div class="conv-wrap">
+              <div class="conv-bar-bg"><div class="conv-bar" style="width:{{ d.conversion_rate }}%"></div></div>
+              <span class="conv-pct">{{ d.conversion_rate }}%</span>
+            </div>
+            {% else %}<span style="color:var(--grey);">—</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards-view p1-card-grid">
+    {% for d in drivers %}
+    <a class="p1-card" href="{% url 'championship:driver_detail' d.id %}">
+      <div class="p1-card-photo wiki-img-slot cover-mode"
+           {% if d.wiki_url %}data-wiki-url="{{ d.wiki_url }}" data-label="{{ d.label }}"{% endif %}>
+        <span class="photo-fallback">&#128100;</span>
+        <div class="p1-badge">
+          <span class="p1-badge-num">{{ d.p1_starts }}</span>
+          <span class="p1-badge-lbl">poles</span>
+        </div>
+      </div>
+      <div class="p1-card-body">
+        <div class="p1-card-name">{{ d.label }}</div>
+        {% if d.p1_wins > 0 %}
+        <div class="p1-card-meta">{{ d.p1_wins }} win{{ d.p1_wins|pluralize }} from pole</div>
+        {% endif %}
+        {% if d.p1_starts > 0 %}
+        <div class="p1-card-conv">{{ d.conversion_rate }}% conversion</div>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+</div>
+<script>initViewToggle('pole_positions', 'table');</script>
+
+{% else %}
+<div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3rem 2rem;text-align:center;color:var(--grey);">
+  <p style="font-size:1.5rem;">&#9888;</p>
+  <p>No pole position data found. Run SPIN inference rules first:</p>
+  <p style="margin-top:0.5rem;"><code style="background:var(--dark);padding:0.2rem 0.5rem;border-radius:4px;">python manage.py run_spin_rules</code></p>
+</div>
+{% endif %}
+
+{% endblock %}
