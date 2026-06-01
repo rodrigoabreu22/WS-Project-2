@@ -4,297 +4,322 @@
 
 {% block extra_head %}
 <style>
-  /* ── Hero ───────────────────────────────────────────────── */
-  .hero {
-    position: relative;
-    overflow: hidden;
+  .kg-hero {
     background: var(--dark);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 4rem 3rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: 0; right: -60px; bottom: 0;
-    width: 340px;
-    background: var(--red);
-    transform: skewX(-12deg);
-    opacity: 0.08;
-  }
-
-  .hero::after {
-    content: '';
-    position: absolute;
-    top: 0; right: -20px; bottom: 0;
-    width: 6px;
-    background: var(--red);
-    transform: skewX(-12deg);
-  }
-
-  .hero-eyebrow {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--red);
-    margin-bottom: 1rem;
-  }
-
-  .hero-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: clamp(3.5rem, 8vw, 7rem);
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    color: var(--white);
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-title em {
-    font-style: italic;
-    color: var(--red);
-  }
-
-  .hero-lead {
-    max-width: 38rem;
-    font-size: 1.05rem;
-    color: var(--grey);
-    line-height: 1.6;
-  }
-
-  /* ── Section cards ──────────────────────────────────────── */
-  .nav-card {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-
-  .section-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: border-color 0.2s, transform 0.2s;
-    height: 100%;
-  }
-
-  .nav-card:hover .section-card {
-    border-color: var(--red);
-    transform: translateY(-3px);
-  }
-
-  /* Monogram icon badge — replaces emoji */
-  .card-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 6px;
-    background: var(--red);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 0.85rem;
-    letter-spacing: 0.06em;
-    color: #fff;
-    margin-bottom: 0.85rem;
-  }
-
-  .section-card-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 1.4rem;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-    color: var(--white);
-  }
-
-  .section-card-desc {
-    font-size: 0.9rem;
-    color: var(--grey);
-    line-height: 1.5;
-  }
-
-  .section-card-arrow {
-    display: inline-block;
-    margin-top: 1rem;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--red);
-  }
-
-  /* 6-card grid: 2 rows of 3 */
-  .cards-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 2rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    padding: 2.5rem;
+    position: relative;
   }
-
-  /* AI card gets a subtle accent border to stand out */
-  .cards-grid .nav-card:last-child .section-card {
-    border-color: var(--grey-d);
+  .kg-hero::after {
+    background: var(--red);
+    bottom: 0;
+    content: "";
+    opacity: 0.18;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 8px;
   }
-  .cards-grid .nav-card:last-child:hover .section-card {
-    border-color: var(--red);
+  .kg-eyebrow {
+    color: var(--red);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
   }
-  .cards-grid .nav-card:last-child .card-icon {
-    background: var(--panel-l);
-    border: 1px solid var(--grey-d);
+  .kg-title {
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(3rem, 7vw, 5.8rem);
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 0.95;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  .kg-lead {
     color: var(--grey);
+    font-size: 1rem;
+    line-height: 1.65;
+    max-width: 48rem;
   }
-  .cards-grid .nav-card:last-child:hover .card-icon {
+  .kg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.5rem;
+  }
+  .kg-action {
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--white);
+    display: inline-flex;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    min-height: 2.55rem;
+    padding: 0.65rem 0.9rem;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .kg-action.primary {
     background: var(--red);
     border-color: var(--red);
-    color: #fff;
   }
-
-  @media (max-width: 900px) {
-    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .kg-action:hover,
+  .kg-action:focus-visible {
+    border-color: var(--red);
+    outline: none;
   }
-
-  @media (max-width: 540px) {
-    .cards-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ── Status bar ─────────────────────────────────────────── */
-  .status-bar {
+  .kg-status-panel {
+    align-self: stretch;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 0.75rem 1.25rem;
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 13rem;
+    padding: 1.25rem;
+  }
+  .kg-status-row {
     align-items: center;
-    gap: 0.6rem;
-    font-size: 0.82rem;
+    display: flex;
+    gap: 0.65rem;
   }
-
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  .kg-status-dot {
+    border-radius: 999px;
+    flex: 0 0 auto;
+    height: 0.6rem;
+    width: 0.6rem;
   }
-
-  .status-dot.ok    { background: #10b981; box-shadow: 0 0 5px #10b981; }
-  .status-dot.error { background: var(--red); box-shadow: 0 0 5px var(--red); }
-
-  .status-text {
+  .kg-status-dot.ok { background: #10b981; box-shadow: 0 0 8px #10b981; }
+  .kg-status-dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .kg-status-label {
+    color: var(--white);
     font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 600;
-    font-size: 0.78rem;
+    font-size: 1.1rem;
+    font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+  .kg-status-meta {
     color: var(--grey);
+    font-size: 0.86rem;
+    line-height: 1.5;
+    margin-top: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+  .kg-section-title {
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin: 1.5rem 0 0.8rem;
+    text-transform: uppercase;
+  }
+  .kg-stat-grid,
+  .kg-insight-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin-bottom: 1rem;
+  }
+  .kg-stat,
+  .kg-insight,
+  .kg-use-case {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: inherit;
+    display: block;
+    min-width: 0;
+    padding: 1rem;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .kg-stat:hover,
+  .kg-insight:hover,
+  .kg-use-case:hover {
+    border-color: var(--red);
+    transform: translateY(-2px);
+  }
+  .kg-stat-value,
+  .kg-insight-value {
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .kg-stat-label,
+  .kg-insight-label {
+    color: var(--grey);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    margin-top: 0.35rem;
+    text-transform: uppercase;
+  }
+  .kg-use-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 1.4rem;
+  }
+  .kg-use-kicker {
+    color: var(--red);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.55rem;
+    text-transform: uppercase;
+  }
+  .kg-use-title {
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.55rem;
+    text-transform: uppercase;
+  }
+  .kg-use-text {
+    color: var(--grey);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .kg-pipeline {
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--grey);
+    display: grid;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    gap: 0.65rem;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .kg-pipeline-step {
+    background: var(--dark);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.75rem 0.5rem;
+  }
+  @media (max-width: 880px) {
+    .kg-hero { grid-template-columns: 1fr; padding: 1.6rem; }
+    .kg-pipeline { grid-template-columns: 1fr; text-align: left; }
+  }
+  @media (max-width: 520px) {
+    .kg-title { font-size: 2.8rem; }
+    .kg-actions { flex-direction: column; }
+    .kg-action { justify-content: center; width: 100%; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- Hero -->
-<section class="hero">
-  <p class="hero-eyebrow">Formula 1 Data Explorer</p>
-  <h1 class="hero-title">BEYOND<br>THE <em>LIMIT</em></h1>
-  <p class="hero-lead">
-    {{ stats.0.value }} seasons. {{ stats.2.value }} drivers. {{ stats.4.value }} races.
-    Every result, qualifying session, pit stop and lap time — all in one knowledge graph.
-  </p>
+<section class="kg-hero">
+  <div>
+    <div class="kg-eyebrow">GraphDB semantic explorer</div>
+    <h1 class="kg-title">Formula 1 Knowledge Graph</h1>
+    <p class="kg-lead">
+      1950-2024 Formula 1 results, standings, constructors, circuits and derived achievements
+      modelled as RDF, classified with OWL/RDFS, and extended with SPIN inference.
+    </p>
+    <div class="kg-actions">
+      <a class="kg-action primary" href="{% url 'championship:champions' %}">Explore Champions</a>
+      <a class="kg-action" href="{% url 'championship:semantic_tools' %}">Semantic Tools</a>
+      <a class="kg-action" href="{% url 'championship:sparql' %}">SPARQL Console</a>
+    </div>
+  </div>
+  <aside class="kg-status-panel">
+    <div>
+      <div class="kg-status-row">
+        <span class="kg-status-dot {% if graphdb.ok %}ok{% else %}error{% endif %}"></span>
+        <span class="kg-status-label">GraphDB {% if graphdb.ok %}Connected{% else %}Unavailable{% endif %}</span>
+      </div>
+      <div class="kg-status-meta">
+        {% if graphdb.ok %}
+          {{ graphdb.triple_count }} triples available at {{ graphdb.endpoint }}.
+        {% else %}
+          {{ graphdb.error|default:"The repository is not reachable. The interface will recover when GraphDB is available." }}
+        {% endif %}
+      </div>
+    </div>
+  </aside>
 </section>
 
-<!-- Stats — values from RDF, each links to its section -->
-<div class="stat-grid">
-  <a href="{% url 'championship:seasons' %}" style="text-decoration:none;color:inherit;">
-    <div class="stat-card"><div class="stat-value">{{ stats.0.value }}</div><div class="stat-label">{{ stats.0.label }}</div></div>
+<h2 class="kg-section-title">Live Graph Counts</h2>
+<div class="kg-stat-grid">
+  {% for stat in stats %}
+  <a class="kg-stat" href="{% url stat.url %}">
+    <div class="kg-stat-value">{{ stat.value }}</div>
+    <div class="kg-stat-label">{{ stat.label }}</div>
   </a>
-  <a href="{% url 'championship:circuits' %}" style="text-decoration:none;color:inherit;">
-    <div class="stat-card"><div class="stat-value">{{ stats.1.value }}</div><div class="stat-label">{{ stats.1.label }}</div></div>
+  {% endfor %}
+</div>
+
+<h2 class="kg-section-title">Inferred Knowledge</h2>
+<div class="kg-insight-grid">
+  {% for stat in inferred_stats %}
+  <a class="kg-insight" href="{% url stat.url %}">
+    <div class="kg-insight-value">{{ stat.value }}</div>
+    <div class="kg-insight-label">{{ stat.label }}</div>
   </a>
-  <a href="{% url 'championship:drivers' %}" style="text-decoration:none;color:inherit;">
-    <div class="stat-card"><div class="stat-value">{{ stats.2.value }}</div><div class="stat-label">{{ stats.2.label }}</div></div>
+  {% endfor %}
+</div>
+
+<h2 class="kg-section-title">Primary Workflows</h2>
+<div class="kg-use-grid">
+  <a class="kg-use-case" href="{% url 'championship:drivers' %}">
+    <div class="kg-use-kicker">Careers</div>
+    <div class="kg-use-title">Driver histories</div>
+    <p class="kg-use-text">Wins, podiums, teammates, constructor timelines and external Wikidata enrichment.</p>
   </a>
-  <a href="{% url 'championship:constructors' %}" style="text-decoration:none;color:inherit;">
-    <div class="stat-card"><div class="stat-value">{{ stats.3.value }}</div><div class="stat-label">{{ stats.3.label }}</div></div>
+  <a class="kg-use-case" href="{% url 'championship:circuits' %}">
+    <div class="kg-use-kicker">Venues</div>
+    <div class="kg-use-title">Circuit context</div>
+    <p class="kg-use-text">Race history, active/historic classification, DBpedia details and fastest-lap context.</p>
   </a>
-  <a href="{% url 'championship:races' %}" style="text-decoration:none;color:inherit;">
-    <div class="stat-card"><div class="stat-value">{{ stats.4.value }}</div><div class="stat-label">{{ stats.4.label }}</div></div>
+  <a class="kg-use-case" href="{% url 'championship:admin_dashboard' %}">
+    <div class="kg-use-kicker">Operations</div>
+    <div class="kg-use-title">Admin knowledge ops</div>
+    <p class="kg-use-text">SPARQL updates, import preview, rollback, data-quality checks and inference execution.</p>
+  </a>
+  <a class="kg-use-case" href="{% url 'championship:semantic_tools' %}">
+    <div class="kg-use-kicker">Semantics</div>
+    <div class="kg-use-title">RDF tooling</div>
+    <p class="kg-use-text">Reification viewer, Microformats parser, RDFa validation links and SPARQL exploration.</p>
   </a>
 </div>
 
-<!-- Section cards -->
-<div class="cards-grid">
-
-  <a href="{% url 'championship:drivers' %}" class="nav-card">
-    <div class="section-card">
-      <span class="card-icon">DRV</span>
-      <div class="section-card-title">Drivers</div>
-      <p class="section-card-desc">{{ stats.2.value }} drivers — career wins, podiums, race results and lap records across every season.</p>
-      <span class="section-card-arrow">Explore &rsaquo;</span>
-    </div>
-  </a>
-
-  <a href="{% url 'championship:constructors' %}" class="nav-card">
-    <div class="section-card">
-      <span class="card-icon">CTR</span>
-      <div class="section-card-title">Constructors</div>
-      <p class="section-card-desc">{{ stats.3.value }} teams — constructor standings, driver rosters and season-by-season performance.</p>
-      <span class="section-card-arrow">Explore &rsaquo;</span>
-    </div>
-  </a>
-
-  <a href="{% url 'championship:seasons' %}" class="nav-card">
-    <div class="section-card">
-      <span class="card-icon">SSN</span>
-      <div class="section-card-title">Seasons</div>
-      <p class="section-card-desc">{{ stats.0.value }} seasons — race calendars, driver and constructor standings for each year.</p>
-      <span class="section-card-arrow">Explore &rsaquo;</span>
-    </div>
-  </a>
-
-  <a href="{% url 'championship:races' %}" class="nav-card">
-    <div class="section-card">
-      <span class="card-icon">RCE</span>
-      <div class="section-card-title">Races</div>
-      <p class="section-card-desc">{{ stats.4.value }} races — full results, qualifying times, fastest laps and grid positions.</p>
-      <span class="section-card-arrow">Explore &rsaquo;</span>
-    </div>
-  </a>
-
-  <a href="{% url 'championship:circuits' %}" class="nav-card">
-    <div class="section-card">
-      <span class="card-icon">TRK</span>
-      <div class="section-card-title">Circuits</div>
-      <p class="section-card-desc">{{ stats.1.value }} circuits — race histories, lap records, locations and active status.</p>
-      <span class="section-card-arrow">Explore &rsaquo;</span>
-    </div>
-  </a>
-
-  <a href="{% url 'championship:llm_assistant' %}" class="nav-card">
-    <div class="section-card">
-      <span class="card-icon">AI</span>
-      <div class="section-card-title">F1 Assistant</div>
-      <p class="section-card-desc">Ask any Formula 1 question in plain English. The assistant queries the knowledge graph and answers in natural language.</p>
-      <span class="section-card-arrow">Ask &rsaquo;</span>
-    </div>
-  </a>
-
+<h2 class="kg-section-title">Semantic Pipeline</h2>
+<div class="kg-pipeline" aria-label="Semantic data pipeline">
+  <div class="kg-pipeline-step">CSV</div>
+  <div class="kg-pipeline-step">N-Triples</div>
+  <div class="kg-pipeline-step">OWL/RDFS</div>
+  <div class="kg-pipeline-step">SPIN Rules</div>
+  <div class="kg-pipeline-step">Django UI</div>
 </div>
-
-<!-- GraphDB status — minimal: dot + status text only -->
-<div class="status-bar">
-  <div class="status-dot {% if graphdb.ok %}ok{% else %}error{% endif %}"></div>
-  <span class="status-text">
-    GraphDB &nbsp;&middot;&nbsp;
-    {% if graphdb.ok %}Connected{% else %}Unavailable{% endif %}
-  </span>
-</div>
-
 {% endblock %}

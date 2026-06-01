@@ -213,7 +213,7 @@ TP2 adds a full \textbf{semantic knowledge layer} on top of that foundation. The
         enabling automatic entity classification directly from the data properties
         of each entity --- without any explicit \texttt{rdf:type} assertions in
         the facts file.
-  \item \textbf{15 SPIN rules} (SPARQL INSERT WHERE) that materialise
+  \item \textbf{19 SPIN rules} (SPARQL INSERT WHERE) that materialise
         inferences OWL cannot express: World Champions, Veterans, Historic
         Circuits, podium results, and the teammate relation between drivers who
         raced together.
@@ -230,9 +230,10 @@ TP2 adds a full \textbf{semantic knowledge layer} on top of that foundation. The
 
 \subsection{Dataset}
 
-The dataset is the \textbf{Ergast Formula 1 World Championship} (1950--2024):
+The dataset is the \textbf{Kaggle Formula 1 World Championship} dataset
+(1950--2024), which follows the Ergast-style CSV schema:
 75 seasons, 861 drivers, 212 constructors, 77 circuits, and approximately 25{,}000 race results.
-The raw data comes from 13 CSV files loaded into a GraphDB repository named \texttt{ws-formula1}.
+The raw data comes from 13 CSV files loaded into a GraphDB repository named \texttt{ws-formula1-owlmax}.
 
 % =============================================================================
 \section{Ontology Definition (RDFS and OWL)}
@@ -375,7 +376,7 @@ f1:WorldChampion  rdfs:subClassOf  [
 
 \subsection{Inference Verification}
 
-After loading the integrated file and running the 15 SPIN rules, all 15 inference
+After loading the integrated file and running the 19 SPIN rules, all inference
 checks pass:
 
 \begin{center}
@@ -394,6 +395,10 @@ SPIN \texttt{classify\_ActiveCircuit} & \texttt{f1:ActiveCircuit} & 24 \\
 SPIN \texttt{classify\_HistoricCircuit} & \texttt{f1:HistoricCircuit} & 45 \\
 SPIN \texttt{classify\_PodiumResult} & \texttt{f1:PodiumResult} & 3{,}397 \\
 SPIN \texttt{infer\_wonRace} & \texttt{f1:wonRace} triples & 1{,}128 \\
+SPIN \texttt{infer\_startedFromP1} & \texttt{f1:startedFromP1} triples & 1{,}135 \\
+SPIN \texttt{infer\_convertedP1ToWin} & \texttt{f1:convertedP1ToWin} triples & 486 \\
+SPIN \texttt{infer\_setFastestLap} & \texttt{f1:setFastestLap} triples & 410 \\
+SPIN \texttt{infer\_achievedHatTrick} & \texttt{f1:achievedHatTrick} triples & 69 \\
 SPIN \texttt{infer\_wasTeammate} & \texttt{f1:wasTeammate} triples & 10{,}012 \\
 SPIN \texttt{infer\_wonChampionship} & \texttt{f1:wonChampionship} triples & 75 \\
 \texttt{owl:inverseOf} & \texttt{f1:hadDriver} triples & 2{,}150 \\
@@ -456,7 +461,7 @@ under its OWL-Max ruleset.
 \subsubsection{HermiT Verification Results}
 
 After removing the three non-compliant range declarations, HermiT was run on the
-complete ontology (352 triples, 27 classes, 15 object properties, 42 datatype
+complete ontology (375 triples, 18 classes, 19+ object properties, 42 datatype
 properties, 0 asserted individuals). The reasoning completed in \textbf{838~ms}.
 
 \begin{center}
@@ -529,7 +534,7 @@ Logic --- has no mechanism for:
   \item \textbf{Cross-entity joins}: same race, same constructor, different driver
 \end{itemize}
 
-The 15 rules are defined in \texttt{championship/spin\_rules.py} as a list of
+The 19 rules are defined in \texttt{championship/spin\_rules.py} as a list of
 Python dictionaries, each containing a \texttt{name}, \texttt{description}, and
 \texttt{query} (a SPARQL 1.1 \texttt{INSERT WHERE} statement). They are executed
 sequentially by the management command \texttt{python manage.py run\_spin\_rules}.
@@ -1139,10 +1144,10 @@ extending TP1's data foundation with a full knowledge layer.
 \subsection{Key Achievements}
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{OWL 2 DL ontology} with 18 classes, 15+ properties, and 7 disjointness
+  \item \textbf{OWL 2 DL ontology} with 18 classes, 19+ properties, and 7 disjointness
         axioms. Verified in both GraphDB (OWL-Max ruleset) and Protégé (HermiT 1.4.3, 838~ms).
-  \item \textbf{15 SPIN rules} covering all classification and inference patterns
-        that OWL DL cannot express. All 15 pass with verified real-world counts.
+  \item \textbf{19 SPIN rules} covering all classification and inference patterns
+        that OWL DL cannot express. All 19 pass with verified real-world counts.
   \item \textbf{RDF reification} of 75 championship-winning triples with final points
         annotation --- a canonical demonstration of making statements about statements.
   \item \textbf{Linked data integration} from two SPARQL endpoints (Wikidata,
@@ -1180,44 +1185,46 @@ extending TP1's data foundation with a full knowledge layer.
   \item Python 3.12+
   \item \href{https://www.ontotext.com/products/graphdb/download/}{GraphDB Free}
         running on \texttt{http://localhost:7200}, with a repository named
-        \textbf{\texttt{ws-formula1}} (OWL-Max with RDFS ruleset enabled)
-  \item Ergast CSV files in \texttt{data/raw/}
+        \textbf{\texttt{ws-formula1-owlmax}} created with the
+        \textbf{\texttt{owl-max-optimized}} ruleset
+  \item Kaggle Formula 1 CSV files in \texttt{data/raw/} (Ergast-style schema)
 \end{itemize}
 
 \subsection{Step-by-Step Setup}
 
 \begin{lstlisting}[style=shell, caption={Complete setup from a fresh clone}]
 # 1. Virtual environment and dependencies
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Environment configuration
 cp .env.example .env
 # Edit .env:  GRAPHDB_BASE_URL, GRAPHDB_REPOSITORY, DJANGO_SECRET_KEY
 
-# 3. Generate RDF facts from CSV (no rdf:type for base classes)
-python scripts/csv_to_rdf.py
+# 3. Create GraphDB repository (owl-max-optimized ruleset)
+bash scripts/create_graphdb_repo.sh
+
+# 4. Generate RDF facts from CSV (no rdf:type for base classes)
+python3 scripts/csv_to_rdf.py
 # Output: data/rdf/formula1.nt  (~798 MB)
 
-# 4. Merge ontology + facts into one file (for GraphDB and Protege)
-python scripts/merge_integrated.py
+# 5. Merge ontology + facts into one file (for GraphDB and Protege)
+python3 scripts/merge_integrated.py
 # Output: data/rdf/formula1_integrated.nt
 
-# 5. Load into GraphDB
-#    Workbench > ws-formula1 > Import > Upload RDF file
-#    Select: data/rdf/formula1_integrated.nt
-#    (or: bash scripts/load_rdf_to_graphdb.sh)
+# 6. Load into GraphDB with server-side import
+bash scripts/load_rdf_to_graphdb.sh
 
-# 6. Run all 15 SPIN inference rules (~1 min)
-python manage.py run_spin_rules
-# Expected output: 15/15 rules applied successfully.
+# 7. Run all 19 SPIN inference rules (~1 min)
+python3 manage.py run_spin_rules
+# Expected output: 19/19 rules applied successfully.
 
-# 7. Django setup (SQLite for auth only)
-python manage.py migrate
-python manage.py createsuperuser
+# 8. Django setup (SQLite for auth only)
+python3 manage.py migrate
+python3 manage.py createsuperuser
 
-# 8. Start the development server
-python manage.py runserver
+# 9. Start the development server
+python3 manage.py runserver
 \end{lstlisting}
 
 Open \url{http://localhost:8000}. Admin panel: \url{http://localhost:8000/admin-panel/login/}.
@@ -1265,7 +1272,7 @@ python manage.py run_spin_rules
 \texttt{data/rdf/formula1\_ontology.ttl} & OWL 2 DL ontology (hand-authored) & Yes \\
 \texttt{data/rdf/formula1.nt}            & Facts only, no rdf:type for base classes & No (generated) \\
 \texttt{data/rdf/formula1\_integrated.nt} & Ontology + facts merged (for Protégé) & No (generated) \\
-\texttt{championship/spin\_rules.py}     & 15 SPIN rules as Python module & Yes \\
+\texttt{championship/spin\_rules.py}     & 19 SPIN rules as Python module & Yes \\
 \bottomrule
 \end{tabular}
 \end{center}

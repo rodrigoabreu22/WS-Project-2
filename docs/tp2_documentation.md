@@ -17,14 +17,14 @@ TP2 extends the TP1 F1 website by adding a **semantic knowledge layer**: a forma
 - Wikidata + DBpedia via SPARQLWrapper (live semantic enrichment)
 - Wikipedia REST API (entity summaries and images)
 
-**Data source:** Ergast F1 dataset (CSV) — 75 seasons (1950–2024), 861 drivers, 212 constructors, 77 circuits, ~25,000 race results.
+**Data source:** Kaggle Formula 1 World Championship dataset (Ergast-style CSV schema) — 75 seasons (1950–2024), 861 drivers, 212 constructors, 77 circuits, ~25,000 race results.
 
 ---
 
 ## 2. Data Pipeline
 
 ```
-Ergast CSV files
+Kaggle/Ergast-style CSV files
        │
        ▼  scripts/csv_to_rdf.py
 N-Triples facts (formula1.nt)
@@ -36,7 +36,7 @@ Integrated file = ontology.ttl + formula1.nt
        ▼  GraphDB (OWL-Max + RDFS ruleset, load at startup)
 Triple store — base classes inferred at load time via rdfs:domain
        │
-       ▼  python manage.py run_spin_rules  (15 SPARQL INSERT WHERE rules)
+       ▼  python manage.py run_spin_rules  (19 SPARQL INSERT WHERE rules)
 Enriched graph — classifications, properties, reification nodes
 ```
 
@@ -93,14 +93,14 @@ The ontology uses **OWL 2 DL** — a decidable fragment of first-order logic. Gr
 | `owl:FunctionalProperty` | `race`, `driver`, `status`, `circuit`, `season`, `heldAt` | At most one value per subject |
 | `owl:SymmetricProperty` | `wasTeammate` | `x wasTeammate y → y wasTeammate x` |
 | `owl:inverseOf` | `hadDriver ↔ drovFor` | Constructor↔Driver bidirectional traversal |
-| `rdfs:subPropertyOf` | `wonRace ⊑ competedIn`, `achievedPodium ⊑ competedIn` | Property hierarchy |
+| `rdfs:subPropertyOf` | `wonRace`, `startedFromP1`, `setFastestLap`, `achievedPodium` ⊑ `competedIn` | Property hierarchy |
 | `owl:maxCardinality` | `Race ⊑ ≤1 circuit` | Race held at exactly one circuit |
 
 ### 3.3 Why `rdfs:domain` is NOT declared on FK properties
 
 Properties like `f1:driverId`, `f1:constructorId`, `f1:raceId` appear as literal columns on **multiple entity types** (e.g., a `Result` row contains `driverId`, `constructorId`, `raceId` as literals). Declaring `rdfs:domain f1:Driver` on `f1:driverId` would cause GraphDB to infer that every `Result` individual is also a `Driver`, triggering the `owl:disjointWith f1:Constructor` inconsistency. Domain is intentionally omitted.
 
-### 3.4 Inference verified (15/15 checks pass)
+### 3.4 Inference verified (19/19 rules pass)
 
 | Mechanism | Inferred | Count |
 |---|---|---|
@@ -115,6 +115,10 @@ Properties like `f1:driverId`, `f1:constructorId`, `f1:raceId` appear as literal
 | SPIN: `classify_HistoricCircuit` | `f1:HistoricCircuit` | 45 |
 | SPIN: `classify_PodiumResult` | `f1:PodiumResult` | 3,397 |
 | SPIN: `infer_wonRace` | `f1:wonRace` triples | 1,128 |
+| SPIN: `infer_startedFromP1` | `f1:startedFromP1` triples | 1,135 |
+| SPIN: `infer_convertedP1ToWin` | `f1:convertedP1ToWin` triples | 486 |
+| SPIN: `infer_setFastestLap` | `f1:setFastestLap` triples | 410 |
+| SPIN: `infer_achievedHatTrick` | `f1:achievedHatTrick` triples | 69 |
 | SPIN: `infer_wasTeammate` | `f1:wasTeammate` triples | 10,012 |
 | SPIN: `infer_wonChampionship` | `f1:wonChampionship` triples | 75 |
 | `owl:inverseOf` | `f1:hadDriver` triples | 2,150 |
@@ -126,12 +130,16 @@ Properties like `f1:driverId`, `f1:constructorId`, `f1:raceId` appear as literal
 
 SPIN (SPARQL Inference Notation) fills the gap where OWL DL cannot express classification — specifically: **aggregation** (`COUNT`, `MAX`, `GROUP BY`), **arithmetic comparisons** (`positionOrder ≤ 3`), and **negation-as-failure** (`FILTER NOT EXISTS`).
 
-**15 rules, run via `python manage.py run_spin_rules`:**
+**19 rules, run via `python manage.py run_spin_rules`:**
 
 | Rule | Why OWL cannot express it |
 |---|---|
 | `infer_wonRace` | Requires `positionOrder = 1` arithmetic check |
 | `infer_achievedPodium` | Requires `positionOrder ≤ 3` |
+| `infer_startedFromP1` | Uses `grid = 1`; qualifying coverage is incomplete historically |
+| `infer_convertedP1ToWin` | Combines P1 start with SPIN-inferred race win |
+| `infer_setFastestLap` | Uses `rank = 1` from result rows |
+| `infer_achievedHatTrick` | Layered rule: win + P1 start + fastest lap |
 | `infer_drovFor` | Cross-table join: Result → constructor link |
 | `infer_wasTeammate` | Cross-entity join: same race + same constructor, different driver |
 | `infer_wonChampionship` | `GROUP BY + MAX(round)` to find final round per season |
@@ -470,7 +478,7 @@ Result: Only answerable via RDF reification — the final points attached to the
 | Google Rich Results | `https://search.google.com/test/rich-results?url=<url>` | Schema.org structured data |
 | RDFa Play | `https://rdfa.info/play/` | Paste page HTML to visualise extracted RDF graph |
 | mf2py parser | `/api/parse-microformats/?url=<url>` | Parses MF2 from any site page, returns JSON |
-| SPIN inference | `python manage.py run_spin_rules` | Materialises all 15 SPIN rules, reports OK/ERR per rule |
+| SPIN inference | `python manage.py run_spin_rules` | Materialises all 19 SPIN rules, reports OK/ERR per rule |
 | GraphDB SPARQL | `http://localhost:7200/` | Direct SPARQL queries on the live graph |
 | Protégé + HermiT | Protégé desktop | OWL 2 DL consistency check (completes in 265ms) |
 | Semantic Tools page | `/tools/` | Live reification viewer, MF2 parser, RDFa distiller links |
@@ -486,12 +494,12 @@ data/rdf/
   formula1.nt                — N-Triples facts (no explicit rdf:type for Driver/Constructor/Circuit)
 
 scripts/
-  csv_to_rdf.py              — Converts Ergast CSV → N-Triples (infer_type flag suppresses rdf:type)
+  csv_to_rdf.py              — Converts Kaggle/Ergast-style CSV → N-Triples (infer_type flag suppresses rdf:type)
   merge_integrated.py        — Merges ontology + facts into one NT file for GraphDB load
   generate_ontology_diagram.py — Generates docs/ontology_diagram.svg
 
 championship/
-  spin_rules.py              — 15 SPARQL INSERT WHERE rules + bug fix notes
+  spin_rules.py              — 19 SPARQL INSERT WHERE rules + bug fix notes
   views.py                   — All Django views; api_entity_info (async enrichment endpoint)
   services/
     graphdb.py               — GraphDBClient (query + run_update)
@@ -520,7 +528,7 @@ templates/championship/
 docs/
   ontology_diagram.md        — Mermaid classDiagram of the full ontology
   ontology_diagram.svg       — Auto-generated SVG rendering
-  ONTOLOGY_INFERENCE.md      — Inference verification (15/15 checks with real counts) + SPARQL use cases
+  ONTOLOGY_INFERENCE.md      — Inference verification with real counts + SPARQL use cases
   tp2_documentation.md       — This file
 ```
 

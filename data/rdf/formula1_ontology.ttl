@@ -269,6 +269,33 @@ f1:wonRace rdf:type owl:ObjectProperty ;
     rdfs:range  f1:Race ;
     rdfs:label  "wonRace" .
 
+f1:startedFromP1 rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:competedIn ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "startedFromP1" ;
+    rdfs:comment "Driver started a race from grid position 1. Uses result grid data for full historical coverage." .
+
+f1:convertedP1ToWin rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:wonRace ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "convertedP1ToWin" ;
+    rdfs:comment "Driver started from grid position 1 and won the same race." .
+
+f1:setFastestLap rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:competedIn ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "setFastestLap" .
+
+f1:achievedHatTrick rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:wonRace ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "achievedHatTrick" ;
+    rdfs:comment "Driver started from P1, won the race, and set the fastest lap." .
+
 f1:achievedPodium rdf:type owl:ObjectProperty ;
     rdfs:subPropertyOf f1:competedIn ;
     rdfs:domain f1:Driver ;

@@ -63,26 +63,44 @@ def _entity_image(label: str, mapping: dict[str, str]) -> str:
 
 def home(request):
     db = GraphDBClient()
+    graphdb = db.healthcheck()
 
-    # Query aggregate counts directly from the RDF knowledge graph.
-    count_rows = db.query("""
-        SELECT
-          (COUNT(DISTINCT ?season)      AS ?seasons)
-          (COUNT(DISTINCT ?circuit)     AS ?circuits)
-          (COUNT(DISTINCT ?driver)      AS ?drivers)
-          (COUNT(DISTINCT ?constructor) AS ?constructors)
-          (COUNT(DISTINCT ?race)        AS ?races)
-        WHERE {
-          ?race     f1:round       ?round ;
-                    f1:year        ?season ;
-                    f1:circuit     ?circuit .
-          ?res      f1:resultId    ?anyId ;
-                    f1:race        ?race ;
-                    f1:driver      ?driver ;
-                    f1:constructor ?constructor .
-        }
-    """)
-    counts = count_rows[0] if count_rows else {}
+    counts: dict[str, str] = {}
+    inferred_counts: dict[str, str] = {}
+    if graphdb.get("ok"):
+        try:
+            # Query aggregate counts directly from the RDF knowledge graph.
+            count_rows = db.query("""
+                SELECT ?seasons ?circuits ?drivers ?constructors ?races WHERE {
+                  { SELECT (COUNT(DISTINCT ?season) AS ?seasons)
+                    WHERE { ?season rdf:type f1:Season } }
+                  { SELECT (COUNT(DISTINCT ?circuit) AS ?circuits)
+                    WHERE { ?circuit f1:circuitRef ?circuitRef } }
+                  { SELECT (COUNT(DISTINCT ?driver) AS ?drivers)
+                    WHERE { ?driver f1:driverRef ?driverRef } }
+                  { SELECT (COUNT(DISTINCT ?constructor) AS ?constructors)
+                    WHERE { ?constructor f1:constructorRef ?constructorRef } }
+                  { SELECT (COUNT(DISTINCT ?race) AS ?races)
+                    WHERE { ?race f1:raceId ?raceId ; f1:round ?round } }
+                }
+            """)
+            counts = count_rows[0] if count_rows else {}
+
+            inferred_rows = db.query("""
+                SELECT ?worldChampions ?constructorChampions ?historicCircuits ?podiumResults WHERE {
+                  { SELECT (COUNT(DISTINCT ?driver) AS ?worldChampions)
+                    WHERE { ?driver rdf:type f1:WorldChampion } }
+                  { SELECT (COUNT(DISTINCT ?constructor) AS ?constructorChampions)
+                    WHERE { ?constructor rdf:type f1:ConstructorChampion } }
+                  { SELECT (COUNT(DISTINCT ?circuit) AS ?historicCircuits)
+                    WHERE { ?circuit rdf:type f1:HistoricCircuit } }
+                  { SELECT (COUNT(DISTINCT ?result) AS ?podiumResults)
+                    WHERE { ?result rdf:type f1:PodiumResult } }
+                }
+            """)
+            inferred_counts = inferred_rows[0] if inferred_rows else {}
+        except Exception as exc:  # noqa: BLE001
+            graphdb = {**graphdb, "ok": False, "error": str(exc)}
 
     def _fmt(val: str) -> str:
         try:
@@ -92,16 +110,23 @@ def home(request):
             return val or "—"
 
     stats = [
-        {"value": _fmt(counts.get("seasons",      "")), "label": "Seasons"},
-        {"value": _fmt(counts.get("circuits",     "")), "label": "Circuits"},
-        {"value": _fmt(counts.get("drivers",      "")), "label": "Drivers"},
-        {"value": _fmt(counts.get("constructors", "")), "label": "Constructors"},
-        {"value": _fmt(counts.get("races",        "")), "label": "Races"},
+        {"value": _fmt(counts.get("seasons",      "")), "label": "Seasons", "url": "championship:seasons"},
+        {"value": _fmt(counts.get("races",        "")), "label": "Races", "url": "championship:races"},
+        {"value": _fmt(counts.get("drivers",      "")), "label": "Drivers", "url": "championship:drivers"},
+        {"value": _fmt(counts.get("constructors", "")), "label": "Constructors", "url": "championship:constructors"},
+        {"value": _fmt(counts.get("circuits",     "")), "label": "Circuits", "url": "championship:circuits"},
+    ]
+    inferred_stats = [
+        {"value": _fmt(inferred_counts.get("worldChampions", "")), "label": "World Champions", "url": "championship:champions"},
+        {"value": _fmt(inferred_counts.get("constructorChampions", "")), "label": "Constructor Champions", "url": "championship:constructor_champions"},
+        {"value": _fmt(inferred_counts.get("historicCircuits", "")), "label": "Historic Circuits", "url": "championship:circuits"},
+        {"value": _fmt(inferred_counts.get("podiumResults", "")), "label": "Podium Results", "url": "championship:races"},
     ]
 
     return render(request, "championship/home.html", {
-        "graphdb": db.healthcheck(),
-        "stats":   stats,
+        "graphdb": graphdb,
+        "stats": stats,
+        "inferred_stats": inferred_stats,
     })
 
 
@@ -323,6 +348,30 @@ def driver_detail(request, driver_id: str):
     """)
     championship_count = int(champ_rows[0]["n"]) if champ_rows else 0
 
+    achievement_rows = db.query(f"""
+        SELECT ?p1Starts ?p1Wins ?fastestLaps ?hatTricks WHERE {{
+          {{ SELECT (COUNT(DISTINCT ?race) AS ?p1Starts)
+             WHERE {{ {uri} f1:startedFromP1 ?race }} }}
+          {{ SELECT (COUNT(DISTINCT ?race) AS ?p1Wins)
+             WHERE {{ {uri} f1:convertedP1ToWin ?race }} }}
+          {{ SELECT (COUNT(DISTINCT ?race) AS ?fastestLaps)
+             WHERE {{ {uri} f1:setFastestLap ?race }} }}
+          {{ SELECT (COUNT(DISTINCT ?race) AS ?hatTricks)
+             WHERE {{ {uri} f1:achievedHatTrick ?race }} }}
+        }}
+    """)
+    achievements = achievement_rows[0] if achievement_rows else {}
+    signature_races = db.query(f"""
+        SELECT ?raceId ?raceLabel ?year WHERE {{
+          {uri} f1:achievedHatTrick ?race .
+          ?race f1:raceId ?raceId ;
+                rdfs:label ?raceLabel ;
+                f1:year ?year .
+        }}
+        ORDER BY DESC(?year)
+        LIMIT 6
+    """)
+
     # Constructor career (include constructorId for deep-link)
     constructor_rows = db.query(f"""
         SELECT DISTINCT ?constructorLabel ?constructorId
@@ -396,6 +445,11 @@ def driver_detail(request, driver_id: str):
         "total_races":        total_races,
         "total_points":       int(total_points),
         "championship_count": championship_count,
+        "p1_starts":          int(achievements.get("p1Starts", 0)),
+        "p1_wins":            int(achievements.get("p1Wins", 0)),
+        "fastest_laps":       int(achievements.get("fastestLaps", 0)),
+        "hat_tricks":         int(achievements.get("hatTricks", 0)),
+        "signature_races":    signature_races,
         "constructors":       constructor_rows,
         "circuits":           circuit_rows,
         "wiki_url":           wiki_url,
@@ -1221,8 +1275,37 @@ def race_detail(request, race_id: str):
         ORDER BY ?positionOrder
     """)
 
+    achievement_rows = db.query(f"""
+        SELECT ?driverId ?achievement WHERE {{
+          {{
+            ?driver f1:startedFromP1 {uri} .
+            BIND("p1_start" AS ?achievement)
+          }}
+          UNION
+          {{
+            ?driver f1:convertedP1ToWin {uri} .
+            BIND("p1_win" AS ?achievement)
+          }}
+          UNION
+          {{
+            ?driver f1:setFastestLap {uri} .
+            BIND("fastest_lap" AS ?achievement)
+          }}
+          UNION
+          {{
+            ?driver f1:achievedHatTrick {uri} .
+            BIND("hat_trick" AS ?achievement)
+          }}
+          ?driver f1:driverId ?driverId .
+        }}
+    """)
+    achievement_map: dict[str, set[str]] = {}
+    for row in achievement_rows:
+        achievement_map.setdefault(row.get("driverId", ""), set()).add(row.get("achievement", ""))
+
     results = []
     for r in result_rows:
+        driver_achievements = achievement_map.get(r.get("driverId", ""), set())
         results.append({
             "pos":               int(r.get("positionOrder", 99)),
             "grid":              r.get("grid", ""),
@@ -1234,6 +1317,10 @@ def race_detail(request, race_id: str):
             "driver_id":         r.get("driverId", ""),
             "constructor_label": r.get("constructorLabel", ""),
             "constructor_id":    r.get("constructorId", ""),
+            "is_p1_start":       "p1_start" in driver_achievements,
+            "is_p1_win":         "p1_win" in driver_achievements,
+            "is_fastest_lap":    "fastest_lap" in driver_achievements,
+            "is_hat_trick":      "hat_trick" in driver_achievements,
         })
 
     # Podium (p1, p2, p3 individually for template clarity)

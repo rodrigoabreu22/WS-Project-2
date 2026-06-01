@@ -18,7 +18,7 @@ from .forms import (
 )
 from .models import AdminBatchOperation
 from .services.graphdb import GraphDBClient
-from .spin_rules import apply_all_rules
+from .spin_rules import SPIN_RULES, apply_all_rules
 from .services.imports import (
     RESULT_FIELD_NAMES,
     build_results_import_sample_csv,
@@ -125,8 +125,37 @@ def admin_dashboard(request):
         {"label": "Races",        "value": counts.get("races",        "—"), "url": "admin_races"},
         {"label": "Seasons",      "value": counts.get("seasons",      "—"), "url": "admin_seasons"},
     ]
+    inference_count_queries = [
+        ("wonRace", "f1:wonRace", "SELECT (COUNT(*) AS ?n) WHERE { ?driver f1:wonRace ?race }"),
+        ("startedFromP1", "f1:startedFromP1", "SELECT (COUNT(*) AS ?n) WHERE { ?driver f1:startedFromP1 ?race }"),
+        ("convertedP1ToWin", "f1:convertedP1ToWin", "SELECT (COUNT(*) AS ?n) WHERE { ?driver f1:convertedP1ToWin ?race }"),
+        ("setFastestLap", "f1:setFastestLap", "SELECT (COUNT(*) AS ?n) WHERE { ?driver f1:setFastestLap ?race }"),
+        ("achievedHatTrick", "f1:achievedHatTrick", "SELECT (COUNT(*) AS ?n) WHERE { ?driver f1:achievedHatTrick ?race }"),
+        ("WorldChampion", "rdf:type f1:WorldChampion", "SELECT (COUNT(DISTINCT ?driver) AS ?n) WHERE { ?driver rdf:type f1:WorldChampion }"),
+        ("PodiumResult", "rdf:type f1:PodiumResult", "SELECT (COUNT(DISTINCT ?result) AS ?n) WHERE { ?result rdf:type f1:PodiumResult }"),
+    ]
+    inference_counts = []
+    for label, predicate, query in inference_count_queries:
+        rows_for_count = db.query(query)
+        inference_counts.append({
+            "label": label,
+            "predicate": predicate,
+            "count": rows_for_count[0].get("n", "0") if rows_for_count else "0",
+        })
+
+    last_inference_run = request.session.get("last_inference_run")
+    spin_rules = [
+        {"name": rule["name"], "description": rule["description"]}
+        for rule in SPIN_RULES
+    ]
     latest_batch = AdminBatchOperation.objects.filter(rolled_back_at__isnull=True).first()
-    return render(request, "admin/dashboard.html", {"stats": stats, "latest_batch": latest_batch})
+    return render(request, "admin/dashboard.html", {
+        "stats": stats,
+        "latest_batch": latest_batch,
+        "inference_counts": inference_counts,
+        "last_inference_run": last_inference_run,
+        "spin_rules": spin_rules,
+    })
 
 
 @login_required(login_url="championship:admin_login")
@@ -138,6 +167,13 @@ def admin_run_inference(request):
     results = apply_all_rules(db)
     ok  = sum(1 for r in results if r["ok"])
     err = len(results) - ok
+    request.session["last_inference_run"] = {
+        "ran_at": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "ok": ok,
+        "failed": err,
+        "results": results,
+    }
+    request.session.modified = True
     if err:
         messages.error(request, f"Inference: {ok} rules OK, {err} failed.")
     else:
@@ -250,24 +286,76 @@ def admin_results_import_template(request):
 @login_required(login_url="championship:admin_login")
 def admin_data_quality(request):
     db = GraphDBClient()
-    checks = {
-        "races_without_circuits": db.query("""
+    check_defs = [
+        {
+            "key": "races_without_circuits",
+            "title": "Races Without Circuits",
+            "severity": "error",
+            "headers": ["Race ID", "Race"],
+            "fields": ["raceId", "label"],
+            "query": """
             SELECT ?raceId ?label WHERE {
               ?race f1:raceId ?raceId ;
                     rdfs:label ?label .
               FILTER NOT EXISTS { ?race f1:circuit ?circuit }
             }
             ORDER BY ?raceId
-        """),
-        "drivers_without_constructors": db.query("""
+            """,
+        },
+        {
+            "key": "races_without_results",
+            "title": "Races Without Results",
+            "severity": "error",
+            "headers": ["Race ID", "Race"],
+            "fields": ["raceId", "label"],
+            "query": """
+            SELECT ?raceId ?label WHERE {
+              ?race f1:raceId ?raceId ;
+                    rdfs:label ?label .
+              FILTER NOT EXISTS { ?result f1:resultId ?id ; f1:race ?race }
+            }
+            ORDER BY ?raceId
+            """,
+        },
+        {
+            "key": "drivers_without_entries",
+            "title": "Drivers Without Race Entries",
+            "severity": "warning",
+            "headers": ["Driver ID", "Driver"],
+            "fields": ["driverId", "label"],
+            "query": """
             SELECT ?driverId ?label WHERE {
               ?driver f1:driverId ?driverId ;
                       rdfs:label ?label .
-              FILTER NOT EXISTS { ?driver f1:constructor ?constructor }
+              FILTER NOT EXISTS { ?result f1:resultId ?id ; f1:driver ?driver }
             }
             ORDER BY ?label
-        """),
-        "results_missing_driver_or_constructor": db.query("""
+            """,
+        },
+        {
+            "key": "drivers_without_inferred_constructor_history",
+            "title": "Drivers Without Inferred Constructor History",
+            "severity": "warning",
+            "note": "Depends on SPIN inference having been run; f1:drovFor is derived from race results.",
+            "headers": ["Driver ID", "Driver"],
+            "fields": ["driverId", "label"],
+            "query": """
+            SELECT ?driverId ?label WHERE {
+              ?driver f1:driverId ?driverId ;
+                      rdfs:label ?label .
+              FILTER EXISTS { ?result f1:resultId ?id ; f1:driver ?driver }
+              FILTER NOT EXISTS { ?driver f1:drovFor ?constructor }
+            }
+            ORDER BY ?label
+            """,
+        },
+        {
+            "key": "results_missing_driver_constructor_or_status",
+            "title": "Results Missing Driver, Constructor, or Status",
+            "severity": "error",
+            "headers": ["Result ID", "Missing relation"],
+            "fields": ["resultId", "missing"],
+            "query": """
             SELECT ?resultId ?missing WHERE {
               {
                 ?res f1:resultId ?resultId .
@@ -280,18 +368,82 @@ def admin_data_quality(request):
                 FILTER NOT EXISTS { ?res f1:constructor ?constructor }
                 BIND("constructor" AS ?missing)
               }
+              UNION
+              {
+                ?res f1:resultId ?resultId .
+                FILTER NOT EXISTS { ?res f1:status ?status }
+                BIND("status" AS ?missing)
+              }
             }
             ORDER BY ?resultId ?missing
-        """),
-        "duplicate_labels": db.query("""
-            SELECT ?label (COUNT(?entity) AS ?count) WHERE {
-              ?entity rdfs:label ?label .
+            """,
+        },
+        {
+            "key": "qualifying_dangling_links",
+            "title": "Qualifying Rows With Dangling Links",
+            "severity": "error",
+            "headers": ["Qualify ID", "Missing relation"],
+            "fields": ["qualifyId", "missing"],
+            "query": """
+            SELECT ?qualifyId ?missing WHERE {
+              {
+                ?q f1:qualifyId ?qualifyId .
+                FILTER NOT EXISTS { ?q f1:race ?race . ?race f1:raceId ?raceId }
+                BIND("race" AS ?missing)
+              }
+              UNION
+              {
+                ?q f1:qualifyId ?qualifyId .
+                FILTER NOT EXISTS { ?q f1:driver ?driver . ?driver f1:driverId ?driverId }
+                BIND("driver" AS ?missing)
+              }
+              UNION
+              {
+                ?q f1:qualifyId ?qualifyId .
+                FILTER NOT EXISTS { ?q f1:constructor ?constructor . ?constructor f1:constructorId ?constructorId }
+                BIND("constructor" AS ?missing)
+              }
             }
-            GROUP BY ?label
-            HAVING(COUNT(?entity) > 1)
-            ORDER BY DESC(?count) ?label
-        """),
-        "duplicate_ids": db.query("""
+            ORDER BY ?qualifyId ?missing
+            LIMIT 100
+            """,
+        },
+        {
+            "key": "circuits_never_used",
+            "title": "Circuits Never Used By A Race",
+            "severity": "warning",
+            "headers": ["Circuit ID", "Circuit"],
+            "fields": ["circuitId", "label"],
+            "query": """
+            SELECT ?circuitId ?label WHERE {
+              ?circuit f1:circuitId ?circuitId ;
+                       rdfs:label ?label .
+              FILTER NOT EXISTS { ?race f1:circuit ?circuit }
+            }
+            ORDER BY ?label
+            """,
+        },
+        {
+            "key": "missing_wonrace_inference",
+            "title": "Missing wonRace Inference",
+            "severity": "warning",
+            "note": "Expected to be empty after running SPIN rules.",
+            "headers": ["Derived fact", "Count"],
+            "fields": ["issue", "count"],
+            "query": """
+            SELECT ("f1:wonRace triples" AS ?issue) ("0" AS ?count) WHERE {
+              FILTER NOT EXISTS { ?driver f1:wonRace ?race }
+            }
+            LIMIT 1
+            """,
+        },
+        {
+            "key": "duplicate_ids",
+            "title": "Duplicate IDs",
+            "severity": "error",
+            "headers": ["ID field", "ID value", "Count"],
+            "fields": ["field", "idValue", "count"],
+            "query": """
             SELECT ?field ?idValue (COUNT(?entity) AS ?count) WHERE {
               {
                 ?entity f1:driverId ?idValue .
@@ -316,8 +468,31 @@ def admin_data_quality(request):
             GROUP BY ?field ?idValue
             HAVING(COUNT(?entity) > 1)
             ORDER BY ?field ?idValue
-        """),
-        "dangling_uris": db.query("""
+            """,
+        },
+        {
+            "key": "duplicate_labels",
+            "title": "Duplicate Labels",
+            "severity": "warning",
+            "headers": ["Duplicate label", "Count"],
+            "fields": ["label", "count"],
+            "query": """
+            SELECT ?label (COUNT(?entity) AS ?count) WHERE {
+              ?entity rdfs:label ?label .
+            }
+            GROUP BY ?label
+            HAVING(COUNT(?entity) > 1)
+            ORDER BY DESC(?count) ?label
+            LIMIT 100
+            """,
+        },
+        {
+            "key": "dangling_uris",
+            "title": "Dangling Resource URIs",
+            "severity": "error",
+            "headers": ["Source", "Predicate", "Dangling target"],
+            "fields": ["source", "predicate", "target"],
+            "query": """
             SELECT ?source ?predicate ?target WHERE {
               ?source ?predicate ?target .
               FILTER(isIRI(?target))
@@ -326,9 +501,33 @@ def admin_data_quality(request):
             }
             ORDER BY ?source
             LIMIT 100
-        """),
+            """,
+        },
+    ]
+
+    checks = []
+    for check in check_defs:
+        rows = db.query(check["query"])
+        checks.append({
+            **check,
+            "rows": rows,
+            "display_rows": [
+                [row.get(field, "") for field in check["fields"]]
+                for row in rows
+            ],
+            "count": len(rows),
+        })
+
+    summary = {
+        "total": sum(check["count"] for check in checks),
+        "errors": sum(check["count"] for check in checks if check["severity"] == "error"),
+        "warnings": sum(check["count"] for check in checks if check["severity"] == "warning"),
+        "checks": len(checks),
     }
-    return render(request, "admin/data_quality.html", {"checks": checks})
+    return render(request, "admin/data_quality.html", {
+        "checks": checks,
+        "summary": summary,
+    })
 
 
 # ── Drivers ───────────────────────────────────────────────────────────────────

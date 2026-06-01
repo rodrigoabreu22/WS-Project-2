@@ -25,6 +25,10 @@ fi
 RDF_FILE="${1:-data/rdf/formula1_integrated.nt}"
 GRAPHDB_BASE_URL="${GRAPHDB_BASE_URL:-http://localhost:7200}"
 GRAPHDB_REPOSITORY="${GRAPHDB_REPOSITORY:-ws-formula1-owlmax}"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+if [[ -x "venv/bin/python" ]]; then
+  PYTHON_BIN="venv/bin/python"
+fi
 
 if [[ ! -f "$RDF_FILE" ]]; then
   echo "ERROR: RDF file not found: $RDF_FILE" >&2
@@ -93,7 +97,7 @@ done
 # 5. Quick verification
 echo ""
 echo "=== Verification ==="
-python3 - <<'PY'
+"$PYTHON_BIN" - <<'PY'
 import os, sys
 from dotenv import load_dotenv
 load_dotenv('.env', override=True)

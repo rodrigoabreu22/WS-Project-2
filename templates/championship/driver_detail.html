@@ -377,6 +377,26 @@
           </span>
       </li>
       <li><span class="stat-key">Total points</span>   <span class="stat-val">{{ total_points }}</span></li>
+      <li><span class="stat-key">P1 starts</span>
+          <span class="stat-val">{{ p1_starts }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:startedFromP1</small>
+          </span>
+      </li>
+      <li><span class="stat-key">P1 to wins</span>
+          <span class="stat-val">{{ p1_wins }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:convertedP1ToWin</small>
+          </span>
+      </li>
+      <li><span class="stat-key">Fastest laps</span>
+          <span class="stat-val">{{ fastest_laps }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:setFastestLap</small>
+          </span>
+      </li>
+      <li><span class="stat-key">Hat tricks</span>
+          <span class="stat-val">{{ hat_tricks }}
+            <small style="font-weight:400;font-size:0.7rem;color:var(--grey);margin-left:0.3rem;">via f1:achievedHatTrick</small>
+          </span>
+      </li>
       {% if championship_count > 0 %}
       <li><span class="stat-key">Championships</span>
           <span class="stat-val" style="color:#FFD700;">{{ championship_count }}
@@ -408,6 +428,27 @@
     <div style="padding:1.25rem;color:var(--grey);font-size:0.9rem;">No data.</div>
     {% endfor %}
     {% endwith %}
+  </div>
+
+  <!-- Signature inferred achievements -->
+  <div class="section-card" style="grid-column: 1 / -1;">
+    <div class="section-card-head">Signature Inferred Achievements</div>
+    {% if signature_races %}
+    <ul class="stats-list">
+      {% for race in signature_races %}
+      <li>
+        <span class="stat-key">
+          <a class="grey-link" href="{% url 'championship:race_detail' race.raceId %}">{{ race.raceLabel }}</a>
+        </span>
+        <span class="stat-val">{{ race.year }} hat trick</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div style="padding:1.25rem;color:var(--grey);font-size:0.9rem;">
+      No hat tricks inferred yet. Run SPIN rules after loading the graph.
+    </div>
+    {% endif %}
   </div>
 
   <!-- Constructor timeline (full width) — chips link to constructor detail -->

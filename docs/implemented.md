@@ -1,90 +1,63 @@
-# Implemented Baseline
+# Implemented System Summary
 
-This file summarizes what has already been implemented in the repository baseline.
+This file summarizes the current implemented state of the F1 Knowledge System.
 
-## Repository and project setup
+## Core architecture
 
-- Git repository initialized with `main` as the default branch
-- Remote `origin` configured to `git@github.com:xHuGODx/ws_proj.git`
-- Initial project state pushed to GitHub
+- Django 6 application with server-rendered templates and vanilla JavaScript.
+- GraphDB is the source of truth for domain data; SQLite is used only for Django authentication/session/admin metadata.
+- RDF facts are generated from the Kaggle/Ergast Formula 1 CSV schema.
+- GraphDB repository uses the `owl-max-optimized` ruleset so `rdfs:domain`, `owl:inverseOf`, `owl:SymmetricProperty`, and subclass inference are materialised at load time.
+- Default repository name across scripts and docs is `ws-formula1-owlmax`.
 
-## Python and Django scaffolding
+## Data pipeline
 
-- Python virtual environment structure prepared for local development
-- `requirements.txt` added with the project dependencies
-- Django project `ws_project` created
-- Django app `championship` created for the Formula 1 domain
-- Root routing configured to serve the application home page
+- Raw CSV files live in `data/raw/`.
+- `scripts/csv_to_rdf.py` converts the dataset to N-Triples at `data/rdf/formula1.nt`.
+- `scripts/merge_integrated.py` merges generated facts with `data/rdf/formula1_ontology.ttl` into `data/rdf/formula1_integrated.nt`.
+- `scripts/create_graphdb_repo.sh` creates the GraphDB repository through the supported Turtle multipart REST API.
+- `scripts/load_rdf_to_graphdb.sh` uses GraphDB server-side import for reliable inference during ingestion.
+- `scripts/setup.sh` automates environment setup, RDF generation, repository creation, import, inference, and Django setup.
 
-## Configuration
+## Semantic layer
 
-- `.gitignore` added for virtualenv, local database, environment files, and raw dataset files
-- `.env.example` added with Django and GraphDB configuration variables
-- Django settings updated to read configuration from `.env`
-- Static and template directories configured
-- Time zone set to `Europe/Lisbon`
+- Hand-authored OWL/RDFS ontology in `data/rdf/formula1_ontology.ttl`.
+- Base Driver/Constructor/Circuit types are inferred from unique reference properties rather than asserted in the facts file.
+- SPIN-style SPARQL UPDATE rules in `championship/spin_rules.py` materialise derived facts and classifications.
+- Existing inferred concepts include world champions, multi-champions, veterans, constructor champions, active/historic circuits, podium results, race wins, teammate links, championship wins, constructor championship wins, and reified championship statements.
+- RDF reification annotates championship-winning triples with final points.
 
-## Data and RDF pipeline
+## Public UI
 
-- `data/raw/` created for Kaggle CSV files
-- `data/rdf/` created for generated RDF output
-- CSV-to-RDF script added at `scripts/csv_to_rdf.py`
-- Official Kaggle raw CSV files are present in `data/raw/`
-- Shell helpers added to:
-  - run the Django webserver
-  - convert CSV to RDF
-  - load RDF into GraphDB
-- Current RDF conversion targets the official Kaggle schema and emits `N3`
-- Current RDF conversion covers:
-  - seasons
-  - circuits
-  - constructors
-  - drivers
-  - races
-  - results
-  - sprint results
-  - qualifying
-  - pit stops
-  - lap times
-  - driver standings
-  - constructor standings
-  - constructor results
-  - status
+- Home dashboard backed by live GraphDB counts.
+- List/detail pages for drivers, constructors, circuits, races, and seasons.
+- Inference-driven pages for champions, multi-champions, veterans, and constructor champions.
+- Semantic tools page with reification viewer, Microformats parsing, and RDFa validation links.
+- SPARQL explorer for SELECT queries.
+- LLM assistant that translates natural-language questions to safe read-only SPARQL queries.
+- Detail pages include RDFa 1.1 Lite, Microformats 2, and asynchronous Wikidata/DBpedia enrichment.
 
-## GraphDB and SPARQL baseline
+## Admin UI
 
-- GraphDB client service added at `championship/services/graphdb.py`
-- GraphDB health check wired into the home page
-- Sample SPARQL select query added in `queries/select/`
-- Sample SPARQL update query added in `queries/update/`
+- Staff-only admin panel.
+- CRUD for drivers, constructors, circuits, races, and seasons through SPARQL UPDATE.
+- Race-results CSV import with dry-run preview, validation, confirmation, and rollback.
+- Data-quality checks over the RDF graph.
+- Admin action to run SPIN inference rules.
 
-## UI baseline
+## Verification
 
-- Initial home page created for the Formula 1 knowledge graph
-- Home page displays:
-  - project overview
-  - expected application scope
-  - GraphDB connection status
-  - next setup step for dataset import
+Recommended checks:
 
-## Documentation
+```bash
+venv/bin/python manage.py check
+venv/bin/python manage.py test
+bash -n scripts/create_graphdb_repo.sh scripts/setup.sh scripts/load_rdf_to_graphdb.sh
+venv/bin/python scripts/merge_integrated.py --help
+```
 
-- `README.md` added with setup and execution instructions
-- `docs/report-outline.md` added to match the assignment report structure
-- `docs/github-issues-draft.md` added with the project backlog and acceptance criteria
+With GraphDB running and the integrated RDF loaded:
 
-## Verification completed
-
-- `python manage.py check`
-- `python manage.py test`
-- `python -m py_compile scripts/csv_to_rdf.py`
-- `./scripts/convert_csv_to_rdf.sh`
-
-## Not implemented yet
-
-- Full dataset coverage and validated final RDF model
-- GraphDB import automation
-- Entity list/detail pages backed by SPARQL queries
-- SPARQL update flows exposed in the UI
-- Full test coverage for data transformation and GraphDB integration
-- Final report content
+```bash
+venv/bin/python manage.py run_spin_rules
+```

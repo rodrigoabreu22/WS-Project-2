@@ -96,7 +96,7 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 RDF_DATA_DIR = DATA_DIR / "rdf"
 
 GRAPHDB_BASE_URL = os.getenv("GRAPHDB_BASE_URL", "http://localhost:7200")
-GRAPHDB_REPOSITORY = os.getenv("GRAPHDB_REPOSITORY", "ws-formula1")
+GRAPHDB_REPOSITORY = os.getenv("GRAPHDB_REPOSITORY", "ws-formula1-owlmax")
 GRAPHDB_GRAPH_URI = os.getenv("GRAPHDB_GRAPH_URI", "http://example.org/graph/formula1")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

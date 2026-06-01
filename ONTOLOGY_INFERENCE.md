@@ -1,13 +1,13 @@
 # F1 Knowledge System — Ontology & Inference Capabilities
 
 > MEI Web Semantics TP2 — Rodrigo Abreu  
-> Generated against live GraphDB data — 2026-05-24
+> Generated against live GraphDB data — 2026-06-01
 
 ---
 
 ## 1. Inference Verification
 
-All 15 inference checks pass against the live knowledge graph.
+All 19 SPIN rules pass against the live knowledge graph.
 
 | Status | Count | What is being inferred | Mechanism |
 |--------|------:|------------------------|-----------|
@@ -22,6 +22,10 @@ All 15 inference checks pass against the live knowledge graph.
 | ✅ | 45 | `f1:HistoricCircuit` | SPIN rule — no race in last 10 years of dataset |
 | ✅ | 3,397 | `f1:PodiumResult` results | SPIN rule — positionOrder ≤ 3 |
 | ✅ | 1,128 | `f1:wonRace` triples | SPIN rule — positionOrder = 1 |
+| ✅ | 1,135 | `f1:startedFromP1` triples | SPIN rule — result grid = 1 |
+| ✅ | 486 | `f1:convertedP1ToWin` triples | SPIN rule — P1 start + race win |
+| ✅ | 410 | `f1:setFastestLap` triples | SPIN rule — result rank = 1 |
+| ✅ | 69 | `f1:achievedHatTrick` triples | SPIN rule — P1 start + win + fastest lap |
 | ✅ | 10,012 | `f1:wasTeammate` triples | SPIN rule — same race, same constructor |
 | ✅ | 75 | `f1:wonChampionship` triples | SPIN rule — driver standings, final round per season |
 | ✅ | 2,150 | `f1:hadDriver` triples | OWL `owl:inverseOf f1:drovFor` |
@@ -327,8 +331,8 @@ N-Triples facts file
     │       rdfs:subPropertyOf → wonRace ⊆ competedIn
     │
     ├─► SPIN rules (run_spin_rules management command)
-    │       14 SPARQL INSERT WHERE rules
-    │       WorldChampion, Veteran, HistoricCircuit, etc.
+    │       19 SPARQL INSERT WHERE rules
+    │       WorldChampion, Veteran, HistoricCircuit, P1 starts, fastest laps, hat tricks, etc.
     │       Aggregation + arithmetic + negation-as-failure
     │
     ├─► Django web app (SPARQL queries over inferred graph)

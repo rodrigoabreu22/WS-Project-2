@@ -68,6 +68,70 @@ WHERE {
 """,
     },
     {
+        "name": "infer_startedFromP1",
+        # WHY SPIN: derives a driver-race achievement from result grid data.
+        # The qualifying table has limited historical coverage, while grid=1 on
+        # Result exists across the full race-result dataset.
+        "description": "Driver with grid=1 gets f1:startedFromP1 link for that race.",
+        "query": """
+INSERT { ?driver f1:startedFromP1 ?race . }
+WHERE {
+  ?result f1:resultId ?id ;
+          f1:grid 1 ;
+          f1:driver ?driver ;
+          f1:race ?race .
+  FILTER(!CONTAINS(STR(?result), "/sprint-result/"))
+  FILTER NOT EXISTS { ?driver f1:startedFromP1 ?race }
+}
+""",
+    },
+    {
+        "name": "infer_convertedP1ToWin",
+        # WHY SPIN: combines two materialised race-context facts for the same
+        # driver and race: starting P1 and winning.
+        "description": "Driver who started from P1 and won the race gets f1:convertedP1ToWin.",
+        "query": """
+INSERT { ?driver f1:convertedP1ToWin ?race . }
+WHERE {
+  ?driver f1:startedFromP1 ?race ;
+          f1:wonRace ?race .
+  FILTER NOT EXISTS { ?driver f1:convertedP1ToWin ?race }
+}
+""",
+    },
+    {
+        "name": "infer_setFastestLap",
+        # WHY SPIN: derives a race achievement from rank=1 in the result table.
+        # This is an arithmetic/data-pattern classification over race results,
+        # not a class axiom expressible from the ontology alone.
+        "description": "Driver with result rank=1 gets f1:setFastestLap link for that race.",
+        "query": """
+INSERT { ?driver f1:setFastestLap ?race . }
+WHERE {
+  ?result f1:resultId ?id ;
+          f1:rank 1 ;
+          f1:driver ?driver ;
+          f1:race ?race .
+  FILTER NOT EXISTS { ?driver f1:setFastestLap ?race }
+}
+""",
+    },
+    {
+        "name": "infer_achievedHatTrick",
+        # WHY SPIN: layered inference.  It depends on three race-level facts for
+        # the same driver and race: win, P1 start and fastest lap.
+        "description": "Driver who won, started from P1 and set fastest lap gets f1:achievedHatTrick.",
+        "query": """
+INSERT { ?driver f1:achievedHatTrick ?race . }
+WHERE {
+  ?driver f1:wonRace ?race ;
+          f1:startedFromP1 ?race ;
+          f1:setFastestLap ?race .
+  FILTER NOT EXISTS { ?driver f1:achievedHatTrick ?race }
+}
+""",
+    },
+    {
         "name": "infer_drovFor",
         "description": "Driver linked to every Constructor they drove for.",
         "query": """

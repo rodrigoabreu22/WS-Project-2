@@ -10,7 +10,7 @@ A semantic web application exposing the Formula 1 World Championship (1950–202
 ## Architecture overview
 
 ```
-Ergast CSV (data/raw/)
+Kaggle/Ergast-style CSV (data/raw/)
     │
     ▼  scripts/csv_to_rdf.py
 formula1.nt  ← N-Triples facts (no rdf:type for Driver/Constructor/Circuit)
@@ -39,7 +39,7 @@ No relational database is used for domain data. Django's SQLite is used only for
 - Python 3.12+
 - [GraphDB Free](https://www.ontotext.com/products/graphdb/download/) running on `http://localhost:7200`
 - A GraphDB repository named **`ws-formula1-owlmax`** created with the **`owl-max-optimized`** ruleset (see step 6 below — this is critical for `rdfs:domain` inference to work)
-- Ergast CSV files in `data/raw/` (download from [ergast.com](https://ergast.com/mrd/db/))
+- Kaggle Formula 1 World Championship CSV files in `data/raw/` (the dataset follows the Ergast schema)
 - A Google Gemini API key (only needed for the F1 Assistant page)
 
 > **Why `owl-max-optimized`?** GraphDB's `rdfsplus-optimized` ruleset does not materialise `rdfs:domain` inference during bulk REST API loads. The `owl-max-optimized` ruleset + server-side import (used by this project's load script) is the only configuration that correctly triggers `rdfs:domain → rdf:type` forward-chaining, enabling the ontology to classify Driver/Constructor/Circuit entities without explicit `rdf:type` in the facts file.
@@ -47,7 +47,7 @@ No relational database is used for domain data. Django's SQLite is used only for
 ### Quick start (single command)
 
 ```bash
-# Clone the repo, ensure GraphDB is running and data/raw/ has Ergast CSVs, then:
+# Clone the repo, ensure GraphDB is running and data/raw/ has the Kaggle/Ergast-style CSVs, then:
 bash scripts/setup.sh
 ```
 
@@ -65,7 +65,7 @@ If you prefer to run each step individually:
 
 ```bash
 # 1. Virtual environment and dependencies
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Configure environment
@@ -76,24 +76,24 @@ cp .env.example .env
 #    GraphDB must be running at http://localhost:7200 first.
 bash scripts/create_graphdb_repo.sh
 
-# 4. Generate RDF facts from CSV (Ergast files must be in data/raw/)
-python scripts/csv_to_rdf.py          # → data/rdf/formula1.nt (~798 MB)
+# 4. Generate RDF facts from CSV (dataset files must be in data/raw/)
+python3 scripts/csv_to_rdf.py          # → data/rdf/formula1.nt (~798 MB)
 
 # 5. Merge ontology + facts
-python scripts/merge_integrated.py    # → data/rdf/formula1_integrated.nt
+python3 scripts/merge_integrated.py    # → data/rdf/formula1_integrated.nt
 
 # 6. Load into GraphDB (server-side import, ~2 min)
 bash scripts/load_rdf_to_graphdb.sh
 
-# 7. Run SPIN inference rules (15 rules, ~1 min)
-python manage.py run_spin_rules        # expected: 15/15 rules applied successfully
+# 7. Run SPIN inference rules (19 rules, ~1 min)
+python3 manage.py run_spin_rules        # expected: 19/19 rules applied successfully
 
 # 8. Django setup
-python manage.py migrate
-python manage.py createsuperuser       # for admin panel access
+python3 manage.py migrate
+python3 manage.py createsuperuser       # for admin panel access
 
 # 9. Start the server
-python manage.py runserver
+python3 manage.py runserver
 ```
 
 Open `http://localhost:8000`. Admin panel: `http://localhost:8000/admin-panel/login/`
@@ -101,7 +101,7 @@ Open `http://localhost:8000`. Admin panel: `http://localhost:8000/admin-panel/lo
 ### Re-running inference after data changes
 
 ```bash
-python manage.py run_spin_rules   # all 15 rules are idempotent
+python manage.py run_spin_rules   # all 19 rules are idempotent
 ```
 
 ### Why `owl-max-optimized` + server-side import?
@@ -119,7 +119,7 @@ This is what allows the ontology to classify Driver/Constructor/Circuit entities
 from their property usage (`f1:driverRef`, `f1:constructorRef`, `f1:circuitRef`)
 without any explicit `rdf:type` in the facts file — exactly as the TP2 assignment requires.
 
-### Why all 15 SPIN rules are still needed
+### Why all 19 SPIN rules are still needed
 
 The `owl-max-optimized` ruleset handles *ontological* inference (property → type via
 `rdfs:domain`, inverse properties, subClassOf chains). The SPIN rules handle
@@ -175,17 +175,21 @@ OWL 2 DL ontology with 18 classes and 15+ properties. **This file is hand-author
 - `rdfs:domain` on `f1:driverRef / constructorRef / circuitRef` — GraphDB infers `rdf:type` at load time; **the facts file contains no explicit `rdf:type`** for these base classes
 - `owl:SymmetricProperty` on `f1:wasTeammate`
 - `owl:inverseOf` on `f1:hadDriver ↔ f1:drovFor`
-- `rdfs:subPropertyOf`: `wonRace ⊑ competedIn`, `achievedPodium ⊑ competedIn`
+- `rdfs:subPropertyOf`: `wonRace ⊑ competedIn`, `startedFromP1 ⊑ competedIn`, `setFastestLap ⊑ competedIn`, `achievedPodium ⊑ competedIn`
 - `owl:disjointWith`: Driver↔Constructor, Driver↔Circuit, Race↔Season, Result↔QualifyingResult
 
 ### SPIN rules (`championship/spin_rules.py`)
 
-15 SPARQL `INSERT WHERE` rules that express patterns OWL DL cannot (aggregation, arithmetic, negation-as-failure):
+19 SPARQL `INSERT WHERE` rules that express patterns OWL DL cannot (aggregation, arithmetic, negation-as-failure, layered derived facts):
 
 | Rule | What it infers |
 |------|---------------|
 | `infer_wonRace` | `f1:wonRace` triples (positionOrder = 1) |
 | `infer_achievedPodium` | `f1:achievedPodium` triples (positionOrder ≤ 3) |
+| `infer_startedFromP1` | `f1:startedFromP1` triples (result grid = 1) |
+| `infer_convertedP1ToWin` | `f1:convertedP1ToWin` triples (P1 start + race win) |
+| `infer_setFastestLap` | `f1:setFastestLap` triples (result rank = 1) |
+| `infer_achievedHatTrick` | `f1:achievedHatTrick` triples (P1 start + win + fastest lap) |
 | `infer_drovFor` | `f1:drovFor` (driver → constructor, cross-table join) |
 | `infer_wasTeammate` | `f1:wasTeammate` (same race, same constructor, different driver) |
 | `infer_wonChampionship` | `f1:wonChampionship` (position 1 at MAX round per season) |
@@ -262,7 +266,7 @@ Entity URI patterns: `res:driver/{id}`, `res:constructor/{id}`, `res:circuit/{id
 
 ```
 data/
-  raw/                          — Ergast CSV files (not in git)
+  raw/                          — Kaggle/Ergast-style CSV files
   rdf/
     formula1_ontology.ttl       — OWL 2 DL ontology (hand-authored, in git)
     formula1.nt                 — Generated facts (gitignored, ~798 MB)
@@ -274,7 +278,7 @@ scripts/
   load_rdf_to_graphdb.sh        — Optional: loads via GraphDB REST API
 
 championship/
-  spin_rules.py                 — 15 SPARQL inference rules
+  spin_rules.py                 — 19 SPARQL inference rules
   views.py                      — All Django views + /api/entity-info/ endpoint
   services/
     graphdb.py                  — GraphDBClient (query + run_update)
@@ -298,5 +302,5 @@ templates/championship/
 docs/
   tp2_documentation.md          — Full project documentation for the report
   ontology_diagram.md           — Mermaid class diagram of the ontology
-  ONTOLOGY_INFERENCE.md         — Inference verification (15/15 checks with real counts)
+  ONTOLOGY_INFERENCE.md         — Inference verification with real counts
 ```

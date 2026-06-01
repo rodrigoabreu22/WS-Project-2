@@ -90,6 +90,78 @@
   </div>
 </div>
 
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-top:1rem;">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+    <div style="background:var(--dark);border-bottom:2px solid var(--red);padding:0.7rem 1.25rem;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+      Inference Counts
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr><th>Derived fact</th><th>Predicate/Class</th><th>Count</th></tr>
+      </thead>
+      <tbody>
+        {% for c in inference_counts %}
+        <tr>
+          <td>{{ c.label }}</td>
+          <td style="color:var(--grey);">{{ c.predicate }}</td>
+          <td style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--white);">{{ c.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+    <div style="background:var(--dark);border-bottom:2px solid var(--red);padding:0.7rem 1.25rem;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+      Last Inference Run
+    </div>
+    {% if last_inference_run %}
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--line);">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--white);font-size:1.1rem;">
+        {{ last_inference_run.ok }} OK / {{ last_inference_run.failed }} failed
+      </div>
+      <div style="color:var(--grey);font-size:0.85rem;margin-top:0.25rem;">{{ last_inference_run.ran_at }}</div>
+    </div>
+    <div style="max-height:320px;overflow:auto;">
+      <table class="admin-table">
+        <tbody>
+          {% for r in last_inference_run.results %}
+          <tr>
+            <td>{{ r.name }}</td>
+            <td style="{% if r.ok %}color:#10b981;{% else %}color:var(--red);{% endif %}">
+              {% if r.ok %}OK{% else %}ERR{% endif %}
+            </td>
+            <td style="color:var(--grey);">{{ r.elapsed|default:"—" }}s</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:1rem 1.25rem;color:var(--grey);font-size:0.9rem;">
+      No inference run recorded in this admin session yet.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:1rem;">
+  <div style="background:var(--dark);border-bottom:2px solid var(--red);padding:0.7rem 1.25rem;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);">
+    SPIN Rule Catalog
+  </div>
+  <table class="admin-table">
+    <thead><tr><th>Rule</th><th>Description</th></tr></thead>
+    <tbody>
+      {% for rule in spin_rules %}
+      <tr>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--white);">{{ rule.name }}</td>
+        <td style="color:var(--grey);">{{ rule.description }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% if latest_batch %}
 <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:8px;padding:1.25rem 1.5rem;margin-top:1rem;max-width:760px;">
   <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey);margin-bottom:0.4rem;">

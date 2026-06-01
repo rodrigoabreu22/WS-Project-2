@@ -296,6 +296,27 @@
   .pos-badge.p2 { color: #C0C0C0; }
   .pos-badge.p3 { color: #CD7F32; }
 
+  .achievement-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .achievement-badge {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--grey);
+    display: inline-flex;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0.12rem 0.45rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .achievement-badge.gold { border-color: #FFD700; color: #FFD700; }
+  .achievement-badge.red { border-color: var(--red); color: var(--red); }
+
   .driver-link {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
@@ -447,6 +468,7 @@
         <th>Constructor</th>
         <th>Grid</th>
         <th>Laps</th>
+        <th>Inferred</th>
         <th>Time</th>
         <th>Status</th>
         <th>Pts</th>
@@ -472,6 +494,17 @@
           {{ r.grid|default:"—" }}
         </td>
         <td style="color:var(--grey);">{{ r.laps|default:"—" }}</td>
+        <td>
+          <div class="achievement-badges">
+            {% if r.is_hat_trick %}<span class="achievement-badge gold">Hat trick</span>{% endif %}
+            {% if r.is_p1_start %}<span class="achievement-badge">P1 start</span>{% endif %}
+            {% if r.is_p1_win %}<span class="achievement-badge">P1 win</span>{% endif %}
+            {% if r.is_fastest_lap %}<span class="achievement-badge red">Fastest lap</span>{% endif %}
+            {% if not r.is_hat_trick and not r.is_p1_start and not r.is_p1_win and not r.is_fastest_lap %}
+            <span style="color:var(--grey);">—</span>
+            {% endif %}
+          </div>
+        </td>
         <td class="time-cell">{{ r.time|default:"—" }}</td>
         <td>
           {% if r.status == "Finished" %}
@@ -496,7 +529,7 @@
       </tr>
       {% empty %}
       <tr>
-        <td colspan="8" style="text-align:center;color:var(--grey);padding:2rem;">No results available.</td>
+        <td colspan="9" style="text-align:center;color:var(--grey);padding:2rem;">No results available.</td>
       </tr>
       {% endfor %}
     </tbody>

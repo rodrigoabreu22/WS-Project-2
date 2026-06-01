@@ -18,7 +18,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 class GraphDBClient:
     def __init__(self) -> None:
         base_url = os.getenv("GRAPHDB_BASE_URL", "http://localhost:7200").rstrip("/")
-        repository = os.getenv("GRAPHDB_REPOSITORY", "ws-formula1")
+        repository = os.getenv("GRAPHDB_REPOSITORY", "ws-formula1-owlmax")
         self.query_endpoint = f"{base_url}/repositories/{repository}"
         self.update_endpoint = f"{self.query_endpoint}/statements"
         self.username = os.getenv("GRAPHDB_USERNAME", "")

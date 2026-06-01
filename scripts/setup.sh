@@ -8,8 +8,7 @@
 #   1. Python 3.12+
 #   2. GraphDB Desktop  — https://www.ontotext.com/products/graphdb/download/
 #      Start it and leave it running at http://localhost:7200
-#   3. Ergast CSV files — place in data/raw/  (download the "db" archive from
-#      https://ergast.com/mrd/db/ and unzip into data/raw/)
+#   3. Kaggle Formula 1 CSV files — place the Ergast-style CSVs in data/raw/
 #
 # Usage:
 #   bash scripts/setup.sh
@@ -38,9 +37,9 @@ fi
 ok "GraphDB is running."
 
 if [[ ! -f "data/raw/races.csv" ]]; then
-  fail "Ergast CSV files not found in data/raw/. Download from https://ergast.com/mrd/db/ and unzip there."
+  fail "Formula 1 CSV files not found in data/raw/. Add the Kaggle/Ergast-style CSVs there."
 fi
-ok "Ergast CSV files found."
+ok "Formula 1 CSV files found."
 
 echo ""
 
@@ -123,7 +122,7 @@ bash scripts/load_rdf_to_graphdb.sh
 echo ""
 
 # ── Step 7: Run SPIN inference rules ─────────────────────────────────────────
-info "Running 15 SPIN inference rules (~1 min)..."
+info "Running SPIN inference rules (~1 min)..."
 python manage.py run_spin_rules
 echo ""
 
