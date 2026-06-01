@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.8)  31 MAY 2026 21:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.8)  1 JUN 2026 19:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -821,8 +821,19 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.43 ...ro Section Enrichment}{19}{subsection.7.3}
-                                                  % [1])
+l.44 ... Enrichment (DBpedia)}{25}{subsection.6.4}
+                                                  % [1]
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 5
+7.
+
+(/usr/share/texmf/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `lmtt' (encoding: T1).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+)
 \tf@toc=\write4
 \openout4 = `report_tp2.toc'.
 
@@ -841,16 +852,9 @@ LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
  (/usr/share/texmf/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
-14.
-
-(/usr/share/texmf/tex/latex/lm/t1lmtt.fd
-File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-Package microtype Info: Loading generic protrusion settings for font family
-(microtype)             `lmtt' (encoding: T1).
-(microtype)             For optimal results, create family-specific settings.
-(microtype)             See the microtype manual for details.
+Overfull \hbox (165.15482pt too wide) in paragraph at lines 235--253
+ [] 
+ []
 
 
 Package fancyhdr Warning: \headheight is too small (15.0pt): 
@@ -862,15 +866,9 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 [3{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}]
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 257.
+nput line 287.
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 258.
-
-Overfull \hbox (27.85625pt too wide) in paragraph at lines 298--300
-[]\T1/lmr/m/n/12 (-20) So \T1/lmtt/m/n/12 <driver/1> f1:driverRef "hamilton" \T
-1/lmr/m/n/12 (-20) causes GraphDB to au-to-mat-i-cally in-fer \T1/lmtt/m/n/12 <
-driver/1>
- []
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 288.
 
 
 Package fancyhdr Warning: \headheight is too small (15.0pt): 
@@ -881,385 +879,18 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [4]
-Overfull \hbox (11.09459pt too wide) in paragraph at lines 328--335
+Overfull \hbox (27.85625pt too wide) in paragraph at lines 328--330
+[]\T1/lmr/m/n/12 (-20) So \T1/lmtt/m/n/12 <driver/1> f1:driverRef "hamilton" \T
+1/lmr/m/n/12 (-20) causes GraphDB to au-to-mat-i-cally in-fer \T1/lmtt/m/n/12 <
+driver/1>
+ []
+
+
+Overfull \hbox (11.09459pt too wide) in paragraph at lines 358--365
 \T1/lmr/m/n/12 (-20) Properties like \T1/lmtt/m/n/12 f1:driverId\T1/lmr/m/n/12 
 (-20) , \T1/lmtt/m/n/12 f1:constructorId\T1/lmr/m/n/12 (-20) , and \T1/lmtt/m/n
 /12 f1:raceId \T1/lmr/m/n/12 (-20) ap-pear as \T1/lmr/bx/n/12 (-20) lit-eral co
 lumns
- []
-
-
-Package tabularx Warning: X Columns too narrow (table too wide)
-(tabularx)                 on input line 359.
-
-
-Overfull \hbox (35.63673pt too wide) in paragraph at lines 359--359
-[]|\T1/lmr/bx/n/12 (-20) Purpose| 
- []
-
-
-Overfull \hbox (0.71631pt too wide) in paragraph at lines 359--359
-[]|\T1/lmr/m/n/12 (-20) At
- []
-
-
-Overfull \hbox (12.3065pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) most
- []
-
-
-Overfull \hbox (5.52263pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) one
- []
-
-
-Overfull \hbox (13.84052pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) value
- []
-
-
-Overfull \hbox (4.34622pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) per
- []
-
-
-Overfull \hbox (7.46312pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) sub-
- []
-
-
-Overfull \hbox (6.48163pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ject| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-[]|$\OML/lmm/m/it/12 x$
- []
-
-
-Overfull \hbox (35.8009pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) wasTeam-
- []
-
-
-Overfull \hbox (13.19931pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) mate
- []
-
-
-Overfull \hbox (9.74313pt too wide) in paragraph at lines 359--359
-\OML/lmm/m/it/12 y \OMS/lmsy/m/n/12 )
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\OML/lmm/m/it/12 y$
- []
-
-
-Overfull \hbox (35.8009pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) wasTeam-
- []
-
-
-Overfull \hbox (13.19931pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) mate
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\OML/lmm/m/it/12 x$
- []
-
-
-Overfull \hbox (40.36742pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) (GraphDB
- []
-
-
-Overfull \hbox (5.47993pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ma-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 te-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (+20) ri-
- []
-
-
-Overfull \hbox (14.60658pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) alises
- []
-
-
-Overfull \hbox (4.24309pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) the
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 in-
- []
-
-
-Overfull \hbox (17.42871pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) verse)| 
- []
-
-
-Overfull \hbox (48.22433pt too wide) in paragraph at lines 359--359
-[]|\T1/lmr/m/n/12 (-20) Constructor
- []
-
-
-Overfull \hbox (19.84468pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) Driver
- []
-
-
-Overfull \hbox (8.03229pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) nav-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (+20) i-
- []
-
-
-Overfull \hbox (1.64127pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ga-
- []
-
-
-Overfull \hbox (8.08176pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) tion
- []
-
-
-Overfull \hbox (12.09364pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) with-
- []
-
-
-Overfull \hbox (4.5658pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) out
- []
-
-
-Overfull \hbox (9.38165pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) stor-
- []
-
-
-Overfull \hbox (3.6038pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ing
- []
-
-
-Overfull \hbox (4.24309pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) the
- []
-
-
-Overfull \hbox (15.11847pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) triple
- []
-
-
-Overfull \hbox (14.15176pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) twice| 
- []
-
-
-Overfull \hbox (12.7168pt too wide) in paragraph at lines 359--359
-[]|\T1/lmr/m/n/12 (-20) Race
- []
-
-
-Overfull \hbox (10.28156pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) wins
- []
-
-
-Overfull \hbox (7.50584pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) also
- []
-
-
-Overfull \hbox (2.2812pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ap-
- []
-
-
-Overfull \hbox (10.10371pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) pear
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (+20) as
- []
-
-
-Overfull \hbox (50.0002pt too wide) in paragraph at lines 359--359
-\T1/lmtt/m/n/12 competedIn
- []
-
-
-Overfull \hbox (21.22594pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) triples;
- []
-
-
-Overfull \hbox (1.64125pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) en-
- []
-
-
-Overfull \hbox (13.26332pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ables
- []
-
-
-Overfull \hbox (33.3075pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) property-
- []
-
-
-Overfull \hbox (11.28047pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) path
- []
-
-
-Overfull \hbox (23.1788pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) queries| 
- []
-
-
-Overfull \hbox (13.03084pt too wide) in paragraph at lines 359--359
-[]|\T1/lmr/m/n/12 (-20) Each
- []
-
-
-Overfull \hbox (8.72069pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) race
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (+20) is
- []
-
-
-Overfull \hbox (9.36128pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) held
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (+20) at
- []
-
-
-Overfull \hbox (1.3213pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ex-
- []
-
-
-Overfull \hbox (12.44461pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) actly
- []
-
-
-Overfull \hbox (5.52263pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) one
- []
-
-
-Overfull \hbox (2.92049pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) cir-
- []
-
-
-Overfull \hbox (7.4418pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) cuit| 
- []
-
-
-Overfull \hbox (25.89519pt too wide) in paragraph at lines 359--359
-[]|\T1/lmr/m/n/12 (-20) Detects
- []
-
-
-Overfull \hbox (12.20375pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) mod-
- []
-
-
-Overfull \hbox (15.11877pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) elling
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 er-
- []
-
-
-Overfull \hbox (7.50554pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) rors
- []
-
-
-Overfull \hbox (7.3991pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) dur-
- []
-
-
-Overfull \hbox (3.6038pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) ing
- []
-
-
-Overfull \hbox (8.19633pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) Pro-
- []
-
-
-Overfull \hbox (8.72069pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) tégé
- []
-
-
-Overfull \hbox (4.20166pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) val-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (+20) i-
- []
-
-
-Overfull \hbox (2.2812pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) da-
- []
-
-
-Overfull \hbox (8.08176pt too wide) in paragraph at lines 359--359
-\T1/lmr/m/n/12 (-20) tion| 
- []
-
-
-Overfull \hbox (125.40825pt too wide) in alignment at lines 359--359
-[][][] 
  []
 
 
@@ -1271,6 +902,389 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [5]
+
+Package tabularx Warning: X Columns too narrow (table too wide)
+(tabularx)                 on input line 389.
+
+
+Overfull \hbox (35.63673pt too wide) in paragraph at lines 389--389
+[]|\T1/lmr/bx/n/12 (-20) Purpose| 
+ []
+
+
+Overfull \hbox (0.71631pt too wide) in paragraph at lines 389--389
+[]|\T1/lmr/m/n/12 (-20) At
+ []
+
+
+Overfull \hbox (12.3065pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) most
+ []
+
+
+Overfull \hbox (5.52263pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) one
+ []
+
+
+Overfull \hbox (13.84052pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) value
+ []
+
+
+Overfull \hbox (4.34622pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) per
+ []
+
+
+Overfull \hbox (7.46312pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) sub-
+ []
+
+
+Overfull \hbox (6.48163pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ject| 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+[]|$\OML/lmm/m/it/12 x$
+ []
+
+
+Overfull \hbox (35.8009pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) wasTeam-
+ []
+
+
+Overfull \hbox (13.19931pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) mate
+ []
+
+
+Overfull \hbox (9.74313pt too wide) in paragraph at lines 389--389
+\OML/lmm/m/it/12 y \OMS/lmsy/m/n/12 )
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\OML/lmm/m/it/12 y$
+ []
+
+
+Overfull \hbox (35.8009pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) wasTeam-
+ []
+
+
+Overfull \hbox (13.19931pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) mate
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\OML/lmm/m/it/12 x$
+ []
+
+
+Overfull \hbox (40.36742pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) (GraphDB
+ []
+
+
+Overfull \hbox (5.47993pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ma-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 te-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (+20) ri-
+ []
+
+
+Overfull \hbox (14.60658pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) alises
+ []
+
+
+Overfull \hbox (4.24309pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) the
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 in-
+ []
+
+
+Overfull \hbox (17.42871pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) verse)| 
+ []
+
+
+Overfull \hbox (48.22433pt too wide) in paragraph at lines 389--389
+[]|\T1/lmr/m/n/12 (-20) Constructor
+ []
+
+
+Overfull \hbox (19.84468pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) Driver
+ []
+
+
+Overfull \hbox (8.03229pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) nav-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (+20) i-
+ []
+
+
+Overfull \hbox (1.64127pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ga-
+ []
+
+
+Overfull \hbox (8.08176pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) tion
+ []
+
+
+Overfull \hbox (12.09364pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) with-
+ []
+
+
+Overfull \hbox (4.5658pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) out
+ []
+
+
+Overfull \hbox (9.38165pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) stor-
+ []
+
+
+Overfull \hbox (3.6038pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ing
+ []
+
+
+Overfull \hbox (4.24309pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) the
+ []
+
+
+Overfull \hbox (15.11847pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) triple
+ []
+
+
+Overfull \hbox (14.15176pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) twice| 
+ []
+
+
+Overfull \hbox (12.7168pt too wide) in paragraph at lines 389--389
+[]|\T1/lmr/m/n/12 (-20) Race
+ []
+
+
+Overfull \hbox (10.28156pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) wins
+ []
+
+
+Overfull \hbox (7.50584pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) also
+ []
+
+
+Overfull \hbox (2.2812pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ap-
+ []
+
+
+Overfull \hbox (10.10371pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) pear
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (+20) as
+ []
+
+
+Overfull \hbox (50.0002pt too wide) in paragraph at lines 389--389
+\T1/lmtt/m/n/12 competedIn
+ []
+
+
+Overfull \hbox (21.22594pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) triples;
+ []
+
+
+Overfull \hbox (1.64125pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) en-
+ []
+
+
+Overfull \hbox (13.26332pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ables
+ []
+
+
+Overfull \hbox (33.3075pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) property-
+ []
+
+
+Overfull \hbox (11.28047pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) path
+ []
+
+
+Overfull \hbox (23.1788pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) queries| 
+ []
+
+
+Overfull \hbox (13.03084pt too wide) in paragraph at lines 389--389
+[]|\T1/lmr/m/n/12 (-20) Each
+ []
+
+
+Overfull \hbox (8.72069pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) race
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (+20) is
+ []
+
+
+Overfull \hbox (9.36128pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) held
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (+20) at
+ []
+
+
+Overfull \hbox (1.3213pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ex-
+ []
+
+
+Overfull \hbox (12.44461pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) actly
+ []
+
+
+Overfull \hbox (5.52263pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) one
+ []
+
+
+Overfull \hbox (2.92049pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) cir-
+ []
+
+
+Overfull \hbox (7.4418pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) cuit| 
+ []
+
+
+Overfull \hbox (25.89519pt too wide) in paragraph at lines 389--389
+[]|\T1/lmr/m/n/12 (-20) Detects
+ []
+
+
+Overfull \hbox (12.20375pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) mod-
+ []
+
+
+Overfull \hbox (15.11877pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) elling
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 er-
+ []
+
+
+Overfull \hbox (7.50554pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) rors
+ []
+
+
+Overfull \hbox (7.3991pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) dur-
+ []
+
+
+Overfull \hbox (3.6038pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) ing
+ []
+
+
+Overfull \hbox (8.19633pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) Pro-
+ []
+
+
+Overfull \hbox (8.72069pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) tégé
+ []
+
+
+Overfull \hbox (4.20166pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) val-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (+20) i-
+ []
+
+
+Overfull \hbox (2.2812pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) da-
+ []
+
+
+Overfull \hbox (8.08176pt too wide) in paragraph at lines 389--389
+\T1/lmr/m/n/12 (-20) tion| 
+ []
+
+
+Overfull \hbox (125.40825pt too wide) in alignment at lines 389--389
+[][][] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[6]
 Overfull \vbox (402.62909pt too high) has occurred while \output is active []
 
 
@@ -1282,8 +1296,8 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
-[6{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}]
-Overfull \hbox (8.7268pt too wide) in paragraph at lines 417--419
+[7{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}]
+Overfull \hbox (8.7268pt too wide) in paragraph at lines 454--456
 \T1/lmr/m/n/12 (-20) During val-i-da-tion, Her-miT raised an \T1/lmtt/m/n/12 Un
 supportedDatatypeException \T1/lmr/m/n/12 (-20) for three \T1/lmtt/m/n/12 rdfs:
 range
@@ -1297,44 +1311,35 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
-[7]
-Overfull \hbox (52.68652pt too wide) in paragraph at lines 443--455
+[8]
+Overfull \hbox (52.68652pt too wide) in paragraph at lines 480--492
 \T1/lmr/m/n/12 (-20) Driver/-Con-struc-tor/-Cir-cuit, \T1/lmtt/m/n/12 owl:disjo
 intWith \T1/lmr/m/n/12 (-20) for con-sis-tency check-ing, \T1/lmtt/m/n/12 owl:F
 unctionalProperty\T1/lmr/m/n/12 (-20) ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 469--472
+Underfull \hbox (badness 10000) in paragraph at lines 508--511
 []|\T1/lmr/m/n/12 (+20) Driver $\OMS/lmsy/m/n/12 ^^Q$ $9$\T1/lmtt/m/n/12 driver
 Ref.string\T1/lmr/m/n/12 (+20) , Con-struc-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 469--472
+Underfull \hbox (badness 10000) in paragraph at lines 508--511
 \T1/lmr/m/n/12 (+20) tor $\OMS/lmsy/m/n/12 ^^Q$ $9$\T1/lmtt/m/n/12 constructorR
 ef.string\T1/lmr/m/n/12 (+20) , Cir-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 472--474
-[]|\T1/lmtt/m/n/12 wonRace $\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 competedIn\T1/l
-mr/m/n/12 (+20) ,
+Underfull \hbox (badness 10000) in paragraph at lines 511--514
+[]|\T1/lmtt/m/n/12 wonRace $\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 achievedPodium 
+$\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 competedIn\T1/lmr/m/n/12 (+20) ,
  []
 
 
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[8]
-Overfull \hbox (1.54868pt too wide) in paragraph at lines 509--515
-\T1/lmtt/m/n/12 ConstructorChampion\T1/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 Activ
-eCircuit\T1/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 HistoricCircuit\T1/lmr/m/n/12 (-
-20) , and \T1/lmtt/m/n/12 PodiumResult \T1/lmr/m/n/12 (-20) sub-classes
+Underfull \hbox (badness 10000) in paragraph at lines 511--514
+\T1/lmtt/m/n/12 finishedSecond $\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 achievedPod
+ium\T1/lmr/m/n/12 (+20) ,
  []
 
 
@@ -1346,98 +1351,106 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [9]
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[10{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}]
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 639.
-
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[11]
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[12]
-Overfull \hbox (5.33507pt too wide) in paragraph at lines 724--727
-\T1/lmr/m/n/12 (-20) The on-tol-ogy de-clares \T1/lmtt/m/n/12 wonRace $\OMS/lms
-y/m/n/12 v$ \T1/lmtt/m/n/12 competedIn \T1/lmr/m/n/12 (-20) and \T1/lmtt/m/n/12
- achievedPodium $\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 competedIn\T1/lmr/m/n/12 (
--20) . This
+Overfull \hbox (1.54868pt too wide) in paragraph at lines 549--555
+\T1/lmtt/m/n/12 ConstructorChampion\T1/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 Activ
+eCircuit\T1/lmr/m/n/12 (-20) , \T1/lmtt/m/n/12 HistoricCircuit\T1/lmr/m/n/12 (-
+20) , and \T1/lmtt/m/n/12 PodiumResult \T1/lmr/m/n/12 (-20) sub-classes
  []
 
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[13]
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[14]
-LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
-835.
- (/usr/share/texmf/tex/latex/lm/ts1lmtt.fd
-File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-Package microtype Info: Loading generic protrusion settings for font family
-(microtype)             `lmtt' (encoding: TS1).
-(microtype)             For optimal results, create family-specific settings.
-(microtype)             See the microtype manual for details.
-Package microtype Info: Character `texttrademark ' is missing
-(microtype)             in font `TS1/lmtt/m/n/12'.
-(microtype)             Ignoring protrusion settings for this character.
-
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[15] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
-File: lstlang1.sty 2023/02/27 1.9 listings language file
-)
-
-Package fancyhdr Warning: \headheight is too small (15.0pt): 
-(fancyhdr)                Make it at least 24.01996pt, for example:
-(fancyhdr)                \setlength{\headheight}{24.01996pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
-
-[16]
-Overfull \hbox (42.51273pt too wide) in paragraph at lines 949--961
+(./tables/metrics.tex
+Overfull \hbox (4.53148pt too wide) in paragraph at lines 6--27
  [] 
  []
 
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[10]
+Overfull \hbox (147.652pt too wide) in paragraph at lines 59--72
+ [] 
+ []
+
+) (./tables/classes.tex
+Overfull \hbox (62.72495pt too wide) in paragraph at lines 4--39
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[11]) (./tables/object-properties.tex
+Overfull \hbox (201.54922pt too wide) in paragraph at lines 4--31
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[12])
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[13] (./tables/spin-rules.tex
+Overfull \hbox (172.41594pt too wide) in paragraph at lines 4--33
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[14])
+Overfull \hbox (151.08017pt too wide) in paragraph at lines 660--685
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[15]
+Overfull \hbox (9.52853pt too wide) in paragraph at lines 687--692
+\T1/lmtt/m/n/12 "/sprint-result/")) \T1/lmr/m/n/12 (-20) guard in the new rules
+ but not in the orig-i-nal \T1/lmtt/m/n/12 infer_achievedPodium
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[16{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}]
 
 Package fancyhdr Warning: \headheight is too small (15.0pt): 
 (fancyhdr)                Make it at least 24.01996pt, for example:
@@ -1447,6 +1460,12 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [17]
+Overfull \hbox (53.68346pt too wide) in paragraph at lines 824--827
+\T1/lmr/m/n/12 (-20) si-tion prop-er-ties. Com-bined with the prop-erty hi-er-a
+r-chy change (\T1/lmtt/m/n/12 f1:wonRace $\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 f
+1:achievedPodium\T1/lmr/m/n/12 (-20) ),
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (15.0pt): 
 (fancyhdr)                Make it at least 24.01996pt, for example:
@@ -1456,8 +1475,25 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [18]
-Overfull \hbox (24.0342pt too wide) in paragraph at lines 1056--1066
- [] 
+Overfull \hbox (58.8798pt too wide) in paragraph at lines 835--838
+[]\T1/lmr/m/n/12 (-20) Both rules ex-clude sprint-result URIs via \T1/lmtt/m/n/
+12 FILTER(!CONTAINS(STR(?result), "/sprint-result/"))\T1/lmr/m/n/12 (-20) ,
+ []
+
+
+Overfull \hbox (51.65865pt too wide) in paragraph at lines 839--844
+[]\T1/lmr/bx/n/12 (-20) Verified counts (live GraphDB): \T1/lmtt/m/n/12 f1:fini
+shedSecond \T1/lmr/m/n/12 (-20) = 1,134 triples (0.49 s), \T1/lmtt/m/n/12 f1:fi
+nishedThird
+ []
+
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <12> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 852.
+
+Overfull \hbox (36.55379pt too wide) in paragraph at lines 860--865
+[]\T1/lmr/m/n/12 (-20) Chains on the out-puts of \T1/lmtt/m/n/12 infer_startedF
+romP1 \T1/lmr/m/n/12 (-20) and \T1/lmtt/m/n/12 infer_wonRace\T1/lmr/m/n/12 (-20
+) :
  []
 
 
@@ -1478,10 +1514,11 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [20]
-Overfull \hbox (21.5196pt too wide) in paragraph at lines 1181--1184
-[][][]\T1/lmr/m/n/12 (-20) GraphDB Free[][] run-ning on \T1/lmtt/m/n/12 http://
-localhost:7200\T1/lmr/m/n/12 (-20) , with a repos-i-tory named \T1/lmtt/b/n/12 
-ws-formula1
+Overfull \hbox (5.33507pt too wide) in paragraph at lines 971--974
+\T1/lmr/m/n/12 (-20) The on-tol-ogy de-clares \T1/lmtt/m/n/12 wonRace $\OMS/lms
+y/m/n/12 v$ \T1/lmtt/m/n/12 competedIn \T1/lmr/m/n/12 (-20) and \T1/lmtt/m/n/12
+ achievedPodium $\OMS/lmsy/m/n/12 v$ \T1/lmtt/m/n/12 competedIn\T1/lmr/m/n/12 (
+-20) . This
  []
 
 
@@ -1493,7 +1530,60 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
 [21]
-Overfull \hbox (36.85216pt too wide) in paragraph at lines 1261--1271
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[22]
+LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
+1082.
+ (/usr/share/texmf/tex/latex/lm/ts1lmtt.fd
+File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `lmtt' (encoding: TS1).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+Package microtype Info: Character `texttrademark ' is missing
+(microtype)             in font `TS1/lmtt/m/n/12'.
+(microtype)             Ignoring protrusion settings for this character.
+
+Overfull \hbox (127.81618pt too wide) in paragraph at lines 1095--1100
+[]\T1/lmr/bx/n/12 (-20) Portrait pho-tos \T1/lmr/m/n/12 (-20) are loaded from t
+he Wikipedia REST sum-mary end-point (\T1/lmtt/m/n/12 /api/rest_v1/page/summary
+/{title}\T1/lmr/m/n/12 (-20) )
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[23] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2023/02/27 1.9 listings language file
+)
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[24]
+Overfull \hbox (9.81563pt too wide) in paragraph at lines 1191--1201
+ [] 
+ []
+
+
+Overfull \hbox (42.51273pt too wide) in paragraph at lines 1236--1248
  [] 
  []
 
@@ -1505,20 +1595,148 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
 
-[22] (./report_tp2.aux)
+[25]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[26]
+Overfull \hbox (15.38377pt too wide) in paragraph at lines 1348--1350
+[]\T1/lmr/bx/n/12 (-20) Screenshot to cap-ture: \T1/lmr/m/n/12 (-20) RDFa Play 
+show-ing the parsed graph panel with the \T1/lmtt/m/n/12 schema:Person
+ []
+
+
+Overfull \hbox (61.6804pt too wide) in paragraph at lines 1355--1368
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[27]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[28]
+Overfull \hbox (4.67838pt too wide) in paragraph at lines 1461--1463
+[]\T1/lmr/bx/n/12 (-20) Browser JSON re-sponse \T1/lmr/m/n/12 (-20) from \T1/lm
+tt/m/n/12 /api/parse-microformats/?url=.../circuits/1/
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[29]
+Overfull \hbox (50.48267pt too wide) in paragraph at lines 1524--1537
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[30]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[31]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[32]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[33]
+Overfull \hbox (65.61952pt too wide) in paragraph at lines 1734--1738
+[][][]\T1/lmr/m/n/12 (-20) GraphDB Free[][] run-ning on \T1/lmtt/m/n/12 http://
+localhost:7200\T1/lmr/m/n/12 (-20) , with a repos-i-tory named \T1/lmtt/b/n/12 
+ws-formula1-owlmax
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[34]
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[35]
+Overfull \hbox (36.85216pt too wide) in paragraph at lines 1821--1831
+ [] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (15.0pt): 
+(fancyhdr)                Make it at least 24.01996pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.01996pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-9.01996pt}.
+
+[36] (./report_tp2.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `report_tp2.out' has not changed.
-(rerunfilecheck)             Checksum: 600F1F9EABE98326A3B1CE8A8E0FD331;10991.
+(rerunfilecheck)             Checksum: A2EF8DE4045ECF1FC67D5A780CD904FA;15009.
  ) 
 Here is how much of TeX's memory you used:
- 19627 strings out of 476048
- 313039 string characters out of 5792217
- 2154975 words of memory out of 5000000
- 40834 multiletter control sequences out of 15000+600000
- 613570 words of font info for 139 fonts, out of 8000000 for 9000
+ 19871 strings out of 476048
+ 316636 string characters out of 5792217
+ 2159975 words of memory out of 5000000
+ 40954 multiletter control sequences out of 15000+600000
+ 614435 words of font info for 146 fonts, out of 8000000 for 9000
  83 hyphenation exceptions out of 8191
  79i,13n,93p,1199b,2099s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/ty
@@ -1528,10 +1746,10 @@ lic/lm/lmri12.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/shar
 e/texmf/fonts/type1/public/lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/l
 m/lmtt10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt12.pfb></usr/share/tex
 mf/fonts/type1/public/lm/lmtti10.pfb>
-Output written on report_tp2.pdf (23 pages, 330001 bytes).
+Output written on report_tp2.pdf (37 pages, 384749 bytes).
 PDF statistics:
- 873 PDF objects out of 1000 (max. 8388607)
- 816 compressed objects within 9 object streams
- 406 named destinations out of 1000 (max. 500000)
- 34233 words of extra memory for PDF output out of 35830 (max. 10000000)
+ 1119 PDF objects out of 1200 (max. 8388607)
+ 1046 compressed objects within 11 object streams
+ 505 named destinations out of 1000 (max. 500000)
+ 34889 words of extra memory for PDF output out of 35830 (max. 10000000)
 

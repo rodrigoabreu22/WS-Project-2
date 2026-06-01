@@ -1,0 +1,31 @@
+% LaTeX table: Object properties
+% Include in report with: \input{tables/object-properties.tex}
+\begin{center}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Property} & \textbf{Domain} & \textbf{Range} & \textbf{OWL axiom} & \textbf{Source} \\
+\midrule
+\texttt{f1:race}       & (f1:Result) & \texttt{f1:Race}        & Functional & Asserted \\
+\texttt{f1:driver}     & (f1:Result) & \texttt{f1:Driver}      & Functional & Asserted \\
+\texttt{f1:constructor}& (f1:Result) & \texttt{f1:Constructor} & —          & Asserted \\
+\texttt{f1:status}     & f1:Result   & \texttt{f1:Status}      & Functional & Asserted \\
+\texttt{f1:circuit}    & f1:Race     & \texttt{f1:Circuit}     & Functional & Asserted \\
+\texttt{f1:season}     & f1:Race     & \texttt{f1:Season}      & Functional & Asserted \\
+\midrule
+\texttt{f1:heldAt}          & f1:Race        & f1:Circuit     & Functional & SPIN: infer\_heldAt \\
+\texttt{f1:drovFor}         & f1:Driver      & f1:Constructor & —          & SPIN: infer\_drovFor \\
+\texttt{f1:hadDriver}       & f1:Constructor & f1:Driver      & inverseOf  & OWL: inverseOf drovFor \\
+\texttt{f1:wasTeammate}     & f1:Driver      & f1:Driver      & Symmetric  & SPIN: infer\_wasTeammate \\
+\texttt{f1:competedIn}      & f1:Driver      & f1:Race        & —          & SPIN (base property) \\
+\texttt{f1:achievedPodium}  & f1:Driver      & f1:Race        & $\sqsubseteq$ competedIn & SPIN \\
+\texttt{f1:wonRace}         & f1:Driver      & f1:Race        & $\sqsubseteq$ competedIn & SPIN: infer\_wonRace (1{,}128) \\
+\texttt{f1:startedFromP1}   & f1:Driver      & f1:Race        & $\sqsubseteq$ competedIn & SPIN: infer\_startedFromP1 (1{,}135) \\
+\texttt{f1:setFastestLap}   & f1:Driver      & f1:Race        & $\sqsubseteq$ competedIn & SPIN: infer\_setFastestLap (410) \\
+\texttt{f1:convertedP1ToWin}& f1:Driver      & f1:Race        & $\sqsubseteq$ wonRace  & SPIN: infer\_convertedP1ToWin (486) \\
+\texttt{f1:achievedHatTrick}& f1:Driver      & f1:Race        & $\sqsubseteq$ wonRace  & SPIN: infer\_achievedHatTrick (69) \\
+\texttt{f1:wonChampionship} & f1:Driver      & f1:Season      & —          & SPIN: infer\_wonChampionship (75) \\
+\texttt{f1:wonConstructorChampionship} & f1:Constructor & f1:Season & — & SPIN (17) \\
+\texttt{f1:finalPoints}     & rdf:Statement  & xsd:decimal    & —          & Reification metadata \\
+\bottomrule
+\end{tabular}
+\end{center}

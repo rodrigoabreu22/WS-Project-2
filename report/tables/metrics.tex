@@ -1,0 +1,72 @@
+% LaTeX table: Quantitative metrics
+% Include in report with: \input{tables/metrics.tex}
+
+% ── Ontology metrics ──────────────────────────────────────────────────────
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Ontology metric} & \textbf{Count} & \textbf{Notes} \\
+\midrule
+OWL classes (total)          & 27  & 7 abstract + 13 concrete + 7 SPIN-inferred \\
+Concrete asserted classes    & 13  & Populated from CSV \\
+SPIN-inferred subclasses     & 7   & Not in facts file \\
+Object properties            & 21  & 6 raw + 15 SPIN-materialised \\
+Datatype properties          & 35  & Covering all CSV columns \\
+owl:FunctionalProperty       & 6   & race, driver, circuit, status, season, heldAt \\
+owl:SymmetricProperty        & 1   & f1:wasTeammate \\
+owl:inverseOf pairs          & 1   & hadDriver / drovFor \\
+rdfs:subPropertyOf chains    & 6   & All under f1:competedIn \\
+owl:disjointWith pairs       & 7   & Prevents cross-type inference \\
+owl:maxCardinality restrictions & 1 & Race$\to$circuit (max 1) \\
+owl:equivalentClass (Protégé)& 3   & Driver, Constructor, Circuit base inference \\
+owl:someValuesFrom restrictions & 2 & WorldChampion, ConstructorChampion \\
+HermiT reasoning time        & 1{,}333 ms & owlready2 on Python 3.12 (21 properties) \\
+Unsatisfiable classes (HermiT) & 0 & Ontology is consistent \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.8em}
+
+% ── GraphDB / data pipeline metrics ──────────────────────────────────────
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Data pipeline metric} & \textbf{Count} & \textbf{Notes} \\
+\midrule
+Raw CSV files                & 13  & Ergast F1 1950--2024 \\
+N-Triple facts               & 6{,}627{,}045 & formula1.nt \\
+Ontology triples             & 375 & formula1\_ontology.ttl \\
+Integrated file triples      & 6{,}627{,}420 & formula1\_integrated.nt \\
+OWL-Max inferred (at import) & $\approx$ 1{,}950 & rdfs:domain $\to$ rdf:type \\
+SPIN-generated triples       & 22{,}921 & 21 rules (verified live, June 2026) \\
+Total triples in repository  & 6{,}650{,}355 & post-inference (verified live) \\
+\midrule
+Drivers                      & 861 & OWL-Max inferred \\
+Constructors                 & 212 & OWL-Max inferred \\
+Circuits                     & 77  & OWL-Max inferred \\
+Seasons                      & 75  & Explicit rdf:type \\
+Races                        & 1{,}125 & Explicit rdf:type \\
+Results                      & $\approx$ 25{,}000 & Explicit rdf:type \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.8em}
+
+% ── Semantic markup coverage ──────────────────────────────────────────────
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Page} & \textbf{RDFa type} & \textbf{MF2 classes} & \textbf{Properties} \\
+\midrule
+Driver detail     & schema:Person          & h-card         & name, nationality, birthDate, sameAs \\
+Constructor detail& schema:SportsOrganization & h-card      & name, nationality, sameAs \\
+Circuit detail    & schema:SportsActivityLocation & h-card, h-adr & name, addressLocality, addressCountry, lat/lng \\
+Race detail       & schema:SportsEvent     & h-event        & name, location, startDate, sameAs \\
+Season detail     & schema:SportsEvent     & h-event        & name, startDate, sameAs \\
+Champions list    & schema:ItemList        & —              & itemListElement (Person) \\
+Home page         & schema:Dataset         & —              & name, description, license, temporalCoverage \\
+\bottomrule
+\end{tabular}
+\end{center}

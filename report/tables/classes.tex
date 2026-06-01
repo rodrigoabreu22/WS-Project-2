@@ -1,0 +1,39 @@
+% LaTeX table: Ontology classes
+% Include in report with: \input{tables/classes.tex}
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Class} & \textbf{Superclass} & \textbf{Type} & \textbf{Source} \\
+\midrule
+\texttt{f1:Entity}              & —                      & Abstract root     & Hand-authored \\
+\texttt{f1:Person}              & \texttt{f1:Entity}     & Abstract          & Hand-authored \\
+\texttt{f1:Team}                & \texttt{f1:Entity}     & Abstract          & Hand-authored \\
+\texttt{f1:Venue}               & \texttt{f1:Entity}     & Abstract          & Hand-authored \\
+\texttt{f1:Event}               & —                      & Abstract          & Hand-authored \\
+\texttt{f1:PerformanceRecord}   & —                      & Abstract          & Hand-authored \\
+\texttt{f1:Standing}            & —                      & Abstract          & Hand-authored \\
+\midrule
+\texttt{f1:Driver}              & \texttt{f1:Person}     & Concrete; asserted  & OWL-Max (rdfs:domain) \\
+\texttt{f1:Constructor}         & \texttt{f1:Team}       & Concrete; asserted  & OWL-Max (rdfs:domain) \\
+\texttt{f1:Circuit}             & \texttt{f1:Venue}      & Concrete; asserted  & OWL-Max (rdfs:domain) \\
+\texttt{f1:Season}              & \texttt{f1:Event}      & Concrete; asserted  & Explicit in facts \\
+\texttt{f1:Race}                & \texttt{f1:Event}      & Concrete; asserted  & Explicit in facts \\
+\texttt{f1:Result}              & \texttt{f1:PerformanceRecord} & Concrete   & Explicit in facts \\
+\texttt{f1:QualifyingResult}    & \texttt{f1:PerformanceRecord} & Concrete   & Explicit in facts \\
+\texttt{f1:LapTime}             & \texttt{f1:PerformanceRecord} & Concrete   & Explicit in facts \\
+\texttt{f1:PitStop}             & \texttt{f1:PerformanceRecord} & Concrete   & Explicit in facts \\
+\texttt{f1:ConstructorResult}   & \texttt{f1:PerformanceRecord} & Concrete   & Explicit in facts \\
+\texttt{f1:DriverStanding}      & \texttt{f1:Standing}   & Concrete; asserted  & Explicit in facts \\
+\texttt{f1:ConstructorStanding} & \texttt{f1:Standing}   & Concrete; asserted  & Explicit in facts \\
+\texttt{f1:Status}              & —                      & Concrete; asserted  & Explicit in facts \\
+\midrule
+\texttt{f1:WorldChampion}       & \texttt{f1:Driver}     & \textbf{SPIN-inferred} & 34 instances \\
+\texttt{f1:MultichampionDriver} & \texttt{f1:WorldChampion} & \textbf{SPIN-inferred} & 17 instances \\
+\texttt{f1:Veteran}             & \texttt{f1:Driver}     & \textbf{SPIN-inferred} & 86 instances \\
+\texttt{f1:ActiveCircuit}       & \texttt{f1:Circuit}    & \textbf{SPIN-inferred} & 24 instances \\
+\texttt{f1:HistoricCircuit}     & \texttt{f1:Circuit}    & \textbf{SPIN-inferred} & 45 instances \\
+\texttt{f1:ConstructorChampion} & \texttt{f1:Constructor}& \textbf{SPIN-inferred} & 17 instances \\
+\texttt{f1:PodiumResult}        & \texttt{f1:Result}     & \textbf{SPIN-inferred} & 3{,}397 instances \\
+\bottomrule
+\end{tabular}
+\end{center}

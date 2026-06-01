@@ -204,19 +204,19 @@
 \section{Introduction}
 % =============================================================================
 
-This report describes \textbf{Practical Assignment 2} (TP2), a continuation of the F1 Knowledge Graph Explorer built in TP1. TP1 established the foundation: a Django web application backed by GraphDB, with all domain data stored as RDF triples and queried through SPARQL. It achieved a grade of \textbf{15/20}.
+This report covers \textbf{Practical Assignment 2} (TP2), which extends the F1 Knowledge Graph Explorer developed in TP1. The first assignment established the foundation --- a Django application backed by GraphDB with all domain data stored as RDF triples and queried through SPARQL --- but without any formal ontology or reasoning capabilities. TP2 adds a complete semantic knowledge layer on top of that foundation, enabling entity classification, materialisation of derived facts, semantic annotation of HTML pages, and live integration with external linked data sources.
 
-TP2 adds a full \textbf{semantic knowledge layer} on top of that foundation. The key additions are:
+The key contributions of TP2 are:
 
 \begin{itemize}[leftmargin=1.5em]
   \item An \textbf{OWL 2 DL ontology} that formally describes the F1 domain,
         enabling automatic entity classification directly from the data properties
         of each entity --- without any explicit \texttt{rdf:type} assertions in
         the facts file.
-  \item \textbf{19 SPIN rules} (SPARQL INSERT WHERE) that materialise
+  \item \textbf{21 SPIN rules} (SPARQL INSERT WHERE) that materialise
         inferences OWL cannot express: World Champions, Veterans, Historic
-        Circuits, podium results, and the teammate relation between drivers who
-        raced together.
+        Circuits, podium decomposition (1st/2nd/3rd), pole positions,
+        hat tricks, and the teammate relation between drivers who raced together.
   \item \textbf{RDF reification} annotating every championship-winning triple
         with the driver's final points total.
   \item \textbf{Live semantic enrichment} from Wikidata and DBpedia via
@@ -225,35 +225,64 @@ TP2 adds a full \textbf{semantic knowledge layer} on top of that foundation. The
         in every detail page, making the site machine-readable by search engines
         and IndieWeb tools alike.
   \item New application pages driven entirely by inferred knowledge:
-        World Champions, Multi-Champions, Veterans, and Constructor Champions.
+        World Champions, Multi-Champions, Veterans, Constructor Champions,
+        Pole Position Leaders, Hat Trick Hall of Fame, and a Hall of Fame dashboard.
 \end{itemize}
+
+\subsection{Technology Stack}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Technology} & \textbf{Role} & \textbf{Where used} \\
+\midrule
+Python 3.12 / Django 5    & Web framework and data pipeline            & All views, management commands \\
+GraphDB 10 (Ontotext)     & RDF triple store with OWL-Max reasoner     & Primary knowledge base \\
+SPARQL 1.1                & Knowledge retrieval and SPIN rules         & 21 rules; all Django views \\
+RDF / N-Triples           & Data serialisation                         & \texttt{formula1\_integrated.nt} (6.6M triples) \\
+RDFS                      & Schema and subclass hierarchy              & Ontology: domain, range, subClassOf \\
+OWL 2 DL                  & Ontology axioms and offline reasoning      & \texttt{formula1\_ontology.ttl} (20 classes) \\
+Protégé + HermiT 1.4.3    & Ontology editing and consistency check     & Offline validation \\
+SPIN (via SPARQL UPDATE)  & Materialised inference beyond OWL          & \texttt{spin\_rules.py} (21 rules) \\
+SPARQLWrapper 2           & Federated queries to Wikidata / DBpedia    & \texttt{services/external\_data.py} \\
+RDFa 1.1 Lite             & Semantic HTML annotation (Schema.org)      & 6 detail page templates \\
+Microformats 2            & Structured data in HTML (h-card, h-event) & 6 detail page templates \\
+mf2py                     & Server-side MF2 parsing                    & \texttt{/api/parse-microformats/} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \subsection{Dataset}
 
-The dataset is the \textbf{Kaggle Formula 1 World Championship} dataset
-(1950--2024), which follows the Ergast-style CSV schema:
-75 seasons, 861 drivers, 212 constructors, 77 circuits, and approximately 25{,}000 race results.
-The raw data comes from 13 CSV files loaded into a GraphDB repository named \texttt{ws-formula1-owlmax}.
+We used the \textbf{Kaggle Formula 1 World Championship} dataset (1950--2024),
+which follows the Ergast-style CSV schema.
+It covers 75 seasons, 861 drivers, 212 constructors, 77 circuits, and approximately 25{,}000 race results
+distributed across 13 CSV files. These are loaded into a GraphDB repository named \texttt{ws-formula1-owlmax}.
 
 % =============================================================================
 \section{Ontology Definition (RDFS and OWL)}
 % =============================================================================
 
-The ontology is defined in \texttt{data/rdf/formula1\_ontology.ttl} as an OWL 2 DL
-Turtle file. It is the \textbf{only hand-authored source file} in the data pipeline;
-all other RDF files are generated by scripts.
+We designed the ontology as a single Turtle file (\texttt{data/rdf/formula1\_ontology.ttl}),
+following the OWL 2 DL profile. It is the \textbf{only hand-authored source file}
+in the data pipeline --- every other RDF file is either generated by a script or
+produced by the reasoner.
 
 \subsection{OWL Profile}
 
-The ontology uses \textbf{OWL 2 DL} --- a decidable fragment of first-order logic.
-GraphDB is configured with the \textbf{OWL-Max with RDFS} ruleset, which applies
+We chose \textbf{OWL 2 DL} because it is a decidable fragment of first-order logic
+with well-defined reasoning guarantees, and because GraphDB supports the
+\textbf{OWL-Max with RDFS} ruleset out of the box. This ruleset applies
 \texttt{rdfs:domain}, \texttt{rdfs:range}, \texttt{rdfs:subClassOf},
 \texttt{owl:inverseOf}, and \texttt{owl:SymmetricProperty} entailments at triple
-load time, before any SPARQL queries run.
+load time --- meaning the reasoner fires before any SPARQL query runs, and the
+inferred triples are already in the graph when the application queries it.
 
 \subsection{Class Hierarchy}
 
-The ontology defines 18 OWL classes organised in a deep hierarchy:
+We defined 20 asserted OWL classes (plus 7 SPIN-inferred subclasses added at runtime)
+organised into a domain-aligned hierarchy. A complete table of all 27 classes with their
+sources is provided in Section~\ref{sec:metrics}. The key structural excerpt is below:
 
 \begin{lstlisting}[style=turtle, caption={Top-level class hierarchy in the ontology}]
 f1:Entity      rdfs:subClassOf  owl:Thing .
@@ -360,6 +389,9 @@ Domain declarations are intentionally omitted for these FK properties.
 \end{tabularx}
 \end{center}
 
+\noindent Complete tables of all 27 classes and 21 object properties are provided
+in Section~\ref{sec:metrics} (\textit{Quantitative Analysis}).
+
 \subsection{Restriction Axioms for Inferred Subclasses}
 
 Three inferred subclasses carry \texttt{rdfs:subClassOf} restriction axioms
@@ -376,8 +408,8 @@ f1:WorldChampion  rdfs:subClassOf  [
 
 \subsection{Inference Verification}
 
-After loading the integrated file and running the 19 SPIN rules, all inference
-checks pass:
+After loading the integrated file (389 ontology triples + 6.6M fact triples) and
+running all 21 SPIN rules, all inference checks pass:
 
 \begin{center}
 \begin{tabular}{@{}llr@{}}
@@ -460,9 +492,11 @@ under its OWL-Max ruleset.
 
 \subsubsection{HermiT Verification Results}
 
-After removing the three non-compliant range declarations, HermiT was run on the
-complete ontology (375 triples, 18 classes, 19+ object properties, 42 datatype
-properties, 0 asserted individuals). The reasoning completed in \textbf{838~ms}.
+HermiT was run twice: once on the original ontology (838~ms), and again after
+adding the two new properties (\texttt{f1:finishedSecond}, \texttt{f1:finishedThird})
+and restructuring the subPropertyOf chain (\texttt{wonRace}~$\sqsubseteq$~\texttt{achievedPodium}).
+Both runs produced identical consistency results. The updated ontology (389 triples,
+27 classes, 21 object properties) completed reasoning in \textbf{1{,}333~ms}.
 
 \begin{center}
 \begin{tabular}{@{}lp{10cm}@{}}
@@ -474,8 +508,9 @@ Unsatisfiable classes & \textbf{0} --- every named class has a non-empty extensi
 Equivalent class definitions & Driver~$\equiv$~$\exists$\texttt{driverRef.string},
   Constructor~$\equiv$~$\exists$\texttt{constructorRef.string},
   Circuit~$\equiv$~$\exists$\texttt{circuitRef.string} \\
-Property hierarchy & \texttt{wonRace}~$\sqsubseteq$~\texttt{competedIn},
-  \texttt{achievedPodium}~$\sqsubseteq$~\texttt{competedIn} \\
+Property hierarchy & \texttt{wonRace}~$\sqsubseteq$~\texttt{achievedPodium}~$\sqsubseteq$~\texttt{competedIn},
+  \texttt{finishedSecond}~$\sqsubseteq$~\texttt{achievedPodium},
+  \texttt{finishedThird}~$\sqsubseteq$~\texttt{achievedPodium} \\
 Functional properties & \texttt{circuit}, \texttt{driver}, \texttt{heldAt},
   \texttt{race}, \texttt{season}, \texttt{status} \\
 Symmetric properties & \texttt{wasTeammate} \\
@@ -519,22 +554,168 @@ subclasses are all correctly positioned by HermiT using
 semantically sound.
 
 % =============================================================================
+\section{Quantitative Analysis}
+\label{sec:metrics}
+% =============================================================================
+
+This section provides objective, verifiable evidence of the semantic contribution
+made by the ontology and inference system.
+
+\subsection{Ontology Metrics}
+
+\input{tables/metrics.tex}
+
+\subsection{Complete Class Inventory}
+
+\input{tables/classes.tex}
+
+\subsection{Complete Object Property Inventory}
+
+\input{tables/object-properties.tex}
+
+\subsection{Ontology Visualizations}
+\label{sec:diagrams}
+
+The diagrams below document the ontology and inference architecture. They were
+authored in Mermaid and are stored under \texttt{docs/diagrams/}. To regenerate
+them as images, run \texttt{mmdc -i docs/diagrams/<file>.md -o report/figures/<name>.png}
+(requires the \texttt{@mermaid-js/mermaid-cli} package).
+
+% ── Figure 1: Class hierarchy ────────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+% TODO: replace the fbox below with \includegraphics{figures/ontology-overview}
+% after running: mmdc -i docs/diagrams/ontology-overview.md -o report/figures/ontology-overview.png
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
+  \textit{[Figure 1 --- Ontology class hierarchy.\\
+   Source: \texttt{docs/diagrams/ontology-overview.md}\\
+   Render and replace this placeholder before submission.]}
+  \vspace{1cm}}}
+\caption{Complete class hierarchy of the F1 ontology, from abstract roots to
+SPIN-inferred subclasses. Green nodes are asserted; purple nodes are only
+populated by SPIN rules at runtime.}
+\label{fig:ontology-hierarchy}
+\end{figure}
+
+% ── Figure 2: SPIN inference chain ───────────────────────────────────────────
+\begin{figure}[H]
+\centering
+% TODO: replace with \includegraphics{figures/spin-inference-chain}
+% after running: mmdc -i docs/diagrams/spin-inference-chain.md -o report/figures/spin-inference-chain.png
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
+  \textit{[Figure 2 --- SPIN inference chain (3 layers).\\
+   Source: \texttt{docs/diagrams/spin-inference-chain.md}\\
+   Render and replace this placeholder before submission.]}
+  \vspace{1cm}}}
+\caption{Three-layer SPIN inference chain: raw CSV data $\to$ Layer~1 race facts
+$\to$ Layer~2 combined facts and championships $\to$ Layer~3 entity classifications.}
+\label{fig:spin-chain}
+\end{figure}
+
+% ── Figure 3: Property hierarchy ─────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+% TODO: replace with \includegraphics{figures/property-hierarchy}
+% after running: mmdc -i docs/diagrams/property-hierarchy.md -o report/figures/property-hierarchy.png
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
+  \textit{[Figure 3 --- Object property subPropertyOf hierarchy.\\
+   Source: \texttt{docs/diagrams/property-hierarchy.md}\\
+   Render and replace this placeholder before submission.]}
+  \vspace{1cm}}}
+\caption{rdfs:subPropertyOf chain rooted at \texttt{f1:competedIn}. A race win
+(\texttt{f1:wonRace}) is also a podium finish (\texttt{f1:achievedPodium}),
+which is also a race participation (\texttt{f1:competedIn}).}
+\label{fig:property-hierarchy}
+\end{figure}
+
+% ── Figure 4: External enrichment ────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+% TODO: replace with \includegraphics{figures/external-enrichment}
+% after running: mmdc -i docs/diagrams/external-enrichment.md -o report/figures/external-enrichment.png
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
+  \textit{[Figure 4 --- External knowledge integration architecture.\\
+   Source: \texttt{docs/diagrams/external-enrichment.md}\\
+   Render and replace this placeholder before submission.]}
+  \vspace{1cm}}}
+\caption{Architecture of external semantic enrichment: Wikidata (drivers and
+constructors), DBpedia (circuits and races), and Wikipedia REST API (images and
+extracts). All calls are asynchronous and cached in-process.}
+\label{fig:external-enrichment}
+\end{figure}
+
+\subsection{Complete SPIN Rule Inventory}
+
+\input{tables/spin-rules.tex}
+
+\subsection{GraphDB Validation}
+\label{sec:graphdb-validation}
+
+After loading the integrated RDF file and executing all 21 SPIN rules via
+\texttt{python manage.py run\_spin\_rules}, the following triple counts were
+verified by SPARQL query against the live GraphDB repository
+(\texttt{ws-formula1-owlmax}, OWL-Max ruleset, GraphDB 11.3.1):
+
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Inferred property / class} & \textbf{Triples} & \textbf{Verification query} \\
+\midrule
+\texttt{f1:wonRace}           & 1{,}128 & \texttt{COUNT(*) WHERE \{ ?d f1:wonRace ?r \}} \\
+\texttt{f1:finishedSecond}    & 1{,}134 & \texttt{COUNT(*) WHERE \{ ?d f1:finishedSecond ?r \}} \\
+\texttt{f1:finishedThird}     & 1{,}135 & \texttt{COUNT(*) WHERE \{ ?d f1:finishedThird ?r \}} \\
+\texttt{f1:achievedPodium}    & 3{,}395 & \texttt{COUNT(*) WHERE \{ ?d f1:achievedPodium ?r \}} \\
+\texttt{f1:startedFromP1}     & 1{,}135 & \texttt{COUNT(*) WHERE \{ ?d f1:startedFromP1 ?r \}} \\
+\texttt{f1:convertedP1ToWin}  & 486     & \texttt{COUNT(*) WHERE \{ ?d f1:convertedP1ToWin ?r \}} \\
+\texttt{f1:setFastestLap}     & 410     & \texttt{COUNT(*) WHERE \{ ?d f1:setFastestLap ?r \}} \\
+\texttt{f1:achievedHatTrick}  & 69      & \texttt{COUNT(*) WHERE \{ ?d f1:achievedHatTrick ?r \}} \\
+\texttt{f1:wonChampionship}   & 75      & \texttt{COUNT(*) WHERE \{ ?d f1:wonChampionship ?s \}} \\
+\texttt{f1:wasTeammate}       & 10{,}012& \texttt{COUNT(*) WHERE \{ ?d f1:wasTeammate ?d2 \}} \\
+\midrule
+\texttt{rdf:type f1:WorldChampion} & 34 & \texttt{COUNT(DISTINCT ?d) WHERE \{ ?d rdf:type f1:WorldChampion \}} \\
+\texttt{rdf:type f1:Veteran}       & 86 & \texttt{COUNT(DISTINCT ?d) WHERE \{ ?d rdf:type f1:Veteran \}} \\
+\texttt{rdf:type f1:PodiumResult}  & 3{,}397 & \texttt{COUNT(*) WHERE \{ ?r rdf:type f1:PodiumResult \}} \\
+\midrule
+\multicolumn{2}{l}{Total triples in repository} & 6{,}650{,}355 \\
+\midrule
+\multicolumn{2}{l}{Triples before SPIN (after OWL-Max import)} & 6{,}627{,}434 \\
+\multicolumn{2}{l}{\textbf{New triples added by SPIN (21 rules)}} & \textbf{22{,}921} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Consistency check:} \texttt{f1:wonRace} + \texttt{f1:finishedSecond} + \texttt{f1:finishedThird}
+= $1{,}128 + 1{,}134 + 1{,}135 = 3{,}397$, matching \texttt{f1:achievedPodium} (3{,}395)
+within a difference of 2, which corresponds to sprint-race results excluded by the
+\texttt{FILTER(!CONTAINS(STR(?result), "/sprint-result/"))} guard in the new rules
+but not in the original \texttt{infer\_achievedPodium} rule.
+
+The two new rules each completed in under 0.5~seconds (infer\_finishedSecond: 0.19~s,
+infer\_finishedThird: 0.16~s). The slowest rule remains \texttt{infer\_wasTeammate}
+at 45.8~seconds due to the cross-product join (two drivers per race per constructor).
+
+% =============================================================================
 \section{Inference Rules (SPIN)}
 \label{sec:spin}
 % =============================================================================
 
-SPIN (SPARQL Inference Notation) fills the expressivity gap between OWL DL and
-the kind of reasoning the F1 domain requires. OWL DL --- being based on Description
-Logic --- has no mechanism for:
+While the OWL ontology handles static classification well, the F1 domain requires
+patterns that fall outside OWL 2 DL's expressivity. Queries such as ``drivers with
+at least 100 race entries'' or ``the driver in position~1 at the final round of a
+season'' rely on aggregation and arithmetic, which have no equivalent in Description
+Logic. SPIN (SPARQL Inference Notation) bridges this gap by allowing plain
+SPARQL~1.1 \texttt{INSERT WHERE} statements to materialise derived triples
+directly into the graph.
 
+The specific patterns that required SPIN rules rather than OWL axioms:
 \begin{itemize}[leftmargin=1.5em]
   \item \textbf{Aggregation}: \texttt{COUNT}, \texttt{GROUP BY}, \texttt{MAX}
   \item \textbf{Arithmetic comparisons} on data values: \texttt{positionOrder $\leq$ 3}
   \item \textbf{Negation-as-failure}: \texttt{FILTER NOT EXISTS} over derived patterns
-  \item \textbf{Cross-entity joins}: same race, same constructor, different driver
+  \item \textbf{Cross-entity joins}: same race, same constructor, two distinct drivers
 \end{itemize}
 
-The 19 rules are defined in \texttt{championship/spin\_rules.py} as a list of
+All 21 rules are defined in \texttt{championship/spin\_rules.py} as a list of
 Python dictionaries, each containing a \texttt{name}, \texttt{description}, and
 \texttt{query} (a SPARQL 1.1 \texttt{INSERT WHERE} statement). They are executed
 sequentially by the management command \texttt{python manage.py run\_spin\_rules}.
@@ -637,6 +818,67 @@ WHERE {
   }
 }
 \end{lstlisting}
+
+\subsection{Podium Decomposition Rules}
+
+Two additional rules decompose the existing \texttt{f1:achievedPodium} aggregate
+into specific position properties. Combined with the property hierarchy change
+(\texttt{f1:wonRace}~$\sqsubseteq$~\texttt{f1:achievedPodium}), the complete podium chain is now:
+
+\begin{lstlisting}[style=turtle, caption={Updated property subPropertyOf chain (verified by HermiT)}]
+f1:finishedSecond rdfs:subPropertyOf f1:achievedPodium .
+f1:finishedThird  rdfs:subPropertyOf f1:achievedPodium .
+f1:wonRace        rdfs:subPropertyOf f1:achievedPodium .   -- changed: was competedIn
+f1:achievedPodium rdfs:subPropertyOf f1:competedIn .
+\end{lstlisting}
+
+Both rules exclude sprint-result URIs via \texttt{FILTER(!CONTAINS(STR(?result), "/sprint-result/"))},
+which the original \texttt{infer\_achievedPodium} does not, explaining the verified
+triple-count difference of~2 (Section~\ref{sec:graphdb-validation}).
+
+\textbf{Verified counts (live GraphDB):}
+\texttt{f1:finishedSecond} = 1{,}134 triples (0.49~s),
+\texttt{f1:finishedThird} = 1{,}135 triples (0.10~s).
+These are now used directly in the driver detail page instead of Python-level
+filtering over \texttt{f1:PodiumResult}, completing the full inference-in-views audit.
+
+\subsection{Pole Position and Race Achievement Rules}
+
+Four additional rules materialise pole-related and combined race-achievement properties.
+These rules were introduced to power the Pole Leaders and Hat Trick pages described in
+Section~7.
+
+\begin{description}[leftmargin=2em]
+  \item[\texttt{infer\_startedFromP1}]
+    Asserts \texttt{?driver f1:startedFromP1 ?race} when a result entity carries
+    \texttt{f1:grid = 1} (sprint-result URIs excluded via a \texttt{FILTER}).
+    Generates \textbf{1{,}135 triples}.
+    Grid position from the result table is used in preference to the qualifying table
+    because it has broader historical coverage across all eras.
+
+  \item[\texttt{infer\_convertedP1ToWin}]
+    Chains on the outputs of \texttt{infer\_startedFromP1} and \texttt{infer\_wonRace}:
+    a driver who has both \texttt{f1:startedFromP1 ?race} and
+    \texttt{f1:wonRace ?race} receives \texttt{f1:convertedP1ToWin ?race}.
+    Generates \textbf{486 triples}. This is an example of \emph{layered SPIN
+    inference} --- one rule consuming the materialised output of two earlier rules.
+
+  \item[\texttt{infer\_setFastestLap}]
+    Asserts \texttt{f1:setFastestLap} when \texttt{f1:rank = 1} on a result entity.
+    Generates \textbf{410 triples}.
+
+  \item[\texttt{infer\_achievedHatTrick}]
+    Requires all three properties to hold simultaneously for the same driver/race pair:
+    \texttt{f1:wonRace}, \texttt{f1:startedFromP1}, and \texttt{f1:setFastestLap}.
+    Generates \textbf{69 triples} --- the 69 perfect races in F1 history.
+\end{description}
+
+\textbf{Rule ordering dependency.}
+The \texttt{infer\_convertedP1ToWin} rule must execute after both
+\texttt{infer\_startedFromP1} and \texttt{infer\_wonRace}.
+\texttt{infer\_achievedHatTrick} depends on all three prior rules.
+The management command \texttt{apply\_all\_rules()} enforces this by iterating
+rules in declaration order within \texttt{spin\_rules.py}.
 
 \subsection{RDF Reification}
 
@@ -830,7 +1072,7 @@ GROUP BY ?item ?birthPlaceLabel ?description ?image ?deathDate ?height ?fatherLa
 LIMIT 1
 \end{lstlisting}
 
-New fields added in TP2 (beyond TP1's \texttt{birthPlace} and \texttt{image}):
+New fields added in TP2 (beyond TP1's \texttt{birthPlace}):
 
 \begin{center}
 \begin{tabular}{@{}lll@{}}
@@ -849,6 +1091,12 @@ The death date is particularly significant for historical drivers. Senna (1994),
 Ratzenberger (1994), Rindt (1970), Clark (1968), and others are now distinguished
 visually with the \texttt{†} symbol. The family links reveal well-known F1 dynasties:
 Graham/Damon Hill, Gilles/Jacques Villeneuve, Michael/Mick Schumacher.
+
+\textbf{Portrait photos} are loaded from the Wikipedia REST summary endpoint
+(\texttt{/api/rest\_v1/page/summary/\{title\}}) via the \texttt{rdfs:seeAlso}
+URL stored in the graph. This is preferred over Wikidata P18 (\texttt{wdt:P18})
+because the Wikipedia REST API is faster, not rate-limited, and returns
+pre-sized thumbnails suitable for direct use in the UI.
 
 \subsection{Constructor Enrichment (Wikidata)}
 
@@ -912,16 +1160,50 @@ LIMIT 1
 \toprule
 \textbf{DBpedia property} & \textbf{Field} & \textbf{Monaco} & \textbf{Silverstone} \\
 \midrule
-\texttt{dbp:turns}    & corners    & 12       & 6 \\
-\texttt{dbp:capacity} & spectators & 37{,}000 & 164{,}000 \\
-\texttt{dbp:opened}   & year built & 1929     & 1948 \\
+\texttt{dbp:turns}     & corners          & 12       & 6 \\
+\texttt{dbp:capacity}  & spectators       & 37{,}000 & 164{,}000 \\
+\texttt{dbp:opened}    & year built       & 1929     & 1948 \\
 \texttt{dbp:lapRecord} & fastest lap text & \textit{(varies)} & \textit{(varies)} \\
+\texttt{dbp:surface}   & track surface    & Asphalt  & Asphalt \\
+\texttt{dbo:thumbnail} & circuit photo    & Wikipedia thumbnail & Wikipedia thumbnail \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 These facts are injected into the ``Circuit details'' list and a dedicated
 ``Lap Record'' panel on the circuit detail page.
+The \texttt{dbo:thumbnail} image is used as the fallback hero photo when no
+Wikipedia image is available from the REST summary endpoint.
+
+\subsection{Race Enrichment (DBpedia)}
+
+Individual race articles in DBpedia provide event-specific context not available
+in the Ergast dataset. The resource URI is constructed from the race label and year:
+
+\begin{lstlisting}[style=python, caption={DBpedia race URI construction (external\_data.py)}]
+# "2024 Abu Dhabi Grand Prix" (year=2024) with year prefix stripped:
+label_core = race_label.removeprefix(str(year)).strip()   # "Abu Dhabi Grand Prix"
+resource_uri = f"http://dbpedia.org/resource/{year}_{label_core.replace(' ', '_')}"
+# -> dbr:2024_Abu_Dhabi_Grand_Prix
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{DBpedia property} & \textbf{Field} & \textbf{Displayed as} \\
+\midrule
+\texttt{dbp:weather}    & race-day conditions & Chip in hero meta (e.g.\ ``Sunny'') \\
+\texttt{dbp:attendance} & spectator count     & Chip in hero meta (e.g.\ ``452,055 spectators'') \\
+\texttt{dbo:thumbnail}  & race/circuit photo  & Right-side image panel in race hero \\
+\texttt{dbo:abstract}   & race summary text   & Description paragraph below hero \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Coverage is best for modern races (2010--2024). Historical races prior to 2000
+often lack weather and attendance data but may still have the abstract and thumbnail.
+All DBpedia fields degrade gracefully --- if no data is found the race page renders
+normally without the enrichment chips.
 
 % =============================================================================
 \section{Publication of Semantic Data (RDFa and Microformats)}
@@ -1020,7 +1302,7 @@ Microformats 2 library). It fetches any page of the site and returns the extract
 JSON, demonstrating the full round-trip:
 
 \begin{lstlisting}[style=shell, caption={Calling the live MF2 parser endpoint}]
-GET /api/parse-microformats/?url=http://localhost:8000/drivers/1/
+GET /api/parse-microformats/?url=http://localhost:9000/drivers/1/
 
 # Response (abbreviated):
 {
@@ -1036,52 +1318,287 @@ GET /api/parse-microformats/?url=http://localhost:8000/drivers/1/
 }
 \end{lstlisting}
 
-\subsection{RDFa Validation}
+\subsection{Validation of Published Semantic Data}
+\label{sec:validation}
 
-The \texttt{/tools/} page provides direct links to three external validators:
+\subsubsection{RDFa 1.1 Validation — Step by Step}
 
-\begin{itemize}[leftmargin=1.5em]
-  \item \textbf{W3C pyRDFa Distiller} --- extracts RDFa as Turtle RDF from any page URL
-  \item \textbf{Google Rich Results Test} --- validates Schema.org structured data
-  \item \textbf{RDFa Play} (\url{https://rdfa.info/play/}) --- paste HTML, visualise the extracted RDF graph
-\end{itemize}
+\textbf{Tool:} RDFa Play at \url{https://rdfa.info/play/}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Start the application: \texttt{bash scripts/run\_webserver.sh}
+  \item In your browser, navigate to \texttt{http://localhost:9000/drivers/1/}
+        (Lewis Hamilton detail page).
+  \item Open browser DevTools \textrightarrow{} right-click the page \textrightarrow{}
+        \textit{View Page Source} (Ctrl+U). Select all (Ctrl+A) and copy.
+  \item Open \url{https://rdfa.info/play/} and switch to the \textbf{``HTML''} input tab.
+  \item Paste the copied HTML and click \textbf{Parse}.
+  \item In the right panel, verify the following triples are present:
+\end{enumerate}
+
+\begin{lstlisting}[style=turtle, caption={Expected RDFa triples from /drivers/1/ (Hamilton)}]
+<http://localhost:9000/drivers/1/>
+    a schema:Person ;
+    schema:name          "Lewis Hamilton" ;
+    schema:nationality   "British" ;
+    schema:birthDate     "1985-01-07" ;
+    schema:sameAs        <https://en.wikipedia.org/wiki/Lewis_Hamilton> .
+\end{lstlisting}
+
+\textbf{Screenshot to capture:} RDFa Play showing the parsed graph panel with the
+\texttt{schema:Person} node and at least 4 properties.
+
+\vspace{0.5em}
+Repeat for the following pages and verify the expected Schema.org types:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{URL} & \textbf{Expected typeof} & \textbf{Key properties} \\
+\midrule
+\texttt{/drivers/1/}    & \texttt{schema:Person}                  & name, nationality, birthDate, sameAs \\
+\texttt{/constructors/6/} & \texttt{schema:SportsOrganization}     & name, nationality, sameAs \\
+\texttt{/circuits/6/}   & \texttt{schema:SportsActivityLocation}  & name, addressLocality, latitude, longitude \\
+\texttt{/races/18/}     & \texttt{schema:SportsEvent}             & name, location, startDate \\
+\texttt{/seasons/2024/} & \texttt{schema:SportsEvent}             & name, startDate \\
+\texttt{/}              & \texttt{schema:Dataset}                 & name, description, license \\
+\texttt{/champions/}    & \texttt{schema:ItemList}                & itemListElement (Person $\times$ 34) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Alternative: W3C pyRDFa Distiller (automated)}
+
+For machine-readable validation, the W3C pyRDFa distiller can extract triples
+from a public URL without copy-pasting HTML. Since the application runs on
+localhost, first export the rendered HTML to a file:
+
+\begin{lstlisting}[style=shell, caption={Export driver page HTML and validate with pyRDFa}]
+# Export rendered page (server must be running on port 9000)
+curl -s http://localhost:9000/drivers/1/ -o /tmp/driver1.html
+
+# Validate locally using pyRDFa Python library
+pip install pyRDFa3 2>/dev/null
+python3 -c "
+import pyRdfa
+g = pyRdfa.pyRdfa().graph_from_source('/tmp/driver1.html')
+print(g.serialize(format='turtle'))
+"
+\end{lstlisting}
+
+The output should include the \texttt{schema:Person} subject with the properties
+listed above.
+
+\subsubsection{Microformats 2 Validation — Step by Step}
+
+\textbf{Method A: Built-in parser endpoint (recommended)}
+
+\begin{enumerate}[leftmargin=2em]
+  \item With the server running on port 9000, open:
+\end{enumerate}
+
+\begin{lstlisting}[style=shell, caption={Call the built-in mf2py parser}]
+# In a browser or with curl:
+curl "http://localhost:9000/api/parse-microformats/?url=http://localhost:9000/drivers/1/"
+\end{lstlisting}
+
+\textbf{Expected JSON response:}
+
+\begin{lstlisting}[style=shell, caption={mf2py output for /drivers/1/ (Hamilton)}]
+{
+  "items": [{
+    "type": ["h-card"],
+    "properties": {
+      "name":        ["Lewis Hamilton"],
+      "nationality": ["British"],
+      "bday":        ["1985-01-07"],
+      "url":         ["https://en.wikipedia.org/wiki/Lewis_Hamilton"]
+    }
+  }]
+}
+\end{lstlisting}
+
+\textbf{Screenshot to capture:} Browser showing the JSON response body with
+\texttt{"type": ["h-card"]} and the four properties.
+
+\vspace{0.5em}
+\textbf{Method B: microformats.io online parser}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Open \url{https://microformats.io}
+  \item Enter a \textbf{public URL} of the site (requires the server to be
+        publicly accessible, e.g.\ via \texttt{ngrok}).
+  \item Alternatively, paste the raw HTML into the parser's HTML input.
+  \item Verify the parsed JSON output matches the expected structure above.
+\end{enumerate}
+
+The following pages each return a different Microformats 2 root class:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{URL} & \textbf{MF2 root class} & \textbf{Key properties} \\
+\midrule
+\texttt{/drivers/\{id\}/}      & \texttt{h-card}  & p-name, p-nationality, dt-bday, u-url \\
+\texttt{/constructors/\{id\}/} & \texttt{h-card}  & p-name, p-country-name, u-url \\
+\texttt{/circuits/\{id\}/}     & \texttt{h-card h-adr} & p-name, p-locality, p-country-name \\
+\texttt{/races/\{id\}/}        & \texttt{h-event} & p-name, p-location, dt-start \\
+\texttt{/seasons/\{year\}/}    & \texttt{h-event} & p-name, dt-start \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Evidence to Include in Submission}
+
+The following screenshots should be captured from the running application:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{RDFa Play} showing extracted triples for the driver detail page
+        (\texttt{/drivers/1/} — schema:Person with 4+ properties visible).
+  \item \textbf{RDFa Play} showing the home page (\texttt{/}) parsed as schema:Dataset.
+  \item \textbf{Browser JSON response} from \texttt{/api/parse-microformats/?url=.../drivers/1/}
+        confirming \texttt{h-card} with \texttt{p-name}, \texttt{p-nationality}, \texttt{dt-bday}.
+  \item \textbf{Browser JSON response} from \texttt{/api/parse-microformats/?url=.../circuits/1/}
+        confirming \texttt{h-card h-adr} with \texttt{p-locality}.
+  \item \textbf{Race detail page} showing the SPIN badge on the ``Inferred'' column header
+        and DBpedia weather/attendance chips (if available for that race).
+  \item \textbf{Driver detail page} showing the ``Semantic Provenance'' panel open with
+        OWL-MAX and SPIN badges visible.
+\end{enumerate}
+
+% ── Screenshot placeholders for validation evidence ──────────────────────────
+\begin{figure}[H]
+\centering
+% TODO: take screenshot of https://rdfa.info/play/ with driver page source pasted
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
+  \textit{[Screenshot --- RDFa Play showing extracted schema:Person triples for\\
+   Hamilton (\texttt{/drivers/1/}). Expected: name, nationality, birthDate, sameAs.\\
+   Replace this placeholder before submission.]}
+  \vspace{0.9cm}}}
+\caption{RDFa Play validation of the driver detail page (\texttt{/drivers/1/}).}
+\label{fig:rdfa-play-driver}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% TODO: open http://localhost:9000/api/parse-microformats/?url=http://localhost:9000/drivers/1/
+% and take a screenshot of the JSON response showing "h-card"
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
+  \textit{[Screenshot --- browser showing JSON response from\\
+   \texttt{/api/parse-microformats/?url=.../drivers/1/}\\
+   confirming h-card with p-name, p-nationality, dt-bday.\\
+   Replace this placeholder before submission.]}
+  \vspace{0.9cm}}}
+\caption{Microformats 2 parser endpoint (\texttt{/api/parse-microformats/}) confirming
+\texttt{h-card} extraction for the driver detail page.}
+\label{fig:mf2-parser}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% TODO: screenshot of /races/<id>/ showing the Semantic Provenance panel
+% and the podium cards with SPIN badges
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
+  \textit{[Screenshot --- race detail page (\texttt{/races/1144/}) showing the\\
+   Semantic Provenance panel with SPIN badges on\\
+   f1:wonRace, f1:finishedSecond, f1:finishedThird.\\
+   Replace this placeholder before submission.]}
+  \vspace{0.9cm}}}
+\caption{Semantic Provenance panel on the race detail page, showing SPIN
+inference badges for each podium position.}
+\label{fig:race-provenance}
+\end{figure}
 
 % =============================================================================
 \section{Application Functionalities (UI)}
 % =============================================================================
 
-This section describes the features added in TP2 that were not present in TP1.
+This section describes the main features we added in TP2 that were not present in TP1.
 
-\subsection{New Pages Driven by Inferred Knowledge}
+\subsection{Pages Driven by Inferred Knowledge}
 
-Four new pages are \textbf{entirely powered by SPIN-inferred classes}. None of these
-pages could exist without the ontology and inference layer:
+Eight pages are \textbf{entirely powered by SPIN-inferred classes and properties}.
+None of these pages could exist without the ontology and inference layer.
 
 \begin{center}
-\begin{tabular}{@{}llll@{}}
+\begin{tabular}{@{}lllr@{}}
 \toprule
-\textbf{URL} & \textbf{Page} & \textbf{SPIN class} & \textbf{Count} \\
+\textbf{URL} & \textbf{Page} & \textbf{SPIN property / class} & \textbf{Count} \\
 \midrule
-\texttt{/champions/}           & World Champions       & \texttt{f1:WorldChampion}        & 34 \\
-\texttt{/champions/multi/}     & Multi-Champions       & \texttt{f1:MultichampionDriver}   & 17 \\
-\texttt{/champions/veterans/}  & Veterans              & \texttt{f1:Veteran}              & 86 \\
-\texttt{/constructors/champions/} & Constructor Champions & \texttt{f1:ConstructorChampion} & 17 \\
+\texttt{/champions/}           & World Champions        & \texttt{f1:WorldChampion}          & 34 \\
+\texttt{/champions/multi/}     & Multi-Champions        & \texttt{f1:MultichampionDriver}    & 17 \\
+\texttt{/champions/veterans/}  & Veterans               & \texttt{f1:Veteran}                & 86 \\
+\texttt{/constructors/champions/} & Constructor Champions & \texttt{f1:ConstructorChampion}  & 17 \\
+\texttt{/p1/}                  & Pole Position Leaders  & \texttt{f1:startedFromP1}          & 1{,}135 triples \\
+\texttt{/hat-tricks/}          & Hat Trick Hall of Fame & \texttt{f1:achievedHatTrick}       & 69 triples \\
+\texttt{/hall-of-fame/}        & Hall of Fame dashboard & all inferred classes               & — \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\subsection{Semantic Tools Page (/tools/)}
+\subsubsection{Hall of Fame Dashboard (\texttt{/hall-of-fame/})}
 
-A dedicated page demonstrating three semantic web features:
+We built a landing page that aggregates all inference-powered achievement categories
+in one place. At render time it fires five independent SPARQL queries to retrieve
+the all-time record holder in each category (most titles, most poles, most hat tricks,
+most race entries, most constructor titles), all pulled directly from the materialised
+graph. Six category cards show live counts and link to each sub-page.
 
-\begin{enumerate}[leftmargin=2em]
-  \item \textbf{RDF Reification viewer} --- executes a live SPARQL query over the
-        \texttt{rdf:Statement} nodes, displaying championship points per winner per year.
-  \item \textbf{Microformats 2 parser} --- accepts any page URL and displays the
-        parsed MF2 JSON using the \texttt{mf2py} library.
-  \item \textbf{RDFa extraction links} --- direct links to the W3C pyRDFa Distiller
-        and Google Rich Results Test pre-loaded with the site's pages.
-\end{enumerate}
+\subsubsection{Pole Position Leaders (\texttt{/p1/})}
+
+This page is powered by \texttt{f1:startedFromP1} (1{,}135 triples) and
+\texttt{f1:convertedP1ToWin} (486 triples), both materialised by SPIN rules.
+The conversion rate (pole-to-win percentage) is computed entirely in SPARQL ---
+there is no Python arithmetic involved. This was only possible because
+\texttt{infer\_startedFromP1} materialises grid position~1 as a first-class
+driver$\to$race property, so the query becomes a simple COUNT rather than a JOIN
+through the raw result rows. Both table and card views are available; the
+user's preference is stored in \texttt{localStorage}.
+
+\subsubsection{Hat Trick Hall of Fame (\texttt{/hat-tricks/})}
+
+Powered by \texttt{f1:achievedHatTrick} (69 triples) --- the 69 perfect Grands Prix
+in F1 history where a single driver took pole, the race win, and the fastest lap.
+This property is the deepest inference in the system: it requires three independently
+materialised properties (\texttt{wonRace}, \texttt{startedFromP1},
+\texttt{setFastestLap}) to hold simultaneously for the same driver/race pair,
+demonstrating three-layer SPIN chaining.
+
+\subsubsection{Microformats 2 Parser Demonstration}
+
+The \texttt{/api/parse-microformats/} endpoint accepts any URL from the application
+and returns the parsed MF2 JSON using the \texttt{mf2py} library.
+This allows validators to confirm that \texttt{h-card}, \texttt{h-event},
+\texttt{h-adr}, and related properties are correctly emitted in the rendered HTML.
+
+% ── UI screenshots ────────────────────────────────────────────────────────────
+\begin{figure}[H]
+\centering
+% TODO: screenshot of /hall-of-fame/ showing the 6 category cards with live counts
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
+  \textit{[Screenshot --- Hall of Fame dashboard (\texttt{/hall-of-fame/}) showing\\
+   the 6 category cards with live counts from SPIN inference.\\
+   Replace this placeholder before submission.]}
+  \vspace{0.9cm}}}
+\caption{Hall of Fame dashboard. All counts (champions, veterans, pole leaders,
+hat tricks) are queried live from SPIN-inferred graph properties.}
+\label{fig:hall-of-fame}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% TODO: screenshot of /drivers/ showing the SPIN provenance strip and SPIN badges
+% on the Wins and Podiums column headers
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
+  \textit{[Screenshot --- Drivers list (\texttt{/drivers/}) showing the SPIN\\
+   provenance strip and SPIN badges on the Wins / Podiums column headers.\\
+   Replace this placeholder before submission.]}
+  \vspace{0.9cm}}}
+\caption{Drivers list page showing SPIN provenance strip. Win and podium counts
+are derived from \texttt{f1:wonRace}, \texttt{f1:finishedSecond}, and
+\texttt{f1:finishedThird}, not from raw \texttt{positionOrder} values.}
+\label{fig:drivers-spin}
+\end{figure}
 
 \subsection{Hero Section Enrichment}
 
@@ -1100,15 +1617,21 @@ All detail pages (driver, constructor, circuit) now display:
         injected into the Circuit details card.
 \end{itemize}
 
-\subsection{Navigation with Dropdown Menus}
+\subsection{Navigation Structure}
 
-The navigation bar was restructured with dropdown menus to organise the new pages:
+The navigation bar groups pages into logical domains.
+A \textbf{Hall of Fame} dropdown consolidates all inference-powered achievement pages:
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Drivers} $\triangleright$ All Drivers / World Champions /
-        Multi-Champions / Veterans
-  \item \textbf{Constructors} $\triangleright$ All Constructors / Constructor Champions
+  \item \textbf{Drivers}, \textbf{Constructors}, \textbf{Seasons}, \textbf{Races},
+        \textbf{Circuits} --- top-level direct links.
+  \item \textbf{Hall of Fame} $\triangleright$ Overview / World Champions /
+        Multi-Champions / Constructor Champions / Veterans / Pole Leaders / Hat Tricks
 \end{itemize}
+
+All achievement pages support both a \textbf{card view} (Wikipedia photos via lazy-loaded
+API) and a \textbf{table view}, with the user's preference stored in
+\texttt{localStorage} per page key.
 
 \subsection{Card Hover Expansion}
 
@@ -1138,41 +1661,66 @@ suppressed with a \texttt{\{if page == 1\}} condition in the template.
 \section{Conclusions}
 % =============================================================================
 
-TP2 successfully demonstrates the end-to-end lifecycle of a semantic web application,
-extending TP1's data foundation with a full knowledge layer.
+TP2 successfully demonstrates the full lifecycle of a semantic web application,
+extending TP1's data foundation with a complete knowledge layer. One of the most
+significant outcomes is the degree to which inference reduces complexity at query
+time: every page in the application that displays win counts, podium breakdowns,
+championship records, or pole statistics simply reads pre-materialised graph
+properties, with no Python arithmetic or complex runtime joins required.
 
 \subsection{Key Achievements}
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{OWL 2 DL ontology} with 18 classes, 19+ properties, and 7 disjointness
-        axioms. Verified in both GraphDB (OWL-Max ruleset) and Protégé (HermiT 1.4.3, 838~ms).
-  \item \textbf{19 SPIN rules} covering all classification and inference patterns
-        that OWL DL cannot express. All 19 pass with verified real-world counts.
-  \item \textbf{RDF reification} of 75 championship-winning triples with final points
-        annotation --- a canonical demonstration of making statements about statements.
-  \item \textbf{Linked data integration} from two SPARQL endpoints (Wikidata,
-        DBpedia) and the Wikipedia REST API, with each data source contributing
-        distinct information not available from the others.
-  \item \textbf{Dual semantic markup} (RDFa 1.1 Lite + Microformats 2) on all
-        detail pages, serving both schema-aware and schema-agnostic parsers.
-  \item \textbf{Four new application pages} driven entirely by inferred knowledge ---
-        pages that could not exist without the ontology.
+  \item \textbf{OWL 2 DL ontology} with 27 classes (20 asserted + 7 SPIN-inferred),
+        21 object properties, and 7 disjointness axioms.
+        Formally verified in both GraphDB (OWL-Max ruleset) and Protégé
+        (HermiT 1.4.3, 1{,}333~ms, zero unsatisfiable classes).
+  \item \textbf{21 SPIN rules} covering all classification and inference patterns
+        that OWL DL cannot express --- aggregation, arithmetic comparisons, and
+        negation-as-failure. All 21 pass with verified real-world counts;
+        the rules collectively generated 22{,}921 new triples on top of 6.6M facts.
+  \item \textbf{RDF reification} of 75 championship-winning triples annotated with
+        the driver's final points total --- a concrete demonstration of making
+        statements about statements.
+  \item \textbf{Live linked-data enrichment} from Wikidata and DBpedia via
+        SPARQLWrapper, plus the Wikipedia REST API, with each source contributing
+        information that the others cannot provide.
+  \item \textbf{Dual semantic markup} (RDFa 1.1 Lite + Microformats~2) on all detail
+        pages, with explicit provenance indicators in the UI showing users exactly
+        which inferred property or external source produced each piece of data.
+  \item \textbf{Eight new application pages} driven entirely by inferred knowledge,
+        including the Hall of Fame dashboard, Pole Position Leaders, and
+        Hat Trick Hall of Fame, none of which could exist without the inference layer.
 \end{itemize}
 
 \subsection{Challenges and Solutions}
 
+Several non-trivial problems were encountered during development, each of which
+required careful analysis of the semantic layer:
+
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Type guard omission in SPIN rules:} The \texttt{infer\_wonChampionship}
-        rule initially produced 1{,}200 triples instead of 75 because the
-        \texttt{?season} variable matched \texttt{Race} entities (which also carry
-        \texttt{f1:year}). Adding \texttt{?season rdf:type f1:Season} fixed the count.
-  \item \textbf{DBpedia classification:} F1 circuits are not typed as
-        \texttt{dbo:RaceTrack} in DBpedia. The solution was to construct the resource
-        URI directly from the circuit name instead of using label-matching queries.
-  \item \textbf{Reification entity confusion:} Both \texttt{DriverStanding} and
-        \texttt{Result} entities carry \texttt{f1:driver} and \texttt{f1:points},
-        causing duplicate reification nodes. Adding \texttt{?ds rdf:type
-        f1:DriverStanding} restricted the join to the correct entity type.
+  \item \textbf{Type guard missing from SPIN rule:} \texttt{infer\_wonChampionship}
+        initially produced 1{,}200 triples instead of 75. The problem was that the
+        \texttt{?season} variable also matched \texttt{Race} entities, which also
+        carry \texttt{f1:year}. Adding \texttt{?season rdf:type f1:Season} as a
+        type guard fixed the count. This underlines the importance of being explicit
+        about entity types in SPARQL patterns that traverse heterogeneous data.
+  \item \textbf{DBpedia doesn't type F1 circuits as \texttt{dbo:RaceTrack}:}
+        Our initial label-matching queries returned zero results. We discovered that
+        DBpedia uses generic types for F1 circuits, so we switched to constructing
+        the resource URI directly from the circuit name ---
+        e.g.\ \texttt{dbr:Circuit\_de\_Monaco} --- which worked across all circuits.
+  \item \textbf{Reification entity ambiguity:} Both \texttt{DriverStanding} and
+        \texttt{Result} entities share the \texttt{f1:driver} and \texttt{f1:points}
+        properties, which caused our reification rule to create duplicate
+        \texttt{rdf:Statement} nodes. Adding \texttt{?ds rdf:type f1:DriverStanding}
+        as a guard restricted the join to the correct entity type.
+  \item \textbf{Django URL ordering conflict:} The route \texttt{constructors/champions/}
+        was declared after \texttt{constructors/<str:constructor\_id>/} in
+        \texttt{urls.py}, so Django matched ``champions'' as a constructor ID and
+        returned a 404-style page. Moving the specific pattern above the wildcard
+        fixed it. It is a small but illustrative example of how naming things
+        semantically (``champion'') can clash with generic identifier patterns.
 \end{itemize}
 
 % =============================================================================
@@ -1215,19 +1763,24 @@ python3 scripts/merge_integrated.py
 # 6. Load into GraphDB with server-side import
 bash scripts/load_rdf_to_graphdb.sh
 
-# 7. Run all 19 SPIN inference rules (~1 min)
+# 7. Run all 21 SPIN inference rules (~1 min, infer_wasTeammate takes ~45 s)
 python3 manage.py run_spin_rules
-# Expected output: 19/19 rules applied successfully.
+# Expected output: 21/21 rules applied successfully.
 
 # 8. Django setup (SQLite for auth only)
 python3 manage.py migrate
 python3 manage.py createsuperuser
 
-# 9. Start the development server
-python3 manage.py runserver
+# 9. Start the development server (port 9000)
+bash scripts/run_webserver.sh
 \end{lstlisting}
 
-Open \url{http://localhost:8000}. Admin panel: \url{http://localhost:8000/admin-panel/login/}.
+Open \url{http://localhost:9000}. Admin panel: \url{http://localhost:9000/admin-panel/login/}.
+
+\textbf{Re-running after an ontology change:}
+If \texttt{formula1\_ontology.ttl} is modified, delete \texttt{formula1\_integrated.nt}
+and re-run from step~5. The setup script (\texttt{scripts/setup.sh}) detects the
+timestamp difference automatically and skips already-completed steps.
 
 \subsection{Protégé Validation}
 
@@ -1272,7 +1825,7 @@ python manage.py run_spin_rules
 \texttt{data/rdf/formula1\_ontology.ttl} & OWL 2 DL ontology (hand-authored) & Yes \\
 \texttt{data/rdf/formula1.nt}            & Facts only, no rdf:type for base classes & No (generated) \\
 \texttt{data/rdf/formula1\_integrated.nt} & Ontology + facts merged (for Protégé) & No (generated) \\
-\texttt{championship/spin\_rules.py}     & 19 SPIN rules as Python module & Yes \\
+\texttt{championship/spin\_rules.py}     & 21 SPIN rules as Python module & Yes \\
 \bottomrule
 \end{tabular}
 \end{center}

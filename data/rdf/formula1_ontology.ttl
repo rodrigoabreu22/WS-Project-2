@@ -264,10 +264,11 @@ f1:wonConstructorChampionship rdf:type owl:ObjectProperty ;
     rdfs:label  "wonConstructorChampionship" .
 
 f1:wonRace rdf:type owl:ObjectProperty ;
-    rdfs:subPropertyOf f1:competedIn ;
+    rdfs:subPropertyOf f1:achievedPodium ;
     rdfs:domain f1:Driver ;
     rdfs:range  f1:Race ;
-    rdfs:label  "wonRace" .
+    rdfs:label  "wonRace" ;
+    rdfs:comment "A race win is also a podium finish. wonRace ⊑ achievedPodium ⊑ competedIn." .
 
 f1:startedFromP1 rdf:type owl:ObjectProperty ;
     rdfs:subPropertyOf f1:competedIn ;
@@ -300,7 +301,22 @@ f1:achievedPodium rdf:type owl:ObjectProperty ;
     rdfs:subPropertyOf f1:competedIn ;
     rdfs:domain f1:Driver ;
     rdfs:range  f1:Race ;
-    rdfs:label  "achievedPodium" .
+    rdfs:label  "achievedPodium" ;
+    rdfs:comment "A podium finish: position 1, 2 or 3. Parent property of wonRace, finishedSecond, finishedThird." .
+
+f1:finishedSecond rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:achievedPodium ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "finishedSecond" ;
+    rdfs:comment "Driver finished a race in 2nd place (positionOrder = 2)." .
+
+f1:finishedThird rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf f1:achievedPodium ;
+    rdfs:domain f1:Driver ;
+    rdfs:range  f1:Race ;
+    rdfs:label  "finishedThird" ;
+    rdfs:comment "Driver finished a race in 3rd place (positionOrder = 3)." .
 
 f1:competedIn rdf:type owl:ObjectProperty ;
     rdfs:domain f1:Driver ;
