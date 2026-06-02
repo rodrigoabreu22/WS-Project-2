@@ -21,8 +21,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEX_FILE="report.tex"
-PDF_FILE="report.pdf"
+TEX_FILE="report_tp2.tex"
+PDF_FILE="report_tp2.pdf"
 
 cd "$SCRIPT_DIR"
 

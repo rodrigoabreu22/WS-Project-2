@@ -56,17 +56,17 @@ Results                      & $\approx$ 25{,}000 & Explicit rdf:type \\
 
 % ── Semantic markup coverage ──────────────────────────────────────────────
 \begin{center}
-\begin{tabular}{@{}llll@{}}
+\begin{tabularx}{\linewidth}{@{}lllX@{}}
 \toprule
-\textbf{Page} & \textbf{RDFa type} & \textbf{MF2 classes} & \textbf{Properties} \\
+\textbf{Page} & \textbf{RDFa typeof} & \textbf{MF2 classes} & \textbf{Properties} \\
 \midrule
-Driver detail     & schema:Person          & h-card         & name, nationality, birthDate, sameAs \\
-Constructor detail& schema:SportsOrganization & h-card      & name, nationality, sameAs \\
-Circuit detail    & schema:SportsActivityLocation & h-card, h-adr & name, addressLocality, addressCountry, lat/lng \\
-Race detail       & schema:SportsEvent     & h-event        & name, location, startDate, sameAs \\
-Season detail     & schema:SportsEvent     & h-event        & name, startDate, sameAs \\
-Champions list    & schema:ItemList        & —              & itemListElement (Person) \\
-Home page         & schema:Dataset         & —              & name, description, license, temporalCoverage \\
+Driver detail      & schema:Person                 & h-card        & name, nationality, birthDate, sameAs \\
+Constructor detail & schema:SportsOrganization     & h-card        & name, nationality, sameAs \\
+Circuit detail     & schema:SportsActivityLocation & h-card, h-adr & name, addressLocality, addressCountry, lat, lng \\
+Race detail        & schema:SportsEvent            & h-event       & name, location, startDate, sameAs \\
+Season detail      & schema:SportsEvent            & h-event       & name, startDate, sameAs \\
+Champions list     & schema:ItemList               & ---           & itemListElement (Person $\times$ 34) \\
+Homepage           & schema:Dataset                & ---           & name, description, license, temporalCoverage \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}

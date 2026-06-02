@@ -1,33 +1,33 @@
-% LaTeX table: All 19 SPIN rules
+% LaTeX table: All 21 SPIN rules
 % Include in report with: \input{tables/spin-rules.tex}
 \begin{center}
-\begin{tabular}{@{}llrl@{}}
+\begin{tabularx}{\linewidth}{@{}lXrp{3.5cm}@{}}
 \toprule
-\textbf{Rule name} & \textbf{Output} & \textbf{Triples} & \textbf{Key pattern} \\
+\textbf{Rule name} & \textbf{Output property / class} & \textbf{Triples} & \textbf{Key pattern} \\
 \midrule
-\texttt{infer\_wonRace}             & \texttt{f1:wonRace}             & 1{,}128 & positionOrder = 1 \\
-\texttt{infer\_finishedSecond}      & \texttt{f1:finishedSecond}      & 1{,}134 & positionOrder = 2 (sprint excl.) \\
-\texttt{infer\_finishedThird}       & \texttt{f1:finishedThird}       & 1{,}135 & positionOrder = 3 (sprint excl.) \\
-\texttt{infer\_achievedPodium}      & \texttt{f1:achievedPodium}      & 3{,}395 & positionOrder $\leq$ 3 \\
-\texttt{infer\_startedFromP1}       & \texttt{f1:startedFromP1}       & 1{,}135 & grid = 1 (excl. sprint) \\
-\texttt{infer\_convertedP1ToWin}    & \texttt{f1:convertedP1ToWin}    & 486     & startedFromP1 $\wedge$ wonRace \\
-\texttt{infer\_setFastestLap}       & \texttt{f1:setFastestLap}       & 410     & rank = 1 \\
-\texttt{infer\_achievedHatTrick}    & \texttt{f1:achievedHatTrick}    & 69      & wonRace $\wedge$ P1 $\wedge$ fastestLap \\
-\texttt{infer\_drovFor}             & \texttt{f1:drovFor}             & 2{,}150 & result$\to$driver/constructor \\
-\texttt{infer\_wasTeammate}         & \texttt{f1:wasTeammate}         & 10{,}012 & same race + constructor \\
-\texttt{infer\_heldAt}              & \texttt{f1:heldAt}              & 1{,}125 & materialise f1:circuit \\
-\texttt{infer\_wonChampionship}     & \texttt{f1:wonChampionship}     & 75      & position=1, MAX(round) \\
-\texttt{reify\_wonChampionship}     & \texttt{rdf:Statement} nodes    & 75      & annotate with finalPoints \\
-\texttt{infer\_wonConstructorChampionship} & \texttt{f1:wonConstructorChampionship} & 17 & same pattern \\
-\texttt{classify\_WorldChampion}    & \texttt{f1:WorldChampion}       & 34      & wonChampionship exists \\
-\texttt{classify\_MultichampionDriver} & \texttt{f1:MultichampionDriver} & 17   & COUNT $\geq$ 2 \\
-\texttt{classify\_Veteran}          & \texttt{f1:Veteran}             & 86      & COUNT(results) $\geq$ 100 \\
-\texttt{classify\_ActiveCircuit}    & \texttt{f1:ActiveCircuit}       & 24      & race in MAX(year) season \\
-\texttt{classify\_HistoricCircuit}  & \texttt{f1:HistoricCircuit}     & 45      & FILTER NOT EXISTS, -10 yrs \\
-\texttt{classify\_PodiumResult}     & \texttt{f1:PodiumResult}        & 3{,}397 & positionOrder $\leq$ 3 \\
-\texttt{classify\_ConstructorChampion} & \texttt{f1:ConstructorChampion} & 17   & wonConstructorChampionship \\
+\texttt{infer\_wonRace}          & \texttt{f1:wonRace}             & 1{,}128  & positionOrder = 1 \\
+\texttt{infer\_finishedSecond}   & \texttt{f1:finishedSecond}      & 1{,}134  & positionOrder = 2 \\
+\texttt{infer\_finishedThird}    & \texttt{f1:finishedThird}       & 1{,}135  & positionOrder = 3 \\
+\texttt{infer\_achievedPodium}   & \texttt{f1:achievedPodium}      & 3{,}395  & positionOrder $\leq$ 3 \\
+\texttt{infer\_startedFromP1}    & \texttt{f1:startedFromP1}       & 1{,}135  & grid = 1 \\
+\texttt{infer\_convertedP1ToWin} & \texttt{f1:convertedP1ToWin}   & 486      & startedFromP1 $\wedge$ wonRace \\
+\texttt{infer\_setFastestLap}    & \texttt{f1:setFastestLap}       & 410      & rank = 1 \\
+\texttt{infer\_achievedHatTrick} & \texttt{f1:achievedHatTrick}    & 69       & wonRace $\wedge$ P1 $\wedge$ fastest \\
+\texttt{infer\_drovFor}          & \texttt{f1:drovFor}             & 2{,}150  & result $\to$ driver + constructor \\
+\texttt{infer\_wasTeammate}      & \texttt{f1:wasTeammate}         & 10{,}012 & same race + constructor \\
+\texttt{infer\_heldAt}           & \texttt{f1:heldAt}              & 1{,}125  & materialise f1:circuit \\
+\texttt{infer\_wonChampionship}  & \texttt{f1:wonChampionship}     & 75       & position=1, MAX(round) \\
+\texttt{reify\_wonChampionship}  & \texttt{rdf:Statement} nodes    & 75       & annotate with finalPoints \\
+\texttt{infer\_wonCtorChamp.}    & \texttt{f1:wonCtorChampionship} & 17       & same pattern \\
+\texttt{classify\_WorldChampion} & \texttt{rdf:type f1:WorldChampion}       & 34  & wonChampionship exists \\
+\texttt{classify\_Multichamp.}   & \texttt{rdf:type f1:MultichampionDriver} & 17  & COUNT $\geq$ 2 \\
+\texttt{classify\_Veteran}       & \texttt{rdf:type f1:Veteran}             & 86  & COUNT(results) $\geq$ 100 \\
+\texttt{classify\_ActiveCircuit} & \texttt{rdf:type f1:ActiveCircuit}       & 24  & race in MAX(year) \\
+\texttt{classify\_HistoricCircuit}& \texttt{rdf:type f1:HistoricCircuit}    & 45  & NOT EXISTS in last 10 yrs \\
+\texttt{classify\_PodiumResult}  & \texttt{rdf:type f1:PodiumResult}        & 3{,}397 & positionOrder $\leq$ 3 \\
+\texttt{classify\_CtorChampion}  & \texttt{rdf:type f1:ConstructorChampion} & 17  & wonCtorChampionship \\
 \midrule
-\multicolumn{2}{l}{\textbf{Total new triples}} & \textbf{$\approx$ 25{,}100} & (21 rules, verified in GraphDB) \\
+\multicolumn{2}{l}{\textbf{Total new triples}} & \textbf{22{,}921} & (verified live in GraphDB) \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}

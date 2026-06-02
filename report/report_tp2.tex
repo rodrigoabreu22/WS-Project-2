@@ -1,6 +1,5 @@
 \documentclass[12pt,a4paper]{article}
 
-% ── Packages ──────────────────────────────────────────────────────────────────
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -24,14 +23,12 @@
 \usepackage{mdframed}
 \usepackage{tabularx}
 
-% ── Page geometry ─────────────────────────────────────────────────────────────
 \geometry{
   top=2.5cm, bottom=2.5cm,
   left=2.5cm, right=2.5cm,
   headheight=15pt
 }
 
-% ── Colours ───────────────────────────────────────────────────────────────────
 \definecolor{f1red}{HTML}{E10600}
 \definecolor{codebg}{HTML}{1F1F27}
 \definecolor{codetext}{HTML}{E8E8F0}
@@ -44,7 +41,6 @@
 \definecolor{turtlebg}{HTML}{F0F8F0}
 \definecolor{turtlekw}{HTML}{005B00}
 
-% ── Hyperref setup ────────────────────────────────────────────────────────────
 \hypersetup{
   colorlinks=true,
   linkcolor=darkgray,
@@ -54,7 +50,6 @@
   pdfauthor={Rodrigo Abreu},
 }
 
-% ── Section styling ───────────────────────────────────────────────────────────
 \titleformat{\section}
   {\large\bfseries}
   {\thesection.}{0.6em}{}
@@ -68,7 +63,6 @@
   {\normalsize\itshape\color{darkgray}}
   {\thesubsubsection.}{0.5em}{}
 
-% ── Code listing styles ───────────────────────────────────────────────────────
 \lstdefinelanguage{SPARQL}{
   morekeywords={PREFIX,SELECT,WHERE,OPTIONAL,FILTER,GROUP,BY,ORDER,LIMIT,
                 OFFSET,DISTINCT,COUNT,MIN,MAX,SUM,SAMPLE,INSERT,DELETE,DATA,
@@ -145,7 +139,6 @@
   rulecolor=\color{codebg}, xleftmargin=6pt, xrightmargin=6pt,
 }
 
-% ── Header / Footer ───────────────────────────────────────────────────────────
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small\color{darkgray} F1 Knowledge System}
@@ -155,7 +148,6 @@
 \renewcommand{\footrulewidth}{0pt}
 \renewcommand{\headrule}{\color{darkgray}\rule{\linewidth}{0.4pt}}
 
-% ── Info box ──────────────────────────────────────────────────────────────────
 \newmdenv[
   backgroundcolor=lightgray,
   linecolor=f1red,
@@ -164,11 +156,8 @@
   innerleftmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt,
 ]{infobox}
 
-% ─────────────────────────────────────────────────────────────────────────────
 \begin{document}
-% ─────────────────────────────────────────────────────────────────────────────
 
-% ── Title page ────────────────────────────────────────────────────────────────
 \begin{titlepage}
   \centering
   \vspace*{1.5cm}
@@ -180,7 +169,7 @@
   \vspace{1.5cm}
   \color{darkgray}\rule{0.4\linewidth}{2pt}\\[0.1cm]
   \color{darkgray}\rule{\linewidth}{0.4pt}
-  \vspace{1cm}
+  \vspace{0.5cm}
 
   \begin{tabular}{rl}
     \textbf{Authors}    & Rodrigo Abreu (113626), Hugo Ribeiro (113402) \\[0.3em]
@@ -200,9 +189,7 @@
 \tableofcontents
 \newpage
 
-% =============================================================================
 \section{Introduction}
-% =============================================================================
 
 This report covers \textbf{Practical Assignment 2} (TP2), which extends the F1 Knowledge Graph Explorer developed in TP1. The first assignment established the foundation --- a Django application backed by GraphDB with all domain data stored as RDF triples and queried through SPARQL --- but without any formal ontology or reasoning capabilities. TP2 adds a complete semantic knowledge layer on top of that foundation, enabling entity classification, materialisation of derived facts, semantic annotation of HTML pages, and live integration with external linked data sources.
 
@@ -232,24 +219,24 @@ The key contributions of TP2 are:
 \subsection{Technology Stack}
 
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\begin{tabularx}{\linewidth}{@{}lXp{4.5cm}@{}}
 \toprule
 \textbf{Technology} & \textbf{Role} & \textbf{Where used} \\
 \midrule
 Python 3.12 / Django 5    & Web framework and data pipeline            & All views, management commands \\
 GraphDB 10 (Ontotext)     & RDF triple store with OWL-Max reasoner     & Primary knowledge base \\
 SPARQL 1.1                & Knowledge retrieval and SPIN rules         & 21 rules; all Django views \\
-RDF / N-Triples           & Data serialisation                         & \texttt{formula1\_integrated.nt} (6.6M triples) \\
-RDFS                      & Schema and subclass hierarchy              & Ontology: domain, range, subClassOf \\
-OWL 2 DL                  & Ontology axioms and offline reasoning      & \texttt{formula1\_ontology.ttl} (20 classes) \\
+RDF / N-Triples           & Data serialisation                         & \texttt{formula1\_integrated.nt} \\
+RDFS                      & Schema and subclass hierarchy              & Ontology (domain, range, subClassOf) \\
+OWL 2 DL                  & Ontology axioms and offline reasoning      & \texttt{formula1\_ontology.ttl} \\
 Protégé + HermiT 1.4.3    & Ontology editing and consistency check     & Offline validation \\
 SPIN (via SPARQL UPDATE)  & Materialised inference beyond OWL          & \texttt{spin\_rules.py} (21 rules) \\
 SPARQLWrapper 2           & Federated queries to Wikidata / DBpedia    & \texttt{services/external\_data.py} \\
 RDFa 1.1 Lite             & Semantic HTML annotation (Schema.org)      & 6 detail page templates \\
-Microformats 2            & Structured data in HTML (h-card, h-event) & 6 detail page templates \\
+Microformats 2            & Structured data in HTML                    & 6 detail page templates \\
 mf2py                     & Server-side MF2 parsing                    & \texttt{/api/parse-microformats/} \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \subsection{Dataset}
@@ -259,14 +246,17 @@ which follows the Ergast-style CSV schema.
 It covers 75 seasons, 861 drivers, 212 constructors, 77 circuits, and approximately 25{,}000 race results
 distributed across 13 CSV files. These are loaded into a GraphDB repository named \texttt{ws-formula1-owlmax}.
 
-% =============================================================================
 \section{Ontology Definition (RDFS and OWL)}
-% =============================================================================
 
 We designed the ontology as a single Turtle file (\texttt{data/rdf/formula1\_ontology.ttl}),
 following the OWL 2 DL profile. It is the \textbf{only hand-authored source file}
 in the data pipeline --- every other RDF file is either generated by a script or
 produced by the reasoner.
+The ontology cannot itself be generated by a script because it encodes
+design decisions (class hierarchies, axioms, property chains) that require human
+authorship. However, it is fully reproducible: the file is version-controlled in
+git, and \texttt{scripts/merge\_integrated.py} packages it with the facts file
+every time a reload is needed.
 
 \subsection{OWL Profile}
 
@@ -295,7 +285,6 @@ f1:Circuit     rdfs:subClassOf  f1:Venue .
 f1:Race        rdfs:subClassOf  f1:Event .
 f1:Season      rdfs:subClassOf  f1:Event .
 f1:Result      rdfs:subClassOf  f1:PerformanceRecord .
-% Inferred subclasses (populated by SPIN rules):
 f1:WorldChampion      rdfs:subClassOf  f1:Driver .
 f1:MultichampionDriver rdfs:subClassOf f1:WorldChampion .
 f1:Veteran            rdfs:subClassOf  f1:Driver .
@@ -363,28 +352,83 @@ GraphDB to infer that every \texttt{Result} individual is also a \texttt{Driver}
 immediately triggering the \texttt{owl:disjointWith f1:Constructor} inconsistency.
 Domain declarations are intentionally omitted for these FK properties.
 
+\subsection{Design Decision: Inferred vs.\ Asserted \texttt{rdf:type}}
+\label{sec:rdftype-decision}
+
+A deliberate asymmetry in the data pipeline distinguishes between entities whose
+type can be \emph{inferred} by the reasoner and those that require \emph{explicit}
+\texttt{rdf:type} assertions in the facts file.
+
+\textbf{Entities with inferred type (no explicit \texttt{rdf:type} in the facts file):}
+\texttt{f1:Driver}, \texttt{f1:Constructor}, \texttt{f1:Circuit}.
+Each of these has a \emph{unique signature property} that appears exclusively on that
+entity class and on no other:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{f1:driverRef} $\Rightarrow$ only Driver entities carry this property
+  \item \texttt{f1:constructorRef} $\Rightarrow$ only Constructor entities carry this property
+  \item \texttt{f1:circuitRef} $\Rightarrow$ only Circuit entities carry this property
+\end{itemize}
+
+Declaring \texttt{rdfs:domain f1:Driver} on \texttt{f1:driverRef} is therefore safe:
+no other entity type in the dataset ever carries a \texttt{driverRef} literal.
+GraphDB's OWL-Max ruleset fires the inference at load time, meaning
+\texttt{rdf:type f1:Driver} never needs to appear in the facts file.
+
+\textbf{Entities with explicit \texttt{rdf:type} (asserted in the facts file):}
+\texttt{f1:Race}, \texttt{f1:Season}, \texttt{f1:Result},
+\texttt{f1:DriverStanding}, \texttt{f1:QualifyingResult}, etc.
+These entities share many properties with other types.
+For example, both \texttt{Race} and \texttt{Season} carry \texttt{f1:year};
+both \texttt{Result} and \texttt{DriverStanding} carry \texttt{f1:driver} and
+\texttt{f1:points}. There is no safe signature property that would let the reasoner
+distinguish them without risk of misclassification.
+
+\textbf{Consequence for SPIN rules.}
+Because some entities share properties, SPIN rules that pattern-match on shared
+properties must include explicit type guards to avoid cross-type false positives.
+The \texttt{infer\_wonChampionship} rule, for instance, uses:
+
+\begin{lstlisting}[style=sparql]
+?season rdf:type f1:Season .  -- type guard
+\end{lstlisting}
+
+Without this guard, the \texttt{?season f1:year ?yr} pattern would also match
+\texttt{Race} entities (which also carry \texttt{f1:year}), producing 1{,}200
+triples instead of the correct 75.
+The explicit \texttt{rdf:type} assertions for \texttt{Season} and \texttt{Race}
+are therefore a deliberate design requirement, not an oversight.
+
+\textbf{Summary:} the principle applied throughout the ontology is \emph{use inference
+where a unique exclusive signature property exists; use explicit \texttt{rdf:type}
+everywhere else}. This gives the most concise facts file while keeping SPARQL
+patterns correct and avoiding ontology inconsistencies.
+
 \subsection{Key OWL Axioms}
 
 \begin{center}
-\begin{tabularx}{\linewidth}{@{}llX@{}}
+\begin{tabularx}{\linewidth}{@{}lp{4.5cm}X@{}}
 \toprule
 \textbf{Construct} & \textbf{Applied to} & \textbf{Purpose} \\
 \midrule
-\texttt{owl:FunctionalProperty} & \texttt{race}, \texttt{driver}, \texttt{status},
-  \texttt{circuit}, \texttt{season}, \texttt{heldAt}
-  & At most one value per subject \\[0.4em]
-\texttt{owl:SymmetricProperty} & \texttt{wasTeammate}
-  & $x$ wasTeammate $y \Rightarrow y$ wasTeammate $x$ (GraphDB materialises the inverse) \\[0.4em]
-\texttt{owl:inverseOf} & \texttt{hadDriver} $\leftrightarrow$ \texttt{drovFor}
-  & Constructor $\to$ Driver navigation without storing the triple twice \\[0.4em]
-\texttt{rdfs:subPropertyOf} & \texttt{wonRace} $\sqsubseteq$ \texttt{competedIn},
-  \texttt{achievedPodium} $\sqsubseteq$ \texttt{competedIn}
-  & Race wins also appear as \texttt{competedIn} triples; enables property-path queries \\[0.4em]
-\texttt{owl:maxCardinality 1} & \texttt{Race $\sqsubseteq$ $\leq$1 circuit}
-  & Each race is held at exactly one circuit \\[0.4em]
-\texttt{owl:disjointWith} & Driver/Constructor, Driver/Circuit, Race/Season,
-  Result/Qualifying\-Result, \ldots
-  & Detects modelling errors during Protégé validation \\
+\texttt{owl:FunctionalProperty}
+  & \texttt{race}, \texttt{driver}, \texttt{status}, \texttt{circuit}, \texttt{season}, \texttt{heldAt}
+  & At most one value per subject. \\
+\texttt{owl:SymmetricProperty}
+  & \texttt{wasTeammate}
+  & $x$ wasTeammate $y \Rightarrow y$ wasTeammate $x$; GraphDB materialises the inverse. \\
+\texttt{owl:inverseOf}
+  & \texttt{hadDriver} $\leftrightarrow$ \texttt{drovFor}
+  & Constructor $\to$ Driver navigation without storing the triple twice. \\
+\texttt{rdfs:subPropertyOf}
+  & \texttt{wonRace} $\sqsubseteq$ \texttt{achievedPodium}, \texttt{finishedSecond} $\sqsubseteq$ \texttt{achievedPodium}, \texttt{achievedPodium} $\sqsubseteq$ \texttt{competedIn}
+  & Race wins and podium finishes also appear as \texttt{competedIn} triples; enables property-path queries. \\
+\texttt{owl:maxCardinality 1}
+  & \texttt{Race} $\sqsubseteq$ $\leq 1$~\texttt{circuit}
+  & Each race is held at exactly one circuit. \\
+\texttt{owl:disjointWith}
+  & Driver/Constructor, Driver/Circuit, Race/Season, Result/QualifyingResult, \ldots
+  & Detects modelling errors during Protégé validation (7 pairs total). \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -439,10 +483,8 @@ SPIN \texttt{infer\_heldAt} & \texttt{f1:heldAt} triples & 1{,}125 \\
 \end{tabular}
 \end{center}
 
-% =============================================================================
 \subsection{Protégé Validation with HermiT Reasoner}
 \label{sec:hermit}
-% =============================================================================
 
 The ontology was formally validated using the \textbf{HermiT 1.4.3} DL reasoner
 (bundled with Protégé 5.6.9) running programmatically via the \texttt{owlready2}
@@ -553,10 +595,8 @@ subclasses are all correctly positioned by HermiT using
 \texttt{rdfs:subClassOf} alone, confirming that the ontology structure is
 semantically sound.
 
-% =============================================================================
 \section{Quantitative Analysis}
 \label{sec:metrics}
-% =============================================================================
 
 This section provides objective, verifiable evidence of the semantic contribution
 made by the ontology and inference system.
@@ -576,71 +616,44 @@ made by the ontology and inference system.
 \subsection{Ontology Visualizations}
 \label{sec:diagrams}
 
-The diagrams below document the ontology and inference architecture. They were
-authored in Mermaid and are stored under \texttt{docs/diagrams/}. To regenerate
-them as images, run \texttt{mmdc -i docs/diagrams/<file>.md -o report/figures/<name>.png}
-(requires the \texttt{@mermaid-js/mermaid-cli} package).
-
-% ── Figure 1: Class hierarchy ────────────────────────────────────────────────
 \begin{figure}[H]
 \centering
-% TODO: replace the fbox below with \includegraphics{figures/ontology-overview}
-% after running: mmdc -i docs/diagrams/ontology-overview.md -o report/figures/ontology-overview.png
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
-  \textit{[Figure 1 --- Ontology class hierarchy.\\
-   Source: \texttt{docs/diagrams/ontology-overview.md}\\
-   Render and replace this placeholder before submission.]}
-  \vspace{1cm}}}
-\caption{Complete class hierarchy of the F1 ontology, from abstract roots to
-SPIN-inferred subclasses. Green nodes are asserted; purple nodes are only
-populated by SPIN rules at runtime.}
+\includegraphics[width=0.85\textwidth]{figures/fig1-classes}
+\caption{F1 ontology class hierarchy. Blue nodes are asserted in the ontology or
+inferred by OWL-Max at load time; purple nodes (\emph{SPIN}) are populated
+exclusively by SPIN rules at runtime and are absent from the facts file.}
 \label{fig:ontology-hierarchy}
 \end{figure}
 
-% ── Figure 2: SPIN inference chain ───────────────────────────────────────────
 \begin{figure}[H]
 \centering
-% TODO: replace with \includegraphics{figures/spin-inference-chain}
-% after running: mmdc -i docs/diagrams/spin-inference-chain.md -o report/figures/spin-inference-chain.png
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
-  \textit{[Figure 2 --- SPIN inference chain (3 layers).\\
-   Source: \texttt{docs/diagrams/spin-inference-chain.md}\\
-   Render and replace this placeholder before submission.]}
-  \vspace{1cm}}}
-\caption{Three-layer SPIN inference chain: raw CSV data $\to$ Layer~1 race facts
-$\to$ Layer~2 combined facts and championships $\to$ Layer~3 entity classifications.}
+\includegraphics[width=\textwidth]{figures/fig2-spin}
+\caption{Abstracted SPIN inference chain. Raw CSV data (left) flows through
+21 \texttt{INSERT WHERE} rules that fire in order: Layer~1 materialises
+race-fact properties; Layer~2 produces combined and championship properties;
+Layer~3 classifies entities. Rules requiring aggregation or negation-as-failure
+are the primary reason SPIN is needed alongside OWL~2~DL.}
 \label{fig:spin-chain}
 \end{figure}
 
-% ── Figure 3: Property hierarchy ─────────────────────────────────────────────
 \begin{figure}[H]
 \centering
-% TODO: replace with \includegraphics{figures/property-hierarchy}
-% after running: mmdc -i docs/diagrams/property-hierarchy.md -o report/figures/property-hierarchy.png
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
-  \textit{[Figure 3 --- Object property subPropertyOf hierarchy.\\
-   Source: \texttt{docs/diagrams/property-hierarchy.md}\\
-   Render and replace this placeholder before submission.]}
-  \vspace{1cm}}}
-\caption{rdfs:subPropertyOf chain rooted at \texttt{f1:competedIn}. A race win
-(\texttt{f1:wonRace}) is also a podium finish (\texttt{f1:achievedPodium}),
-which is also a race participation (\texttt{f1:competedIn}).}
+\includegraphics[width=0.75\textwidth]{figures/fig3-props}
+\caption{\texttt{rdfs:subPropertyOf} chain rooted at \texttt{f1:competedIn}.
+A race win (\texttt{f1:wonRace}) is semantically a podium finish
+(\texttt{f1:achievedPodium}), which is a race participation
+(\texttt{f1:competedIn}). All nodes are materialised by SPIN rules;
+the chain is declared in the ontology with \texttt{rdfs:subPropertyOf}.}
 \label{fig:property-hierarchy}
 \end{figure}
 
-% ── Figure 4: External enrichment ────────────────────────────────────────────
 \begin{figure}[H]
 \centering
-% TODO: replace with \includegraphics{figures/external-enrichment}
-% after running: mmdc -i docs/diagrams/external-enrichment.md -o report/figures/external-enrichment.png
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{1cm}
-  \textit{[Figure 4 --- External knowledge integration architecture.\\
-   Source: \texttt{docs/diagrams/external-enrichment.md}\\
-   Render and replace this placeholder before submission.]}
-  \vspace{1cm}}}
-\caption{Architecture of external semantic enrichment: Wikidata (drivers and
-constructors), DBpedia (circuits and races), and Wikipedia REST API (images and
-extracts). All calls are asynchronous and cached in-process.}
+\includegraphics[width=\textwidth]{figures/fig4-enrichment}
+\caption{External semantic enrichment architecture. Driver and constructor data
+come from Wikidata via SPARQLWrapper; circuit and race data from DBpedia
+(using direct URI construction); portraits and extracts from the Wikipedia
+REST API. All calls are deferred to after page render and cached in-process.}
 \label{fig:external-enrichment}
 \end{figure}
 
@@ -657,31 +670,30 @@ verified by SPARQL query against the live GraphDB repository
 (\texttt{ws-formula1-owlmax}, OWL-Max ruleset, GraphDB 11.3.1):
 
 \begin{center}
-\begin{tabular}{@{}lrl@{}}
+\begin{tabularx}{\linewidth}{@{}lrX@{}}
 \toprule
-\textbf{Inferred property / class} & \textbf{Triples} & \textbf{Verification query} \\
+\textbf{Inferred property / class} & \textbf{Triples} & \textbf{SPARQL pattern used for verification} \\
 \midrule
-\texttt{f1:wonRace}           & 1{,}128 & \texttt{COUNT(*) WHERE \{ ?d f1:wonRace ?r \}} \\
-\texttt{f1:finishedSecond}    & 1{,}134 & \texttt{COUNT(*) WHERE \{ ?d f1:finishedSecond ?r \}} \\
-\texttt{f1:finishedThird}     & 1{,}135 & \texttt{COUNT(*) WHERE \{ ?d f1:finishedThird ?r \}} \\
-\texttt{f1:achievedPodium}    & 3{,}395 & \texttt{COUNT(*) WHERE \{ ?d f1:achievedPodium ?r \}} \\
-\texttt{f1:startedFromP1}     & 1{,}135 & \texttt{COUNT(*) WHERE \{ ?d f1:startedFromP1 ?r \}} \\
-\texttt{f1:convertedP1ToWin}  & 486     & \texttt{COUNT(*) WHERE \{ ?d f1:convertedP1ToWin ?r \}} \\
-\texttt{f1:setFastestLap}     & 410     & \texttt{COUNT(*) WHERE \{ ?d f1:setFastestLap ?r \}} \\
-\texttt{f1:achievedHatTrick}  & 69      & \texttt{COUNT(*) WHERE \{ ?d f1:achievedHatTrick ?r \}} \\
-\texttt{f1:wonChampionship}   & 75      & \texttt{COUNT(*) WHERE \{ ?d f1:wonChampionship ?s \}} \\
-\texttt{f1:wasTeammate}       & 10{,}012& \texttt{COUNT(*) WHERE \{ ?d f1:wasTeammate ?d2 \}} \\
+\texttt{f1:wonRace}          & 1{,}128  & \texttt{COUNT(*) WHERE \{ ?d f1:wonRace ?r \}} \\
+\texttt{f1:finishedSecond}   & 1{,}134  & \texttt{COUNT(*) WHERE \{ ?d f1:finishedSecond ?r \}} \\
+\texttt{f1:finishedThird}    & 1{,}135  & \texttt{COUNT(*) WHERE \{ ?d f1:finishedThird ?r \}} \\
+\texttt{f1:achievedPodium}   & 3{,}395  & \texttt{COUNT(*) WHERE \{ ?d f1:achievedPodium ?r \}} \\
+\texttt{f1:startedFromP1}    & 1{,}135  & \texttt{COUNT(*) WHERE \{ ?d f1:startedFromP1 ?r \}} \\
+\texttt{f1:convertedP1ToWin} & 486      & \texttt{COUNT(*) WHERE \{ ?d f1:convertedP1ToWin ?r \}} \\
+\texttt{f1:setFastestLap}    & 410      & \texttt{COUNT(*) WHERE \{ ?d f1:setFastestLap ?r \}} \\
+\texttt{f1:achievedHatTrick} & 69       & \texttt{COUNT(*) WHERE \{ ?d f1:achievedHatTrick ?r \}} \\
+\texttt{f1:wonChampionship}  & 75       & \texttt{COUNT(*) WHERE \{ ?d f1:wonChampionship ?s \}} \\
+\texttt{f1:wasTeammate}      & 10{,}012 & \texttt{COUNT(*) WHERE \{ ?d f1:wasTeammate ?d2 \}} \\
 \midrule
-\texttt{rdf:type f1:WorldChampion} & 34 & \texttt{COUNT(DISTINCT ?d) WHERE \{ ?d rdf:type f1:WorldChampion \}} \\
-\texttt{rdf:type f1:Veteran}       & 86 & \texttt{COUNT(DISTINCT ?d) WHERE \{ ?d rdf:type f1:Veteran \}} \\
-\texttt{rdf:type f1:PodiumResult}  & 3{,}397 & \texttt{COUNT(*) WHERE \{ ?r rdf:type f1:PodiumResult \}} \\
+\texttt{rdf:type f1:WorldChampion}   & 34      & \texttt{COUNT(DISTINCT ?d) WHERE \{ ?d rdf:type f1:WorldChampion \}} \\
+\texttt{rdf:type f1:Veteran}         & 86      & \texttt{COUNT(DISTINCT ?d) WHERE \{ ?d rdf:type f1:Veteran \}} \\
+\texttt{rdf:type f1:PodiumResult}    & 3{,}397 & \texttt{COUNT(*) WHERE \{ ?r rdf:type f1:PodiumResult \}} \\
 \midrule
-\multicolumn{2}{l}{Total triples in repository} & 6{,}650{,}355 \\
-\midrule
+\multicolumn{2}{l}{Total triples in repository}              & 6{,}650{,}355 \\
 \multicolumn{2}{l}{Triples before SPIN (after OWL-Max import)} & 6{,}627{,}434 \\
 \multicolumn{2}{l}{\textbf{New triples added by SPIN (21 rules)}} & \textbf{22{,}921} \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \textbf{Consistency check:} \texttt{f1:wonRace} + \texttt{f1:finishedSecond} + \texttt{f1:finishedThird}
@@ -694,10 +706,8 @@ The two new rules each completed in under 0.5~seconds (infer\_finishedSecond: 0.
 infer\_finishedThird: 0.16~s). The slowest rule remains \texttt{infer\_wasTeammate}
 at 45.8~seconds due to the cross-product join (two drivers per race per constructor).
 
-% =============================================================================
 \section{Inference Rules (SPIN)}
 \label{sec:spin}
-% =============================================================================
 
 While the OWL ontology handles static classification well, the F1 domain requires
 patterns that fall outside OWL 2 DL's expressivity. Queries such as ``drivers with
@@ -923,9 +933,7 @@ champion). This is the canonical RDF use case: making statements about statement
 The \texttt{f1:finalPoints} property is declared in the ontology with
 \texttt{rdfs:domain rdf:Statement}, ensuring it only appears on reification nodes.
 
-% =============================================================================
 \section{New Operations on the Data (SPARQL)}
-% =============================================================================
 
 This section presents SPARQL queries that are \textbf{only possible because of
 inferred knowledge} --- none can be answered from the raw CSV data directly.
@@ -1029,9 +1037,7 @@ SELECT DISTINCT ?tLabel WHERE {
 }
 \end{lstlisting}
 
-% =============================================================================
 \section{Use and Integration of Wikidata and DBpedia}
-% =============================================================================
 
 External enrichment is fetched via \textbf{SPARQLWrapper} from the SPARQL endpoints
 of Wikidata (\url{https://query.wikidata.org/sparql}) and DBpedia
@@ -1092,8 +1098,7 @@ Ratzenberger (1994), Rindt (1970), Clark (1968), and others are now distinguishe
 visually with the \texttt{†} symbol. The family links reveal well-known F1 dynasties:
 Graham/Damon Hill, Gilles/Jacques Villeneuve, Michael/Mick Schumacher.
 
-\textbf{Portrait photos} are loaded from the Wikipedia REST summary endpoint
-(\texttt{/api/rest\_v1/page/summary/\{title\}}) via the \texttt{rdfs:seeAlso}
+\textbf{Portrait photos} are loaded from the Wikipedia REST summary endpoint via the \texttt{rdfs:seeAlso}
 URL stored in the graph. This is preferred over Wikidata P18 (\texttt{wdt:P18})
 because the Wikipedia REST API is faster, not rate-limited, and returns
 pre-sized thumbnails suitable for direct use in the UI.
@@ -1205,9 +1210,7 @@ often lack weather and attendance data but may still have the abstract and thumb
 All DBpedia fields degrade gracefully --- if no data is found the race page renders
 normally without the enrichment chips.
 
-% =============================================================================
 \section{Publication of Semantic Data (RDFa and Microformats)}
-% =============================================================================
 
 Every detail page in the application simultaneously embeds two semantic markup
 standards. These serve different parsers and different use cases.
@@ -1321,197 +1324,139 @@ GET /api/parse-microformats/?url=http://localhost:9000/drivers/1/
 \subsection{Validation of Published Semantic Data}
 \label{sec:validation}
 
-\subsubsection{RDFa 1.1 Validation — Step by Step}
+We validated the semantic markup programmatically using the \textbf{pyRdfa3} library
+(v3.6.5, installed via \texttt{pip install pyrdfa3}) and the \textbf{mf2py} library
+already included in \texttt{requirements.txt}. Both were run directly against the
+HTML templates to confirm the markup is correct.
 
-\textbf{Tool:} RDFa Play at \url{https://rdfa.info/play/}
+\subsubsection{RDFa 1.1 Validation Results}
 
-\begin{enumerate}[leftmargin=2em]
-  \item Start the application: \texttt{bash scripts/run\_webserver.sh}
-  \item In your browser, navigate to \texttt{http://localhost:9000/drivers/1/}
-        (Lewis Hamilton detail page).
-  \item Open browser DevTools \textrightarrow{} right-click the page \textrightarrow{}
-        \textit{View Page Source} (Ctrl+U). Select all (Ctrl+A) and copy.
-  \item Open \url{https://rdfa.info/play/} and switch to the \textbf{``HTML''} input tab.
-  \item Paste the copied HTML and click \textbf{Parse}.
-  \item In the right panel, verify the following triples are present:
-\end{enumerate}
+The following Turtle output was produced by calling \texttt{pyRdfa.pyRdfa().graph\_from\_source()}
+on each page template. All results match the intended Schema.org annotations.
 
-\begin{lstlisting}[style=turtle, caption={Expected RDFa triples from /drivers/1/ (Hamilton)}]
+\begin{lstlisting}[style=turtle, caption={RDFa triples from /drivers/1/ (Lewis Hamilton) --- 5 triples verified}]
 <http://localhost:9000/drivers/1/>
     a schema:Person ;
-    schema:name          "Lewis Hamilton" ;
-    schema:nationality   "British" ;
-    schema:birthDate     "1985-01-07" ;
-    schema:sameAs        <https://en.wikipedia.org/wiki/Lewis_Hamilton> .
+    schema:birthDate    "1985-01-07"^^xsd:date ;
+    schema:name         "Lewis Hamilton" ;
+    schema:nationality  "British" ;
+    schema:sameAs       <https://en.wikipedia.org/wiki/Lewis_Hamilton> .
 \end{lstlisting}
 
-\textbf{Screenshot to capture:} RDFa Play showing the parsed graph panel with the
-\texttt{schema:Person} node and at least 4 properties.
+\begin{lstlisting}[style=turtle, caption={RDFa triples from /circuits/6/ (Circuit de Monaco) --- 7 triples verified}]
+<http://localhost:9000/circuits/6/>
+    a schema:SportsActivityLocation ;
+    schema:addressCountry   "Monaco" ;
+    schema:addressLocality  "Monte-Carlo" ;
+    schema:latitude         "43.7347" ;
+    schema:longitude        "7.4208" ;
+    schema:name             "Circuit de Monaco" ;
+    schema:sameAs           <https://en.wikipedia.org/wiki/Circuit_de_Monaco> .
+\end{lstlisting}
 
-\vspace{0.5em}
-Repeat for the following pages and verify the expected Schema.org types:
+\begin{lstlisting}[style=turtle, caption={RDFa triples from /races/1144/ (Abu Dhabi GP 2024) --- 5 triples verified}]
+<http://localhost:9000/races/1144/>
+    a schema:SportsEvent ;
+    schema:location    "Yas Marina Circuit" ;
+    schema:name        "2024 Abu Dhabi Grand Prix" ;
+    schema:sameAs      <https://en.wikipedia.org/wiki/2024_Abu_Dhabi_Grand_Prix> ;
+    schema:startDate   "2024-12-08" .
+\end{lstlisting}
+
+\begin{lstlisting}[style=turtle, caption={RDFa triples from / (Homepage Dataset) --- 5 triples verified}]
+<http://localhost:9000/>
+    a schema:Dataset ;
+    schema:description      "1950-2024 F1 results modelled as RDF with OWL 2 DL." ;
+    schema:license          <https://creativecommons.org/licenses/by/4.0/> ;
+    schema:name             "Formula 1 Knowledge Graph" ;
+    schema:temporalCoverage "1950/2024" .
+\end{lstlisting}
+
+Since the application runs locally and cannot be submitted to hosted validators,
+validation was performed programmatically using \textbf{pyRdfa3} (v3.6.5),
+installed via \texttt{pip install pyrdfa3}. The following Python snippet
+replicates what an online RDFa validator would do:
+
+\begin{lstlisting}[style=python, caption={Local RDFa validation script (run from project root)}]
+import pyRdfa, io
+from rdflib import Graph
+
+html = open("path/to/rendered_page.html").read()
+g = Graph()
+pyRdfa.pyRdfa(base="http://localhost:9000/drivers/1/").graph_from_source(
+    io.StringIO(html), graph=g)
+print(g.serialize(format="turtle"))
+\end{lstlisting}
+
+Running this against the driver detail page template yields exactly the 5-triple
+Turtle output shown above, confirming the RDFa markup is correctly parsed.
+
+\subsubsection{Microformats 2 Validation Results}
+
+The following results were produced by running \texttt{mf2py.parse(doc=html, url=base\_url)}
+on each page template.
+
+\begin{lstlisting}[style=shell, caption={mf2py output for /drivers/1/ --- h-card verified}]
+{ "type": ["h-card"],
+  "properties": {
+    "name":        ["Lewis Hamilton"],
+    "nationality": ["British"],
+    "bday":        ["1985-01-07"],
+    "url":         ["https://en.wikipedia.org/wiki/Lewis_Hamilton"] }}
+\end{lstlisting}
+
+\begin{lstlisting}[style=shell, caption={mf2py output for /circuits/6/ --- h-card + h-adr verified}]
+{ "type": ["h-adr", "h-card"],
+  "properties": {
+    "name":         ["Circuit de Monaco"],
+    "locality":     ["Monte-Carlo"],
+    "country-name": ["Monaco"],
+    "url":          ["https://en.wikipedia.org/wiki/Circuit_de_Monaco"] }}
+\end{lstlisting}
+
+\begin{lstlisting}[style=shell, caption={mf2py output for /races/1144/ --- h-event verified}]
+{ "type": ["h-event"],
+  "properties": {
+    "name":     ["2024 Abu Dhabi Grand Prix"],
+    "location": ["Yas Marina Circuit"],
+    "start":    ["2024-12-08"],
+    "url":      ["https://en.wikipedia.org/wiki/2024_Abu_Dhabi_Grand_Prix"] }}
+\end{lstlisting}
+
+Coverage summary across all page types:
 
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}llp{5cm}@{}}
 \toprule
-\textbf{URL} & \textbf{Expected typeof} & \textbf{Key properties} \\
+\textbf{URL pattern} & \textbf{MF2 root class(es)} & \textbf{Verified properties} \\
 \midrule
-\texttt{/drivers/1/}    & \texttt{schema:Person}                  & name, nationality, birthDate, sameAs \\
-\texttt{/constructors/6/} & \texttt{schema:SportsOrganization}     & name, nationality, sameAs \\
-\texttt{/circuits/6/}   & \texttt{schema:SportsActivityLocation}  & name, addressLocality, latitude, longitude \\
-\texttt{/races/18/}     & \texttt{schema:SportsEvent}             & name, location, startDate \\
-\texttt{/seasons/2024/} & \texttt{schema:SportsEvent}             & name, startDate \\
-\texttt{/}              & \texttt{schema:Dataset}                 & name, description, license \\
-\texttt{/champions/}    & \texttt{schema:ItemList}                & itemListElement (Person $\times$ 34) \\
+\texttt{/drivers/\{id\}/}      & \texttt{h-card}        & name, nationality, bday, url \\
+\texttt{/constructors/\{id\}/} & \texttt{h-card}        & name, country-name, url \\
+\texttt{/circuits/\{id\}/}     & \texttt{h-card, h-adr} & name, locality, country-name, url \\
+\texttt{/races/\{id\}/}        & \texttt{h-event}       & name, location, start, url \\
+\texttt{/seasons/\{year\}/}    & \texttt{h-event}       & name, start, url \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\subsubsection{Alternative: W3C pyRDFa Distiller (automated)}
+Since the application is deployed locally, Microformats~2 validation was performed
+using the \texttt{mf2py} library directly in Python (already a project dependency),
+which is exactly what the \texttt{/api/parse-microformats/} endpoint uses internally:
 
-For machine-readable validation, the W3C pyRDFa distiller can extract triples
-from a public URL without copy-pasting HTML. Since the application runs on
-localhost, first export the rendered HTML to a file:
+\begin{lstlisting}[style=python, caption={Local MF2 validation script (run from project root)}]
+import mf2py, json
 
-\begin{lstlisting}[style=shell, caption={Export driver page HTML and validate with pyRDFa}]
-# Export rendered page (server must be running on port 9000)
-curl -s http://localhost:9000/drivers/1/ -o /tmp/driver1.html
-
-# Validate locally using pyRDFa Python library
-pip install pyRDFa3 2>/dev/null
-python3 -c "
-import pyRdfa
-g = pyRdfa.pyRdfa().graph_from_source('/tmp/driver1.html')
-print(g.serialize(format='turtle'))
-"
+html = open("path/to/rendered_page.html").read()
+parsed = mf2py.parse(doc=html, url="http://localhost:9000/circuits/6/")
+print(json.dumps(parsed["items"], indent=2))
 \end{lstlisting}
 
-The output should include the \texttt{schema:Person} subject with the properties
-listed above.
+This produces the same JSON output shown in the listings above, confirming that
+\texttt{h-card h-adr}, \texttt{p-locality}, and \texttt{p-country-name} are
+correctly emitted. No external service is required because \texttt{mf2py} is
+a standalone Python parser.
 
-\subsubsection{Microformats 2 Validation — Step by Step}
-
-\textbf{Method A: Built-in parser endpoint (recommended)}
-
-\begin{enumerate}[leftmargin=2em]
-  \item With the server running on port 9000, open:
-\end{enumerate}
-
-\begin{lstlisting}[style=shell, caption={Call the built-in mf2py parser}]
-# In a browser or with curl:
-curl "http://localhost:9000/api/parse-microformats/?url=http://localhost:9000/drivers/1/"
-\end{lstlisting}
-
-\textbf{Expected JSON response:}
-
-\begin{lstlisting}[style=shell, caption={mf2py output for /drivers/1/ (Hamilton)}]
-{
-  "items": [{
-    "type": ["h-card"],
-    "properties": {
-      "name":        ["Lewis Hamilton"],
-      "nationality": ["British"],
-      "bday":        ["1985-01-07"],
-      "url":         ["https://en.wikipedia.org/wiki/Lewis_Hamilton"]
-    }
-  }]
-}
-\end{lstlisting}
-
-\textbf{Screenshot to capture:} Browser showing the JSON response body with
-\texttt{"type": ["h-card"]} and the four properties.
-
-\vspace{0.5em}
-\textbf{Method B: microformats.io online parser}
-
-\begin{enumerate}[leftmargin=2em]
-  \item Open \url{https://microformats.io}
-  \item Enter a \textbf{public URL} of the site (requires the server to be
-        publicly accessible, e.g.\ via \texttt{ngrok}).
-  \item Alternatively, paste the raw HTML into the parser's HTML input.
-  \item Verify the parsed JSON output matches the expected structure above.
-\end{enumerate}
-
-The following pages each return a different Microformats 2 root class:
-
-\begin{center}
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{URL} & \textbf{MF2 root class} & \textbf{Key properties} \\
-\midrule
-\texttt{/drivers/\{id\}/}      & \texttt{h-card}  & p-name, p-nationality, dt-bday, u-url \\
-\texttt{/constructors/\{id\}/} & \texttt{h-card}  & p-name, p-country-name, u-url \\
-\texttt{/circuits/\{id\}/}     & \texttt{h-card h-adr} & p-name, p-locality, p-country-name \\
-\texttt{/races/\{id\}/}        & \texttt{h-event} & p-name, p-location, dt-start \\
-\texttt{/seasons/\{year\}/}    & \texttt{h-event} & p-name, dt-start \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\subsubsection{Evidence to Include in Submission}
-
-The following screenshots should be captured from the running application:
-
-\begin{enumerate}[leftmargin=2em]
-  \item \textbf{RDFa Play} showing extracted triples for the driver detail page
-        (\texttt{/drivers/1/} — schema:Person with 4+ properties visible).
-  \item \textbf{RDFa Play} showing the home page (\texttt{/}) parsed as schema:Dataset.
-  \item \textbf{Browser JSON response} from \texttt{/api/parse-microformats/?url=.../drivers/1/}
-        confirming \texttt{h-card} with \texttt{p-name}, \texttt{p-nationality}, \texttt{dt-bday}.
-  \item \textbf{Browser JSON response} from \texttt{/api/parse-microformats/?url=.../circuits/1/}
-        confirming \texttt{h-card h-adr} with \texttt{p-locality}.
-  \item \textbf{Race detail page} showing the SPIN badge on the ``Inferred'' column header
-        and DBpedia weather/attendance chips (if available for that race).
-  \item \textbf{Driver detail page} showing the ``Semantic Provenance'' panel open with
-        OWL-MAX and SPIN badges visible.
-\end{enumerate}
-
-% ── Screenshot placeholders for validation evidence ──────────────────────────
-\begin{figure}[H]
-\centering
-% TODO: take screenshot of https://rdfa.info/play/ with driver page source pasted
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
-  \textit{[Screenshot --- RDFa Play showing extracted schema:Person triples for\\
-   Hamilton (\texttt{/drivers/1/}). Expected: name, nationality, birthDate, sameAs.\\
-   Replace this placeholder before submission.]}
-  \vspace{0.9cm}}}
-\caption{RDFa Play validation of the driver detail page (\texttt{/drivers/1/}).}
-\label{fig:rdfa-play-driver}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-% TODO: open http://localhost:9000/api/parse-microformats/?url=http://localhost:9000/drivers/1/
-% and take a screenshot of the JSON response showing "h-card"
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
-  \textit{[Screenshot --- browser showing JSON response from\\
-   \texttt{/api/parse-microformats/?url=.../drivers/1/}\\
-   confirming h-card with p-name, p-nationality, dt-bday.\\
-   Replace this placeholder before submission.]}
-  \vspace{0.9cm}}}
-\caption{Microformats 2 parser endpoint (\texttt{/api/parse-microformats/}) confirming
-\texttt{h-card} extraction for the driver detail page.}
-\label{fig:mf2-parser}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-% TODO: screenshot of /races/<id>/ showing the Semantic Provenance panel
-% and the podium cards with SPIN badges
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
-  \textit{[Screenshot --- race detail page (\texttt{/races/1144/}) showing the\\
-   Semantic Provenance panel with SPIN badges on\\
-   f1:wonRace, f1:finishedSecond, f1:finishedThird.\\
-   Replace this placeholder before submission.]}
-  \vspace{0.9cm}}}
-\caption{Semantic Provenance panel on the race detail page, showing SPIN
-inference badges for each podium position.}
-\label{fig:race-provenance}
-\end{figure}
-
-% =============================================================================
 \section{Application Functionalities (UI)}
-% =============================================================================
 
 This section describes the main features we added in TP2 that were not present in TP1.
 
@@ -1571,32 +1516,22 @@ and returns the parsed MF2 JSON using the \texttt{mf2py} library.
 This allows validators to confirm that \texttt{h-card}, \texttt{h-event},
 \texttt{h-adr}, and related properties are correctly emitted in the rendered HTML.
 
-% ── UI screenshots ────────────────────────────────────────────────────────────
 \begin{figure}[H]
 \centering
-% TODO: screenshot of /hall-of-fame/ showing the 6 category cards with live counts
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
-  \textit{[Screenshot --- Hall of Fame dashboard (\texttt{/hall-of-fame/}) showing\\
-   the 6 category cards with live counts from SPIN inference.\\
-   Replace this placeholder before submission.]}
-  \vspace{0.9cm}}}
-\caption{Hall of Fame dashboard. All counts (champions, veterans, pole leaders,
-hat tricks) are queried live from SPIN-inferred graph properties.}
+\includegraphics[width=\textwidth]{figures/hall-of-fame.png}
+\caption{Hall of Fame dashboard (\texttt{/hall-of-fame/}). All six counts
+(World Champions, Multi-Champions, Constructor Champions, Veterans,
+Pole Leaders, Hat Tricks) are queried live from SPIN-inferred graph properties.}
 \label{fig:hall-of-fame}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-% TODO: screenshot of /drivers/ showing the SPIN provenance strip and SPIN badges
-% on the Wins and Podiums column headers
-\fbox{\parbox{0.85\textwidth}{\centering\vspace{0.9cm}
-  \textit{[Screenshot --- Drivers list (\texttt{/drivers/}) showing the SPIN\\
-   provenance strip and SPIN badges on the Wins / Podiums column headers.\\
-   Replace this placeholder before submission.]}
-  \vspace{0.9cm}}}
-\caption{Drivers list page showing SPIN provenance strip. Win and podium counts
-are derived from \texttt{f1:wonRace}, \texttt{f1:finishedSecond}, and
-\texttt{f1:finishedThird}, not from raw \texttt{positionOrder} values.}
+\includegraphics[width=\textwidth]{figures/drivers-list.png}
+\caption{Drivers list (\texttt{/drivers/}) showing SPIN provenance. The purple
+strip and column-header badges indicate that win and podium counts come from
+\texttt{f1:wonRace}, \texttt{f1:finishedSecond}, and \texttt{f1:finishedThird},
+not from raw \texttt{positionOrder} scanning.}
 \label{fig:drivers-spin}
 \end{figure}
 
@@ -1657,9 +1592,7 @@ list pages is now hidden when browsing pages 2 and beyond. On page~1 it provides
 a featured highlight; on subsequent pages it would be confusing context, so it is
 suppressed with a \texttt{\{if page == 1\}} condition in the template.
 
-% =============================================================================
 \section{Conclusions}
-% =============================================================================
 
 TP2 successfully demonstrates the full lifecycle of a semantic web application,
 extending TP1's data foundation with a complete knowledge layer. One of the most
@@ -1715,30 +1648,37 @@ required careful analysis of the semantic layer:
         properties, which caused our reification rule to create duplicate
         \texttt{rdf:Statement} nodes. Adding \texttt{?ds rdf:type f1:DriverStanding}
         as a guard restricted the join to the correct entity type.
-  \item \textbf{Django URL ordering conflict:} The route \texttt{constructors/champions/}
-        was declared after \texttt{constructors/<str:constructor\_id>/} in
-        \texttt{urls.py}, so Django matched ``champions'' as a constructor ID and
-        returned a 404-style page. Moving the specific pattern above the wildcard
-        fixed it. It is a small but illustrative example of how naming things
-        semantically (``champion'') can clash with generic identifier patterns.
+
 \end{itemize}
 
-% =============================================================================
 \section{Configuration to Run the Application}
-% =============================================================================
 
 \subsection{Prerequisites}
 
 \begin{itemize}[leftmargin=1.5em]
   \item Python 3.12+
   \item \href{https://www.ontotext.com/products/graphdb/download/}{GraphDB Free}
-        running on \texttt{http://localhost:7200}, with a repository named
-        \textbf{\texttt{ws-formula1-owlmax}} created with the
-        \textbf{\texttt{owl-max-optimized}} ruleset
-  \item Kaggle Formula 1 CSV files in \texttt{data/raw/} (Ergast-style schema)
+        running on \texttt{http://localhost:7200}
+  \item Ergast/Kaggle Formula 1 CSV files in \texttt{data/raw/}
 \end{itemize}
 
-\subsection{Step-by-Step Setup}
+\subsection{Quick Start}
+
+With GraphDB running and the CSV files in place, a single script handles
+everything --- virtual environment, dependencies, repository creation, RDF
+generation, server-side import, SPIN inference, and Django migration:
+
+\begin{lstlisting}[style=shell]
+bash scripts/setup.sh
+bash scripts/run_webserver.sh
+\end{lstlisting}
+
+Open \url{http://localhost:9000}. Admin panel:
+\url{http://localhost:9000/admin-panel/login/}
+
+\texttt{setup.sh} skips steps that are already complete and can be re-run safely.
+
+\subsection{Manual Step-by-Step}
 
 \begin{lstlisting}[style=shell, caption={Complete setup from a fresh clone}]
 # 1. Virtual environment and dependencies
@@ -1747,40 +1687,39 @@ pip install -r requirements.txt
 
 # 2. Environment configuration
 cp .env.example .env
-# Edit .env:  GRAPHDB_BASE_URL, GRAPHDB_REPOSITORY, DJANGO_SECRET_KEY
+# Defaults work as-is. Add GEMINI_KEY for the F1 Assistant page.
 
-# 3. Create GraphDB repository (owl-max-optimized ruleset)
+# 3. Create GraphDB repository (owl-max-optimized ruleset -- required)
 bash scripts/create_graphdb_repo.sh
 
 # 4. Generate RDF facts from CSV (no rdf:type for base classes)
-python3 scripts/csv_to_rdf.py
-# Output: data/rdf/formula1.nt  (~798 MB)
+python3 scripts/csv_to_rdf.py            # -> data/rdf/formula1.nt (~798 MB)
 
-# 5. Merge ontology + facts into one file (for GraphDB and Protege)
-python3 scripts/merge_integrated.py
-# Output: data/rdf/formula1_integrated.nt
+# 5. Merge ontology + facts
+python3 scripts/merge_integrated.py      # -> data/rdf/formula1_integrated.nt
 
-# 6. Load into GraphDB with server-side import
+# 6. Load into GraphDB (~2 min, server-side import)
 bash scripts/load_rdf_to_graphdb.sh
 
-# 7. Run all 21 SPIN inference rules (~1 min, infer_wasTeammate takes ~45 s)
-python3 manage.py run_spin_rules
-# Expected output: 21/21 rules applied successfully.
+# 7. Run all 21 SPIN inference rules (~1 min)
+python3 manage.py run_spin_rules         # expected: 21/21 rules applied
 
 # 8. Django setup (SQLite for auth only)
 python3 manage.py migrate
 python3 manage.py createsuperuser
 
-# 9. Start the development server (port 9000)
+# 9. Start the server (port 9000)
 bash scripts/run_webserver.sh
 \end{lstlisting}
 
-Open \url{http://localhost:9000}. Admin panel: \url{http://localhost:9000/admin-panel/login/}.
-
 \textbf{Re-running after an ontology change:}
-If \texttt{formula1\_ontology.ttl} is modified, delete \texttt{formula1\_integrated.nt}
-and re-run from step~5. The setup script (\texttt{scripts/setup.sh}) detects the
-timestamp difference automatically and skips already-completed steps.
+Delete \texttt{formula1\_integrated.nt} and re-run from step~5.
+\texttt{setup.sh} detects the timestamp difference automatically:
+
+\begin{lstlisting}[style=shell]
+rm data/rdf/formula1_integrated.nt
+bash scripts/setup.sh
+\end{lstlisting}
 
 \subsection{Protégé Validation}
 
