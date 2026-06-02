@@ -18,6 +18,11 @@ bash scripts/run_webserver.sh
 
 Open **`http://localhost:9000`**. Admin panel: `http://localhost:9000/admin-panel/login/`
 
+| | |
+|---|---|
+| **Username** | `admin` |
+| **Password** | `admin` |
+
 `setup.sh` handles everything: virtual environment, dependencies, GraphDB repository creation, RDF generation, load, and SPIN inference. It skips steps that are already complete and can be re-run safely.
 
 ---

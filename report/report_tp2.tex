@@ -1673,8 +1673,23 @@ bash scripts/setup.sh
 bash scripts/run_webserver.sh
 \end{lstlisting}
 
-Open \url{http://localhost:9000}. Admin panel:
+Open \url{http://localhost:9000}. The admin panel is at
 \url{http://localhost:9000/admin-panel/login/}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Field} & \textbf{Value} \\
+\midrule
+Username & \texttt{admin} \\
+Password & \texttt{admin} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These credentials are set by the \texttt{DJANGO\_SUPERUSER\_USERNAME} and
+\texttt{DJANGO\_SUPERUSER\_PASSWORD} variables in \texttt{.env} and created
+automatically by \texttt{setup.sh} on first run.
 
 \texttt{setup.sh} skips steps that are already complete and can be re-run safely.
 

@@ -138,8 +138,11 @@ python manage.py migrate --run-syncdb 2>/dev/null || python manage.py migrate
 ok "Database migrated."
 
 if ! python manage.py shell -c "from django.contrib.auth.models import User; exit(0 if User.objects.filter(is_staff=True).exists() else 1)" 2>/dev/null; then
-  info "No staff user found. Creating superuser for the admin panel..."
-  python manage.py createsuperuser
+  info "Creating default admin user (username: ${DJANGO_SUPERUSER_USERNAME:-admin})..."
+  DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}" \
+  DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}" \
+  DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@f1.local}" \
+  python manage.py createsuperuser --noinput 2>/dev/null && ok "Admin user created." || ok "Admin user already exists."
 fi
 
 echo ""
