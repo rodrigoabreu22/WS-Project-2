@@ -1659,7 +1659,14 @@ required careful analysis of the semantic layer:
   \item Python 3.12+
   \item \href{https://www.ontotext.com/products/graphdb/download/}{GraphDB Free}
         running on \texttt{http://localhost:7200}
-  \item Ergast/Kaggle Formula 1 CSV files in \texttt{data/raw/}
+  \item Formula 1 dataset CSV files in \texttt{data/raw/} --- download from Kaggle:
+        \begin{center}
+          \url{https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020}
+        \end{center}
+        Extract the archive and place all \texttt{.csv} files directly in
+        \texttt{data/raw/} (13 files: \texttt{circuits.csv}, \texttt{drivers.csv},
+        \texttt{races.csv}, \texttt{results.csv}, etc.).
+        The dataset follows the Ergast API schema and is updated after each season.
 \end{itemize}
 
 \subsection{Quick Start}

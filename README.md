@@ -9,7 +9,7 @@ A semantic web application exposing the Formula 1 World Championship (1950–202
 
 ## Quick Start
 
-Ensure GraphDB is running at `http://localhost:7200` and Ergast-style CSV files are in `data/raw/`, then:
+Ensure GraphDB is running at `http://localhost:7200` and the dataset CSV files are in `data/raw/` (see [Dataset](#dataset) below), then:
 
 ```bash
 bash scripts/setup.sh
@@ -42,6 +42,7 @@ cp .env.example .env
 bash scripts/create_graphdb_repo.sh
 
 # 4. Generate RDF facts from CSV
+# Requires Kaggle dataset CSVs in data/raw/ — see README ## Dataset
 python3 scripts/csv_to_rdf.py            # → data/rdf/formula1.nt (~798 MB)
 
 # 5. Merge ontology + facts
@@ -75,6 +76,35 @@ All 21 SPIN rules are idempotent and can be re-run at any time:
 ```bash
 python manage.py run_spin_rules
 ```
+
+---
+
+## Dataset
+
+The application uses the **Formula 1 World Championship (1950–2024)** dataset by Rohan Rao, available on Kaggle:
+
+**Download:** <https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020>
+
+After downloading, extract the CSV files and place them in `data/raw/`:
+
+```
+data/raw/
+  circuits.csv
+  constructor_results.csv
+  constructors.csv
+  constructor_standings.csv
+  drivers.csv
+  lap_times.csv
+  pit_stops.csv
+  qualifying.csv
+  races.csv
+  results.csv
+  seasons.csv
+  sprint_results.csv
+  status.csv
+```
+
+The dataset follows the [Ergast API](http://ergast.com/mrd/) schema and is updated after each season. Once the files are in place, `scripts/csv_to_rdf.py` converts them to N-Triples (`data/rdf/formula1.nt`, ~798 MB).
 
 ---
 
